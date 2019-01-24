@@ -1,0 +1,3 @@
+
+class ClusterException(Exception):
+    pass

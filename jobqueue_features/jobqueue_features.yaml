@@ -1,0 +1,96 @@
+jobqueue:
+  # JURECA general configuration
+  slurm:
+    name: dask-worker
+
+    # Dask worker options
+    cores: 24                 # Total number of cores per job, 24 physical on JURECA, 48 hyper-threaded, minimum
+                              # allocation one node
+    memory: 125GB             # Total amount of memory per job, it's 128GiB but leave some for OS
+    processes: 1              # Number of Python processes per job
+
+    interface: ib0            # Network interface to use like eth0 or ib0
+    death-timeout: 15         # Number of seconds to wait if a worker can not find a scheduler
+    local-directory: /tmp     # Location of fast local storage like /scratch or $TMPDIR
+
+    # SLURM resource manager options
+    shebang: "#!/usr/bin/env bash"
+    queue: batch
+    # project: null
+    walltime: '00:30:00'
+    extra: []
+    env-extra: []
+    job-cpu: null
+    job-mem: null
+    job-extra: []
+    log-directory: null
+
+jobqueue-features:
+  scheduler: slurm
+
+  slurm:
+    default-queue-type: batch       # default queue_type to use
+    cores-per-node: 24              # Physical cores per node
+    hyperthreading-factor: 2        # hyperthreading factor available (only used to trigger a warning if we go beyond
+                                    # physical or an error if we go beyond logical cores)
+    minimum-cores: 24               # Minimum number of cores per dask worker is 1 full node (ignored in MPI mode)
+    gpu-job-extra: []               # Only relevant for particular queue_type
+    warning: null
+    
+    # MPI/OpenMP related settings ----
+    mpi-mode: False                 # MPI mode is off by default
+    mpi-launcher: srun              # Default launcher for MPI code (unused unless in MPI mode)
+    nodes: null                     # Default node allocation (unused unless in MPI mode, setting a value forces user to
+                                    # use ntasks_per_node and cpus_per_task)
+    ntasks-per-node: 24             # Default tasks per node (unused unless in MPI mode)
+    # cpus-per-task: 1                # Default cpus per task (unused unless in MPI mode, if default is 1 better not to
+    #                                 # set it since we can safely assume that already)
+    openmp-env-extra: ['export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}', 'export OMP_PROC_BIND=spread',
+                       'export OMP_PLACES=threads']
+
+    queue-type:
+      batch:
+        name: dask-worker-batch
+
+      gpus:
+        name: dask-worker-gpus
+        queue: gpus
+        gpu-job-extra: ['--gres=gpu:4']
+        warning: "Each worker has access to 4 GPUs, don't waste them"
+
+      knl:
+        name: dask-worker-knl
+        queue: booster
+        cores: 64                   # Actual is 68 but reserve some for OS
+        minimum-cores: 64
+        cores-per-node: 64
+        memory: 93GB
+        ntasks-per-node: 64
+        hyperthreading-factor: 4    # hyperthreading factor available for KNL
+        warning: "KNL workers must be started from within a running job (i.e., not from front end nodes)"
+
+      mem256:
+        name: dask-worker-mem256
+        queue: mem256
+        memory: 253GB
+        warning: "There are only 128 nodes of mem256 type, only use this category if you really need to"
+
+      mem512:
+        name: dask-worker-mem512
+        queue: mem512
+        memory: 509GB
+        warning: "There are only 64 nodes of mem512 type, if you don't need so much memory use mem256 instead"
+
+      vis:
+        name: dask-worker-vis
+        queue: vis
+        memory: 509GB
+        gpu-job-extra: ['--gres=gpu:2']
+        warning: "Each vis worker has access to 2 GPUs, if you don't need them use mem512 instead"
+
+      mem1024:
+        name: dask-worker-mem1024
+        queue: mem1024
+        memory: 1021GB
+        gpu-job-extra: ['--gres=gpu:2']
+        warning: "There are only 2 nodes of mem1024 type, only use this category if you really need to"
