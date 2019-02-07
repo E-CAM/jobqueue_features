@@ -19,7 +19,7 @@ class TestMPIWrap(TestCase):
     def setUp(self):
         self.number_of_processes = 4
         self.local_cluster = LocalCluster()
-        self.script_path = os.path.join('../../examples', 'resources',
+        self.script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'examples', 'resources',
                                         'helloworld.py')
 
         @mpi_task(cluster_id='test', default_mpi_tasks=4)
