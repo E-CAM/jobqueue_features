@@ -28,7 +28,7 @@ def mpi_wrap_task(**kwargs):
 @on_cluster(cluster=custom_cluster,
             cluster_id='mpiCluster')
 def main():
-    script_path = os.path.join(os.getcwd(), 'resources', 'helloworld.py')
+    script_path = os.path.join(os.path.dirname(__file__), 'resources', 'helloworld.py')
     t = mpi_wrap_task(executable='python', exec_args=script_path)
     print(t.result()['out'])
     print(t.result()['err'])
