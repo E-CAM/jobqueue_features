@@ -83,7 +83,7 @@ OPS_cluster = CustomSLURMCluster(
 @on_cluster(cluster=GROMACS_gpu_cluster, cluster_id='GROMACS_gpu_cluster', scale=10)
 @mpi_task(cluster_id='GROMACS_gpu_cluster')
 def run_mpi_gpu(**kwargs):
-    script_path = os.path.join(os.path.dirname(__file__), 'resources', 'helloworld2.py')
+    script_path = os.path.join(os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), 'resources', 'helloworld2.py')
     t = mpi_wrap(pre_launcher_opts='time -f "%e"', executable='python', exec_args=script_path, **kwargs)
     return t
 
@@ -91,7 +91,7 @@ def run_mpi_gpu(**kwargs):
 @on_cluster(cluster=GROMACS_knl_cluster, cluster_id='GROMACS_knl_cluster')
 @mpi_task(cluster_id='GROMACS_knl_cluster')
 def run_mpi_knl(**kwargs):
-    script_path = os.path.join(os.path.dirname(__file__), 'resources', 'helloworld2.py')
+    script_path = os.path.join(os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), 'resources', 'helloworld2.py')
     t = mpi_wrap(pre_launcher_opts='time -f "%e"', executable='python', exec_args=script_path, **kwargs)
     return t
 
@@ -99,7 +99,7 @@ def run_mpi_knl(**kwargs):
 @on_cluster(cluster=GROMACS_cluster, cluster_id='GROMACS_cluster')
 @mpi_task(cluster_id='GROMACS_cluster')
 def run_mpi(**kwargs):
-    script_path = os.path.join(os.path.dirname(__file__), 'resources', 'helloworld2.py')
+    script_path = os.path.join(os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), 'resources', 'helloworld2.py')
     t = mpi_wrap(pre_launcher_opts='time -f "%e"', executable='python', exec_args=script_path, **kwargs)
     return t
 
