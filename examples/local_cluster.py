@@ -23,7 +23,7 @@ def main():
     print([t.result() for t in sq_tasks])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start = time.time()
     main()
-    print('Executed in {}'.format(time.time() - start))
+    print("Executed in {}".format(time.time() - start))

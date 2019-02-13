@@ -7,6 +7,6 @@ from .functions import set_default_cluster
 from .mpi_wrapper import mpi_wrap, MPIEXEC, SRUN
 
 from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
 
+__version__ = get_versions()["version"]
+del get_versions

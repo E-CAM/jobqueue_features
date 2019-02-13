@@ -11,7 +11,7 @@ from .mpi_wrapper import MPIEXEC
 
 
 def _get_workers_number(client):
-    return len(client._scheduler_identity.get('workers', {}))
+    return len(client._scheduler_identity.get("workers", {}))
 
 
 class on_cluster(object):
@@ -31,20 +31,34 @@ class on_cluster(object):
         # type: (str, ClusterType, int) -> None
         try:
             self.cluster, client = clusters_controller_singleton.get_cluster(
-                id_=cluster_id)  # type: ClusterType
+                id_=cluster_id
+            )  # type: ClusterType
         except ClusterException:
             self.cluster, client = clusters_controller_singleton.add_cluster(
-                id_=cluster_id, cluster=cluster)  # type: ClusterType
+                id_=cluster_id, cluster=cluster
+            )  # type: ClusterType
         if type(self.cluster) is not LocalCluster:
             if scale is not None:
                 # If the kwarg 'scale' has been used in the decorator call we adaptively scale up to that many workers
                 if scale > self.cluster.maximum_scale:
-                    print("Scaling cluster {cluster_id} to {scale} exceeds default maximum workers "
-                          "({maximum_scale})".format(cluster_id=cluster_id, scale=scale,
-                                                     maximum_scale=self.cluster.maximum_scale))
-                    self.cluster.adapt(minimum=0, maximum=scale, wait_count=10, interval="6s")
+                    print(
+                        "Scaling cluster {cluster_id} to {scale} exceeds default maximum workers "
+                        "({maximum_scale})".format(
+                            cluster_id=cluster_id,
+                            scale=scale,
+                            maximum_scale=self.cluster.maximum_scale,
+                        )
+                    )
+                    self.cluster.adapt(
+                        minimum=0, maximum=scale, wait_count=10, interval="6s"
+                    )
                 else:
-                    self.cluster.adapt(minimum=0, maximum=self.cluster.maximum_scale, wait_count=10, interval="6s")
+                    self.cluster.adapt(
+                        minimum=0,
+                        maximum=self.cluster.maximum_scale,
+                        wait_count=10,
+                        interval="6s",
+                    )
                 # We immediately start up `scale` workers rather than wait for adapt to kick in
                 # the `wait_count`*`interval` should keep them from shutting down too fast (allows 1 minute idle)
                 self.cluster.scale(scale)
@@ -52,12 +66,12 @@ class on_cluster(object):
                 # Otherwise we adaptively scale to the maximum number of workers
                 self.cluster.adapt(minimum=0, maximum=self.cluster.maximum_scale)
 
-
     def __call__(self, f):
         # type: (Callable) -> Callable
         @wraps(f)
         def wrapped_function(*args):
             return f(*args)
+
         return wrapped_function
 
 
@@ -69,6 +83,7 @@ class task(object):
     cluster_id : str
         Gets client of given cluster by id or 'default' if none given.
     """
+
     def __init__(self, cluster_id=None):
         # type: (str) -> None
         self.cluster_id = cluster_id
@@ -79,23 +94,21 @@ class task(object):
         def wrapped_f(*args, **kwargs):  # type: (...) -> Future
             cluster, client = self._get_cluster_and_client()
             return self._submit(cluster, client, f, *args, **kwargs)
+
         return wrapped_f
 
     def _get_cluster_and_client(self):
         try:
-            return clusters_controller_singleton.get_cluster(
-                id_=self.cluster_id)
+            return clusters_controller_singleton.get_cluster(id_=self.cluster_id)
         except KeyError:
             raise ClusterException(
-                'Could not find Cluster or Client. '
-                'Use @on_cluster() decorator.')
+                "Could not find Cluster or Client. " "Use @on_cluster() decorator."
+            )
 
     def _submit(self, cluster, client, f, *args, **kwargs):
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
         # For normal tasks, we maintain the Dask default that functions are pure (by default)
-        kwargs.update({
-            'pure': getattr(cluster, 'pure', getattr(kwargs, 'pure', True)),
-        })
+        kwargs.update({"pure": getattr(cluster, "pure", getattr(kwargs, "pure", True))})
         return client.submit(f, *args, **kwargs)
 
 
@@ -108,15 +121,27 @@ class mpi_task(task):
 
     def _submit(self, cluster, client, f, *args, **kwargs):
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
-        kwargs.update({
-            'mpi_launcher': getattr(cluster, 'mpi_launcher', getattr(kwargs, 'mpi_launcher', MPIEXEC)),
-            'mpi_tasks': getattr(cluster, 'mpi_tasks', getattr(kwargs, 'mpi_tasks', self.default_mpi_tasks)),
-            'nodes': getattr(cluster, 'nodes', getattr(kwargs, 'nodes', None)),
-            'cpus_per_task': getattr(cluster, 'cpus_per_task', getattr(kwargs, 'cpus_per_task', None)),
-            'ntasks_per_node': getattr(cluster, 'ntasks_per_node', getattr(kwargs, 'ntasks_per_node', None)),
-        })
+        kwargs.update(
+            {
+                "mpi_launcher": getattr(
+                    cluster, "mpi_launcher", getattr(kwargs, "mpi_launcher", MPIEXEC)
+                ),
+                "mpi_tasks": getattr(
+                    cluster,
+                    "mpi_tasks",
+                    getattr(kwargs, "mpi_tasks", self.default_mpi_tasks),
+                ),
+                "nodes": getattr(cluster, "nodes", getattr(kwargs, "nodes", None)),
+                "cpus_per_task": getattr(
+                    cluster, "cpus_per_task", getattr(kwargs, "cpus_per_task", None)
+                ),
+                "ntasks_per_node": getattr(
+                    cluster, "ntasks_per_node", getattr(kwargs, "ntasks_per_node", None)
+                ),
+            }
+        )
         # For MPI tasks, since we are forking a process let's assume functions are not pure (by default)
-        kwargs.update({
-            'pure': getattr(cluster, 'pure', getattr(kwargs, 'pure', False)),
-        })
+        kwargs.update(
+            {"pure": getattr(cluster, "pure", getattr(kwargs, "pure", False))}
+        )
         return super(mpi_task, self)._submit(cluster, client, f, *args, **kwargs)

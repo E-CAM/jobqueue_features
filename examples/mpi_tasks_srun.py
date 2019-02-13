@@ -15,24 +15,23 @@ from jobqueue_features.functions import set_default_cluster
 set_default_cluster(CustomSLURMCluster)
 
 custom_cluster = CustomSLURMCluster(
-    name='mpiCluster', walltime='00:04:00', nodes=2, mpi_mode=True, queue_type='gpus'
+    name="mpiCluster", walltime="00:04:00", nodes=2, mpi_mode=True, queue_type="gpus"
 )
 
 
-@mpi_task(cluster_id='mpiCluster')
+@mpi_task(cluster_id="mpiCluster")
 def mpi_wrap_task(**kwargs):
     return mpi_wrap(**kwargs)
 
 
 # @on_cluster()  # LocalCluster
-@on_cluster(cluster=custom_cluster,
-            cluster_id='mpiCluster')
+@on_cluster(cluster=custom_cluster, cluster_id="mpiCluster")
 def main():
-    script_path = os.path.join(os.path.dirname(__file__), 'resources', 'helloworld.py')
-    t = mpi_wrap_task(executable='python', exec_args=script_path)
-    print(t.result()['out'])
-    print(t.result()['err'])
+    script_path = os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
+    t = mpi_wrap_task(executable="python", exec_args=script_path)
+    print(t.result()["out"])
+    print(t.result()["err"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
