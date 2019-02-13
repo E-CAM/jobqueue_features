@@ -1,0 +1,5 @@
+dask>=0.18.1
+distributed>=1.22.0
+dask_jobqueue>=0.4.1
+typing
+pytest-cov
