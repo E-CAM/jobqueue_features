@@ -67,7 +67,7 @@ class TestMPIWrap(TestCase):
                     mpi_tasks=self.number_of_processes,
                 )
             self.assertTrue(
-                "OS error caused by constructed command" in context.exception.message
+                "OS error caused by constructed command" in str(context.exception)
             )
         else:
             pass

@@ -38,7 +38,7 @@ class TestClusters(TestCase):
             get_cluster(queue_type="chicken", **self.kwargs)
         self.assertIn(
             "queue_type kwarg value 'chicken' not in available options",
-            context.exception.message,
+            str(context.exception),
         )
 
     def test_mpi_job_cluster(self):
