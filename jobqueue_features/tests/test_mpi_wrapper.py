@@ -47,6 +47,7 @@ class TestMPIWrap(TestCase):
     def test_mpi_wrap(self):
         # Assume here we have mpiexec support
         if which(MPIEXEC) is not None:
+            print("Found {}, running MPI test".format(MPIEXEC))
             result = self.test_function(self.script_path)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
