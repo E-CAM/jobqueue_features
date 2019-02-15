@@ -47,18 +47,24 @@ class TestMPIWrap(TestCase):
     def test_mpi_wrap(self):
         # Assume here we have mpiexec support
         if which(MPIEXEC) is not None:
+            print("Found {}, running MPI test".format(MPIEXEC))
             result = self.test_function(self.script_path)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes
                 )
-                self.assertIn(text, result)
+                self.assertIn(text.encode(), result)
         else:
             pass
 
     # Test the MPI wrapper in isolation for srun (which we assume doesn't exist):
     def test_mpi_srun_wrapper(self):
         if which(SRUN) is None:
+            print(
+                "Didn't find {}, running OSError test for no available launcher".format(
+                    SRUN
+                )
+            )
             with self.assertRaises(OSError) as context:
                 mpi_wrap(
                     executable="python",
