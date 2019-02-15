@@ -60,6 +60,11 @@ class TestMPIWrap(TestCase):
     # Test the MPI wrapper in isolation for srun (which we assume doesn't exist):
     def test_mpi_srun_wrapper(self):
         if which(SRUN) is None:
+            print(
+                "Didn't find {}, running OSError test for no available launcher".format(
+                    SRUN
+                )
+            )
             with self.assertRaises(OSError) as context:
                 mpi_wrap(
                     executable="python",
