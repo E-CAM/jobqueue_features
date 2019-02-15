@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Parallel Hello World
-Requires mpi4py library (suprise)
+Requires mpi4py library (surprise)
 """
 
 from mpi4py import MPI
