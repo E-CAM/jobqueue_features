@@ -14,7 +14,8 @@ class TestDecorators(TestCase):
         @on_cluster()
         @task()
         def example_function():
-            return 'test'
+            return "test"
+
         self.function = example_function
 
     def tearDown(self):
@@ -28,12 +29,13 @@ class TestDecorators(TestCase):
     def test_call(self):
         r = self.function()
         self.assertIsInstance(r, Future)
-        self.assertEqual(r.result(), 'test')
+        self.assertEqual(r.result(), "test")
 
     def test_bad_task(self):
         with self.assertRaises(ClusterException):
-            @task(cluster_id='bad_ID')
+
+            @task(cluster_id="bad_ID")
             def bad_function():
-                return 'test'
+                return "test"
 
             bad_function()

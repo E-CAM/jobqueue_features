@@ -20,10 +20,10 @@ def mpi_wrap_task(**kwargs):
 
 @on_cluster()
 def main():
-    script_path = os.path.join(os.path.dirname(__file__), 'resources', 'helloworld.py')
-    t = mpi_wrap_task(executable='python', exec_args=script_path, mpi_launcher=MPIEXEC)
+    script_path = os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
+    t = mpi_wrap_task(executable="python", exec_args=script_path, mpi_launcher=MPIEXEC)
     print(t.result())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
