@@ -52,7 +52,7 @@ class TestMPIWrap(TestCase):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes
                 )
-                self.assertIn(text, result)
+                self.assertIn(text.encode(), result)
         else:
             pass
 

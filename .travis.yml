@@ -2,10 +2,19 @@ language: python
 python:
   - "2.7"
   - "3.6"
-#  - "3.7"
+  - "3.7"
+
+os: linux
+dist: xenial
+sudo: required
+
 # command to install dependencies
 install:
   - pip install -r requirements.txt
+  # Enable running MPI tests
+  - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
+  - pip install mpi4py
+
 # command to run tests
 script:
   - pytest
