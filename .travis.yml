@@ -19,7 +19,7 @@ install:
   - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
   - pip install mpi4py
   # Use black for style checking (Python3 only)
-  - if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
+  - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
       echo installing black for Python $TRAVIS_PYTHON_VERSION;
       pip install black;
     else
@@ -37,7 +37,7 @@ jobs:
     - stage: test
     - stage: spelling
       script: 
-        - if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
+        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
             black --check .;
           else
             echo Python is $TRAVIS_PYTHON_VERSION so not using black;
