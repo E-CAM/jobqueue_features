@@ -23,7 +23,7 @@ install:
       echo installing black for Python $TRAVIS_PYTHON_VERSION;
       pip install black;
     else
-      echo Python is python2 so not using black;
+      echo Python is $TRAVIS_PYTHON_VERSION so not using black;
     fi
   # Use codespell for spell checking
   - pip install codespell
@@ -38,7 +38,7 @@ jobs:
         - if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
             black --check .;
           else
-            echo Python is python2 so not using black;
+            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
           fi
     - stage: style
       script: codespell --quiet-level=2
