@@ -17,10 +17,10 @@ install:
   # Use black for style checking (Python3 only)
   - echo "TRAVIS_PYTHON_VERSION: $TRAVIS_PYTHON_VERSION"
   - if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
-      echo installing black;
+      echo installing black for Python $TRAVIS_PYTHON_VERSION;
       pip install black;
     else
-      echo nope;
+      echo Python is python2 so not using black;
     fi
   # Use codespell for spell checking
   - pip install codespell
@@ -32,11 +32,10 @@ jobs:
       script: pytest -s --cov=jobqueue_features
     - stage: spelling
       script: 
-        - echo "TRAVIS_PYTHON_VERSION: $TRAVIS_PYTHON_VERSION"
         - if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
             black --check .;
           else
-            echo nope;
+            echo Python is python2 so not using black;
           fi
     - stage: style
       script: codespell --quiet-level=2
