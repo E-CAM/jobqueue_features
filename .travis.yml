@@ -14,7 +14,28 @@ install:
   # Enable running MPI tests
   - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
   - pip install mpi4py
+  # Use black for style checking (Python3 only)
+    # black only available for python 3
+  - echo "TRAVIS_PYTHON_VERSION: $TRAVIS_PYTHON_VERSION";
+    if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
+      echo installing black;
+      pip install black;
+    else
+      echo nope;
+    fi
+  # Use codespell for spell checking
+  - pip install codespell
 
 # command to run tests
-script:
-  - pytest -s --cov=jobqueue_features
+- stage: test
+  script: pytest -s --cov=jobqueue_features
+- stage: spelling
+  script: 
+  - echo "TRAVIS_PYTHON_VERSION: $TRAVIS_PYTHON_VERSION";
+    if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
+      black --check .;
+    else
+      echo nope;
+    fi
+- stage: style
+  script: codespell --quiet-level=2
