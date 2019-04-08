@@ -35,12 +35,12 @@ script:
 jobs:
   include:
     - stage: test
-    - stage: spelling
+    - stage: style
       script: 
         - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
             black --check .;
           else
             echo Python is $TRAVIS_PYTHON_VERSION so not using black;
           fi
-    - stage: style
+    - stage: spelling
       script: codespell --quiet-level=2
