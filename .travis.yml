@@ -8,6 +8,10 @@ os: linux
 dist: xenial
 sudo: required
 
+branches:
+  only:
+  - master
+
 # command to install dependencies
 install:
   - pip install -r requirements.txt
@@ -18,3 +22,31 @@ install:
 # command to run tests
 script:
   - pytest -s --cov=jobqueue_features
+
+jobs:
+  include:
+    - stage: style
+      python:
+        - "3.7"
+      # Use black for style checking (Python3 only)
+      install:
+        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
+            echo installing black for Python $TRAVIS_PYTHON_VERSION;
+            pip install black;
+          else
+            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
+          fi
+      script: 
+        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
+            black --check .;
+          else
+            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
+          fi
+
+    - stage: spelling
+      python:
+        - "3.7"
+      # Use codespell for spell checking
+      install:
+        pip install codespell
+      script: codespell --quiet-level=2
