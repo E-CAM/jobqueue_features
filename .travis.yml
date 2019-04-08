@@ -8,6 +8,10 @@ os: linux
 dist: xenial
 sudo: required
 
+branches:
+  only:
+  - master
+
 # command to install dependencies
 install:
   - pip install -r requirements.txt
