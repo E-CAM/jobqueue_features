@@ -1,8 +1,8 @@
 language: python
 python:
+  - "2.7"
   - "3.6"
   - "3.7"
-  - "2.7"
 
 os: linux
 dist: xenial
@@ -19,13 +19,15 @@ install:
   - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
   - pip install mpi4py
 
+# command to run tests
 script:
   - pytest -s --cov=jobqueue_features
 
-# command to run tests
 jobs:
   include:
     - stage: style
+      python:
+        - "3.7"
       # Use black for style checking (Python3 only)
       install:
         - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
@@ -40,7 +42,10 @@ jobs:
           else
             echo Python is $TRAVIS_PYTHON_VERSION so not using black;
           fi
+
     - stage: spelling
+      python:
+        - "3.7"
       # Use codespell for spell checking
       install:
         pip install codespell
