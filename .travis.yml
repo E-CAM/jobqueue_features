@@ -28,11 +28,13 @@ install:
   # Use codespell for spell checking
   - pip install codespell
 
+script:
+  - pytest -s --cov=jobqueue_features
+
 # command to run tests
 jobs:
   include:
     - stage: test
-      script: pytest -s --cov=jobqueue_features
     - stage: spelling
       script: 
         - if [[ "$TRAVIS_PYTHON_VERSION" =~ "^[3-9].+" ]]; then
