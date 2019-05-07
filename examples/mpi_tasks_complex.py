@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import sys
 
 import numpy as np
 
@@ -11,179 +12,179 @@ from jobqueue_features.functions import set_default_cluster
 # import logging
 # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
+HSW = True
+KNL = True
+GPU = True
+
+
 set_default_cluster(CustomSLURMCluster)
 
-GROMACS_gpu_cluster = CustomSLURMCluster(
-    name="GROMACS_gpu_cluster",
-    walltime="00:15:00",
-    nodes=2,
-    mpi_mode=True,
-    queue_type="gpus",
-    maximum_scale=5,
-    env_extra=[
-        "module --force purge",
-        "module use /usr/local/software/jureca/OtherStages",
-        "module load Stages/Devel-2018b",
-        "module load Intel/2019.0.117-GCC-7.3.0",
-        "module load ParaStationMPI/5.2.1-1",
-        "module load GROMACS/2018.3",  # Load this before Dask as it (unnecessarily) depends on Python2 via Boost
-        "module load GPUtil/1.3.0-Python-2.7.15",  # Only required for our hello_world2.py example
-        "module load Dask/Nov2018Bundle-Python-2.7.15",  # or Dask/Nov2018Bundle-Python-3.6.6
-    ],
-)
-
-GROMACS_knl_cluster = CustomSLURMCluster(
-    name="GROMACS_knl_cluster",
-    walltime="00:15:00",
-    nodes=4,
-    mpi_mode=True,
-    maximum_scale=10,
-    queue_type="knl",
-    python="python",
-    env_extra=[
-        "module --force purge",
-        "unset SOFTWAREROOT",
-        "module use /usr/local/software/jurecabooster/OtherStages",
-        "module load Stages/Devel-2018b",
-        "module load Intel/2019.0.117-GCC-7.3.0",
-        "module load IntelMPI/2019.0.117",  # MUST use IntelMPI (don't know why yet)
-        "module load GROMACS/2018.3",  # Load this before Dask as it (unnecessarily) depends on Python2 via Boost
-        "module load Dask/Nov2018Bundle-Python-2.7.15",  # or Dask/Nov2018Bundle-Python-3.6.6
-    ],
-)
-
-GROMACS_cluster = CustomSLURMCluster(
-    name="GROMACS_cluster",
-    walltime="00:15:00",
-    nodes=2,
-    mpi_mode=True,
-    maximum_scale=10,
-    env_extra=[
-        "module --force purge",
-        "module use /usr/local/software/jureca/OtherStages",
-        "module load Stages/Devel-2018b",
-        "module load Intel/2019.0.117-GCC-7.3.0",
-        "module load ParaStationMPI/5.2.1-1",
-        "module load GROMACS/2018.3",  # Load this before Dask as it (unnecessarily) depends on Python2 via Boost
-        "module load GPUtil/1.3.0-Python-2.7.15",  # Only required for our hello_world2.py example
-        "module load Dask/Nov2018Bundle-Python-2.7.15",  # or Dask/Nov2018Bundle-Python-3.6.6
-    ],
-)
-
-openmm_gpu_cluster = CustomSLURMCluster(
-    name="openmm_gpu_cluster",
-    walltime="00:15:00",
-    queue_type="gpus",
-    maximum_scale=10,
-    env_extra=[
-        "module --force purge",
-        "module use /usr/local/software/jureca/OtherStages",
-        "module load Stages/Devel-2018b",
-        "module load Intel/2019.0.117-GCC-7.3.0",
-        "module load ParaStationMPI/5.2.1-1",
-        "module load Dask/Nov2018Bundle-Python-2.7.15",
-        "module load Miniconda2/4.5.11",  # Give full OPS environment (Python2)
-    ],
-)
-
-OPS_cluster = CustomSLURMCluster(
-    name="OPS_cluster",
-    walltime="00:15:00",
-    maximum_scale=10,
-    env_extra=[
-        "module --force purge",
-        "module use /usr/local/software/jureca/OtherStages",
-        "module load Stages/Devel-2018b",
-        "module load Intel/2019.0.117-GCC-7.3.0",
-        "module load ParaStationMPI/5.2.1-1",
-        "module load Dask/Nov2018Bundle-Python-2.7.15",
-        "module load Miniconda2/4.5.11",  # Give full OPS environment (Python2)
-    ],
-)
-
-
-# Need to give functions a dummy argument otherwise dask is too clever and only executes the task once
-@on_cluster(cluster=GROMACS_gpu_cluster, cluster_id="GROMACS_gpu_cluster", scale=10)
-@mpi_task(cluster_id="GROMACS_gpu_cluster")
-def run_mpi_gpu(**kwargs):
-    script_path = os.path.join(
-        os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), "resources", "helloworld2.py"
+if GPU:
+    GROMACS_gpu_cluster = CustomSLURMCluster(
+        name="GROMACS_gpu_cluster",
+        walltime="00:15:00",
+        nodes=2,
+        mpi_mode=True,
+        queue_type="gpus",
+        maximum_scale=5,
+        env_extra=[
+            "module --force purge",
+            "module use /usr/local/software/jureca/OtherStages",
+            "module load Stages/Devel-2019a",
+            "module load Intel",
+            "module load ParaStationMPI",
+            "module load GROMACS",
+            "module load GPUtil",  # Only required for our hello_world2.py example
+            "module load dask",
+            "module load jobqueue_features",
+        ],
     )
-    t = mpi_wrap(
-        pre_launcher_opts='time -f "%e"',
-        executable="python",
-        exec_args=script_path,
-        **kwargs
+
+if KNL:
+    GROMACS_knl_cluster = CustomSLURMCluster(
+        name="GROMACS_knl_cluster",
+        walltime="00:15:00",
+        nodes=4,
+        mpi_mode=True,
+        maximum_scale=10,
+        queue_type="knl",
+        python="python",
+        env_extra=[
+            "module --force purge",
+            "unset SOFTWAREROOT",
+            "module use /usr/local/software/jurecabooster/OtherStages",
+            "module load Stages/Devel-2019a",
+            "module load Intel",
+            "module load ParaStationMPI",
+            "module load GROMACS",
+            "module load dask",
+            "module load jobqueue_features",
+        ],
     )
-    return t
+
+if HSW:
+    GROMACS_cluster = CustomSLURMCluster(
+        name="GROMACS_cluster",
+        walltime="00:15:00",
+        nodes=2,
+        mpi_mode=True,
+        maximum_scale=10,
+        env_extra=[
+            "module --force purge",
+            "module use /usr/local/software/jureca/OtherStages",
+            "module load Stages/Devel-2019a",
+            "module load Intel",
+            "module load ParaStationMPI",
+            "module load GROMACS",
+            "module load dask",
+            "module load jobqueue_features",
+        ],
+    )
+
+if GPU:
+
+    @on_cluster(cluster=GROMACS_gpu_cluster, cluster_id="GROMACS_gpu_cluster", scale=10)
+    @mpi_task(cluster_id="GROMACS_gpu_cluster")
+    def run_mpi_gpu(**kwargs):
+        script_path = os.path.join(
+            os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), "resources", "helloworld2.py"
+        )
+        t = mpi_wrap(
+            pre_launcher_opts='time -f "%e"',
+            executable="python",
+            exec_args=script_path,
+            **kwargs
+        )
+        return t
 
 
-@on_cluster(cluster=GROMACS_knl_cluster, cluster_id="GROMACS_knl_cluster")
-@mpi_task(cluster_id="GROMACS_knl_cluster")
-def run_mpi_knl(**kwargs):
-    script_path = os.path.join(
-        os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), "resources", "helloworld2.py"
-    )
-    t = mpi_wrap(
-        pre_launcher_opts='time -f "%e"',
-        executable="python",
-        exec_args=script_path,
-        **kwargs
-    )
-    return t
+if KNL:
+
+    @on_cluster(cluster=GROMACS_knl_cluster, cluster_id="GROMACS_knl_cluster")
+    @mpi_task(cluster_id="GROMACS_knl_cluster")
+    def run_mpi_knl(**kwargs):
+        script_path = os.path.join(
+            os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), "resources", "helloworld2.py"
+        )
+        t = mpi_wrap(
+            pre_launcher_opts='time -f "%e"',
+            executable="python",
+            exec_args=script_path,
+            **kwargs
+        )
+        return t
 
 
-@on_cluster(cluster=GROMACS_cluster, cluster_id="GROMACS_cluster")
-@mpi_task(cluster_id="GROMACS_cluster")
-def run_mpi(**kwargs):
-    script_path = os.path.join(
-        os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), "resources", "helloworld2.py"
-    )
-    t = mpi_wrap(
-        pre_launcher_opts='time -f "%e"',
-        executable="python",
-        exec_args=script_path,
-        **kwargs
-    )
-    return t
+if HSW:
+
+    @on_cluster(cluster=GROMACS_cluster, cluster_id="GROMACS_cluster")
+    @mpi_task(cluster_id="GROMACS_cluster")
+    def run_mpi(**kwargs):
+        script_path = os.path.join(
+            os.getenv("JOBQUEUE_FEATURES_EXAMPLES"), "resources", "helloworld2.py"
+        )
+        t = mpi_wrap(
+            pre_launcher_opts='time -f "%e"',
+            executable="python",
+            exec_args=script_path,
+            **kwargs
+        )
+        return t
 
 
 def main():
     t_gpu = []
     t_knl = []
     t = []
-    for x in range(50):
-        t_gpu.append(run_mpi_gpu())
-        t_knl.append(run_mpi_knl())
-        t.append(run_mpi())
 
-    runtimes_gpu = [float(i.result()["err"]) for i in t_gpu]
-    print(
-        "GPU Compute Total ",
-        sum(runtimes_gpu),
-        " : Average ",
-        np.mean(runtimes_gpu),
-        " +/- ",
-        np.var(runtimes_gpu),
-    )
-    runtimes = [float(i.result()["err"]) for i in t]
-    print(
-        "Cluster Compute Total ",
-        sum(runtimes),
-        " : Average ",
-        np.mean(runtimes),
-        " +/- ",
-        np.var(runtimes),
-    )
-    runtimes_knl = [float(i.result()["err"]) for i in t_knl]
-    print(
-        "KNL Compute Total ",
-        sum(runtimes_knl),
-        " : Average ",
-        np.mean(runtimes_knl),
-        " +/- ",
-        np.var(runtimes_knl),
-    )
+    if len(sys.argv) == 2:
+        n_samples = int(sys.argv[1])
+    else:
+        n_samples = 50
+    for x in range(n_samples):
+        if GPU:
+            t_gpu.append(run_mpi_gpu())
+        if KNL:
+            t_knl.append(run_mpi_knl())
+        if HSW:
+            t.append(run_mpi())
+
+    if GPU:
+        runtimes_gpu = [float((i.result()["err"]).split(b"\n")[-2]) for i in t_gpu]
+        print(
+            "GPU Compute Total (",
+            len(runtimes_gpu),
+            " samples) ",
+            sum(runtimes_gpu),
+            " : Average ",
+            np.mean(runtimes_gpu),
+            " +/- ",
+            np.var(runtimes_gpu),
+        )
+    if HSW:
+        runtimes = [float((i.result()["err"]).split(b"\n")[-2]) for i in t]
+        print(
+            "Cluster Compute Total (",
+            len(runtimes),
+            " samples)",
+            sum(runtimes),
+            " : Average ",
+            np.mean(runtimes),
+            " +/- ",
+            np.var(runtimes),
+        )
+    if KNL:
+        runtimes_knl = [float((i.result()["err"]).split(b"\n")[-2]) for i in t_knl]
+        print(
+            "KNL Compute Total (",
+            len(runtimes_knl),
+            " samples)",
+            sum(runtimes_knl),
+            " : Average ",
+            np.mean(runtimes_knl),
+            " +/- ",
+            np.var(runtimes_knl),
+        )
 
 
 if __name__ == "__main__":
