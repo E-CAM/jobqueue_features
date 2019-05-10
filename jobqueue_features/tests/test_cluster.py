@@ -8,7 +8,8 @@ class TestClusters(TestCase):
     def setUp(self):
         self.cluster_name = "dask-worker-batch"  # default
         self.kwargs = {
-            # 'interface': 'eth0',  # most likely won't have ib0 available so just use a safe default for the tests
+            # 'interface': 'eth0',  # most likely won't have ib0 available so just use
+            # a safe default for the tests
             "interface": ""
         }
 
@@ -106,9 +107,10 @@ class TestClusters(TestCase):
     def test_mpi_complex_job_cluster_fail(self):
         # Now a few more variables
         with self.assertRaises(ValueError):
-            # When we provide ntasks_per_node, cpus_per_tasks is derived (in this case 24/2 = 12). For an MPI job we
-            # expect the core count (which is the total number of cores to be used) to be divisible by cpus_per_tasks
-            # but that is not true in this case resulting in a ValueError
+            # When we provide ntasks_per_node, cpus_per_tasks is derived (in this case
+            # 24/2 = 12). For an MPI job we expect the core count (which is the total
+            # number of cores to be used) to be divisible by cpus_per_tasks but that is
+            # not true in this case resulting in a ValueError
             cluster = get_cluster(
                 queue_type="gpus",
                 mpi_mode=True,
@@ -130,8 +132,8 @@ class TestClusters(TestCase):
         self.assertIn("#SBATCH -n 2", cluster.job_header)
         self.assertNotIn("#SBATCH --nodes", cluster.job_header)
         self.assertIn("#SBATCH --gres=gpu:4", cluster.job_header)
-        # For memory pinning stuff that may be done by the scheduler, it is probably better to ask for it like this
-        # (even if you don't intend to use OpenMP)
+        # For memory pinning stuff that may be done by the scheduler, it is probably
+        # better to ask for it like this (even if you don't intend to use OpenMP)
         cluster = get_cluster(
             queue_type="gpus", mpi_mode=True, nodes=1, ntasks_per_node=2, **self.kwargs
         )

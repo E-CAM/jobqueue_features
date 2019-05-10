@@ -26,20 +26,24 @@ def mpi_wrap(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node
     ):
         """
-        Based on the requested process distribution, return default arguments for the MPI launcher.
+        Based on the requested process distribution, return default arguments for the
+        MPI launcher.
 
         :param mpi_launcher: The MPI launcher (such as mpiexec, srun, mpirun,...)
         :param mpi_tasks: Total number of MPI tasks
         :param nodes: Number of nodes requested (optional)
-        :param cpus_per_task: Number of CPUs per MPI task (most relevant for hybrid jobs)
+        :param cpus_per_task: Number of CPUs per MPI task (most relevant for hybrid
+        jobs)
         :param ntasks_per_node: Number of MPI tasks per node
         :return: string
         """
         if mpi_launcher == SRUN:
-            # SLURM already has everything it needs from the environment variables set by the batch script
+            # SLURM already has everything it needs from the environment variables set
+            # by the batch script
             return ""
         elif mpi_launcher == MPIEXEC:
-            # mpiexec is defined by the standard and very basic, you can only tell it how many MPI tasks to start
+            # mpiexec is defined by the standard and very basic, you can only tell it
+            # how many MPI tasks to start
             return "-np {}".format(mpi_tasks)
         else:
             raise NotImplementedError(
@@ -64,13 +68,16 @@ def mpi_wrap(
     default_launcher_args = get_default_mpi_params(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node
     )
-    cmd = "{pre_launcher_opts} {mpi_launcher} {default_launcher_args} {launcher_args} {executable} {exec_args}".format(
-        pre_launcher_opts=pre_launcher_opts,
-        mpi_launcher=mpi_launcher,
-        default_launcher_args=default_launcher_args,
-        launcher_args=launcher_args,
-        executable=executable,
-        exec_args=exec_args,
+    cmd = (
+        "{pre_launcher_opts} {mpi_launcher} {default_launcher_args} {launcher_args}"
+        " {executable} {exec_args}".format(
+            pre_launcher_opts=pre_launcher_opts,
+            mpi_launcher=mpi_launcher,
+            default_launcher_args=default_launcher_args,
+            launcher_args=launcher_args,
+            executable=executable,
+            exec_args=exec_args,
+        )
     )
     try:
         proc = subprocess.Popen(
