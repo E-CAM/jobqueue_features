@@ -39,11 +39,12 @@ class on_cluster(object):
             )  # type: ClusterType
         if type(self.cluster) is not LocalCluster:
             if scale is not None:
-                # If the kwarg 'scale' has been used in the decorator call we adaptively scale up to that many workers
+                # If the kwarg 'scale' has been used in the decorator call we adaptively
+                # scale up to that many workers
                 if scale > self.cluster.maximum_scale:
                     print(
-                        "Scaling cluster {cluster_id} to {scale} exceeds default maximum workers "
-                        "({maximum_scale})".format(
+                        "Scaling cluster {cluster_id} to {scale} exceeds default "
+                        "maximum workers ({maximum_scale})".format(
                             cluster_id=cluster_id,
                             scale=scale,
                             maximum_scale=self.cluster.maximum_scale,
@@ -59,8 +60,9 @@ class on_cluster(object):
                         wait_count=10,
                         interval="6s",
                     )
-                # We immediately start up `scale` workers rather than wait for adapt to kick in
-                # the `wait_count`*`interval` should keep them from shutting down too fast (allows 1 minute idle)
+                # We immediately start up `scale` workers rather than wait for adapt to
+                # kick in the `wait_count`*`interval` should keep them from shutting
+                # down too fast (allows 1 minute idle)
                 self.cluster.scale(scale)
             else:
                 # Otherwise we adaptively scale to the maximum number of workers
@@ -107,7 +109,8 @@ class task(object):
 
     def _submit(self, cluster, client, f, *args, **kwargs):
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
-        # For normal tasks, we maintain the Dask default that functions are pure (by default)
+        # For normal tasks, we maintain the Dask default that functions are pure (by
+        # default)
         kwargs.update({"pure": getattr(cluster, "pure", getattr(kwargs, "pure", True))})
         return client.submit(f, *args, **kwargs)
 
@@ -140,7 +143,8 @@ class mpi_task(task):
                 ),
             }
         )
-        # For MPI tasks, since we are forking a process let's assume functions are not pure (by default)
+        # For MPI tasks, since we are forking a process let's assume functions are not
+        # pure (by default)
         kwargs.update(
             {"pure": getattr(cluster, "pure", getattr(kwargs, "pure", False))}
         )

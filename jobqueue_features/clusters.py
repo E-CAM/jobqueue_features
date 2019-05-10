@@ -126,9 +126,9 @@ class CustomClusterMixin(object):
         # self.scheduler_name is set by the JobQueueCluster class, make sure it exists
         if not hasattr(self, "scheduler_name"):
             raise NotImplementedError(
-                "For inheritance to work as intended you need to create new CustomCluster class "
-                "that inherits from the base CustomCluster class and your target class in "
-                "JobQueue (such as *SLURMCluster*)"
+                "For inheritance to work as intended you need to create new "
+                "CustomCluster class that inherits from the base CustomCluster class "
+                "and your target class in JobQueue (such as *SLURMCluster*)"
             )
 
         self._get_queue_type(kwargs.get("queue_type"))
@@ -259,8 +259,8 @@ class CustomClusterMixin(object):
         )
         if self.mpi_mode and not self.mpi_launcher:
             raise ValueError(
-                "When using MPI mode, an MPI launcher (such as srun, mpirun,...) must be set via the"
-                "mpi_launcher kwarg or the yaml configuration"
+                "When using MPI mode, an MPI launcher (such as srun, mpirun,...) must "
+                "be set via the mpi_launcher kwarg or the yaml configuration"
             )
 
     def _get_maximum_scale(self, maximum_scale, default=1):
@@ -287,13 +287,15 @@ class CustomClusterMixin(object):
             if cores:
                 expected_cores = cores
                 self.warnings.append(
-                    "In MPI mode we assume that when you provide 'cores' you mean total number of "
-                    "required CPUs: number of MPI tasks * number of cpus per task"
+                    "In MPI mode we assume that when you provide 'cores' you mean "
+                    "total number of required CPUs: (number of MPI tasks) * (number of "
+                    "cpus per task)"
                 )
             else:
                 expected_cores = None
 
-            # We should now have everything we need to define necessary values for any MPI/OpenMP task
+            # We should now have everything we need to define necessary values for any
+            # MPI/OpenMP task
             #   self.nodes (optional)
             #   self.cpus_per_task
             #   self.mpi_tasks
@@ -331,8 +333,9 @@ class CustomClusterMixin(object):
             else:
                 if expected_cores is not None:
                     raise ValueError(
-                        "Coupling 'cores' with 'nodes' is not expected, if using 'nodes' please stick "
-                        + "to: 'nodes', 'ntasks-per-node' and (for OpenMP/threading) 'cpus_per_task'"
+                        "Coupling 'cores' with 'nodes' is not expected, if using "
+                        "'nodes' please stick to: 'nodes', 'ntasks-per-node' and (for "
+                        "OpenMP/threading) 'cpus_per_task'"
                     )
                 if self.cpus_per_task is None:
                     if self.ntasks_per_node is None:
@@ -369,12 +372,14 @@ class CustomClusterMixin(object):
                 # Calculate total number of MPI tasks
                 self.mpi_tasks = self.nodes * self.ntasks_per_node
 
-            # If we have an OpenMP job we should check if there are some additional environment flags we should set
+            # If we have an OpenMP job we should check if there are some additional
+            # environment flags we should set
             if self.cpus_per_task > 1:
                 self.openmp_env_extra = self.get_kwarg("openmp-env-extra") or []
 
-            # We need to "trick" jobqueue into managing an MPI job, we will pretend there is on one core available but
-            # we will actually allocate more. It will then schedule tasks to this Cluster type that can in turn fork out
+            # We need to "trick" jobqueue into managing an MPI job, we will pretend
+            # there is on one core available but we will actually allocate more. It
+            # will then schedule tasks to this Cluster type that can in turn fork out
             # MPI executables using our wrapper
             kwargs.update({"cores": 1})
 
@@ -410,7 +415,8 @@ class CustomClusterMixin(object):
                 features_cores = cores
             if features_cores > self.cores_per_node * self.hyperthreading_factor:
                 raise ValueError(
-                    "cores cannot be > {} (cores_per_node * hyperthreading_factor)".format(
+                    "cores cannot be > {} (cores_per_node * "
+                    "hyperthreading_factor)".format(
                         self.cores_per_node * self.hyperthreading_factor
                     )
                 )
@@ -441,7 +447,8 @@ class CustomClusterMixin(object):
                 "jobqueue.{}.job_extra".format(self.scheduler_name), default=[]
             )
 
-        # order matters, to ensure user has power to be in control make sure their settings come last
+        # order matters, to ensure user has power to be in control make sure their
+        # settings come last
         final_job_extra = self.gpu_job_extra
         final_job_extra.extend(job_extra)
         kwargs.update({"job_extra": final_job_extra})
@@ -455,7 +462,8 @@ class CustomClusterMixin(object):
             env_extra = config.get(
                 "jobqueue.{}.env_extra".format(self.scheduler_name), default=[]
             )
-        # order matters, make sure user has power to be in control, explicit user set stuff comes last
+        # order matters, make sure user has power to be in control, explicit user set
+        # stuff comes last
         final_env_extra = self.openmp_env_extra
         final_env_extra.extend(env_extra)
         kwargs.update({"env_extra": final_env_extra})
@@ -470,7 +478,8 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         kwargs = self.update_init_kwargs(**kwargs)
         # Do custom initialisation here
         if self.mpi_mode:
-            # Most obvious customisation is for when we use mpi_mode, relevant variables are:
+            # Most obvious customisation is for when we use mpi_mode, relevant variables
+            # are:
             # self.ntasks_per_node
             # self.cpus_per_task
             # self.nodes (optional)
@@ -488,8 +497,8 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             if hasattr(self, "nodes"):
                 if self.nodes:
                     mpi_job_extra.append("--nodes={}".format(self.nodes))
-            # job_extra is guaranteed to exist in the kwargs in this case, we append them so they have
-            # precedence
+            # job_extra is guaranteed to exist in the kwargs in this case, we append
+            # them so they have precedence
             if "job_extra" not in kwargs:
                 raise KeyError("job_extra keyword should always be set in kwargs")
             mpi_job_extra.extend(kwargs["job_extra"])
@@ -507,7 +516,8 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     def _update_script_nodes(self):  # type: () -> None
         if not self.mpi_mode:
             return
-        # When in MPI mode, after jobqueue has initialised we update the jobscript with the `real` number of MPI tasks
+        # When in MPI mode, after jobqueue has initialised we update the jobscript with
+        # the `real` number of MPI tasks
         self.job_header = self.job_header.replace(
             "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
         )
