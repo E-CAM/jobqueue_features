@@ -6,8 +6,8 @@ Distribution of MPI enabled tasks
 from mpi4py import MPI
 from distributed.protocol import serialize, deserialize
 
-
 def deserialize_and_execute(serialized_object=None):
+    comm = MPI.COMM_WORLD
     # We only handle the case where root returns something
     if serialized_object:
         return_something = True
