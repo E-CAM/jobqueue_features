@@ -1,3 +1,5 @@
+from mpi4py import MPI
+from distributed.protocol import serialize, deserialize
 import shlex
 import subprocess
 from typing import Dict  # noqa
@@ -92,3 +94,75 @@ def mpi_wrap(
             )
         )
     return {"cmd": cmd, "out": out, "err": err}
+
+
+def deserialize_and_execute(serialized_object):
+    if not serialized_object:
+        raise RuntimeError("Cannot deserialize without a serialized_object")
+    func = deserialize(serialized_object["header"], serialized_object["frames"])
+    if serialized_object.get("args_header"):
+        args = deserialize(
+            serialized_object["args_header"], serialized_object["args_frames"]
+        )
+    else:
+        args = False
+    if serialized_object.get("kwargs_header"):
+        kwargs = deserialize(
+            serialized_object["kwargs_header"], serialized_object["kwargs_frames"]
+        )
+    else:
+        kwargs = False
+
+    # Free memory space used by (potentially large) serialised object
+    del serialized_object
+
+    # Execute the function
+    if args and kwargs:
+        result = func(*args, **kwargs)
+    elif args:
+        result = func(*args)
+    elif kwargs:
+        result = func(**kwargs)
+    else:
+        result = func()
+
+    # If a return value is expected, return it
+    if result:
+        return result
+
+
+def mpi_deserialize_and_execute(serialized_object=None, root=0):
+    comm = MPI.COMM_WORLD
+    # We only handle the case where root has the object and is the one who returns
+    # something
+    if serialized_object:
+        rank = comm.Get_rank()
+        if rank != root:
+            print("Only root (%d) can contain a serialized object for this call, my "
+                  "rank is %d...aborting!" % (root, rank))
+            comm.abort()
+        return_something = True
+    else:
+        return_something = False
+    serialized_object = comm.bcast(serialized_object, root=root)
+    result = deserialize_and_execute(serialized_object=serialized_object)
+
+    if return_something and result:
+        return result
+
+
+def serialize_function_and_args(func, *args, **kwargs):
+    header, frames = serialize(func)
+    serialized_object = {"header": header, "frames": frames}
+    if args:
+        args_header, args_frames = serialize(args)
+        serialized_object.update(
+            {"args_header": args_header, "args_frames": args_frames}
+        )
+    if kwargs:
+        kwargs_header, kwargs_frames = serialize(kwargs)
+        serialized_object.update(
+            {"kwargs_header": kwargs_header, "kwargs_frames": kwargs_frames}
+        )
+
+    return serialized_object
