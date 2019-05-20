@@ -1,4 +1,3 @@
-from mpi4py import MPI
 from distributed.protocol import serialize, deserialize
 import shlex
 import subprocess
@@ -132,6 +131,8 @@ def deserialize_and_execute(serialized_object):
 
 
 def mpi_deserialize_and_execute(serialized_object=None, root=0):
+    from mpi4py import MPI
+
     comm = MPI.COMM_WORLD
     # We only handle the case where root has the object and is the one who returns
     # something
