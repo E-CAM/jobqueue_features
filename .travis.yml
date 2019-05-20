@@ -50,3 +50,5 @@ jobs:
       install:
         pip install codespell
       script: codespell --quiet-level=2
+   
+    - stage: testing
