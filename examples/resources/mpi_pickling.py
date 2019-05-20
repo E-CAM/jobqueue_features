@@ -6,9 +6,6 @@ Distribution of MPI enabled tasks
 from mpi4py import MPI
 from distributed.protocol import serialize, deserialize
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-
 
 def deserialize_and_execute(serialized_object=None):
     # We only handle the case where root returns something
@@ -64,6 +61,9 @@ def serialize_function_and_args(func, *args, **kwargs):
 
     return serialized_object
 
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
 
 if rank == 0:
     # This is the task, which is only defined on root
