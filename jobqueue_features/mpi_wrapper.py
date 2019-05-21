@@ -96,7 +96,14 @@ def mpi_wrap(
 
 
 def deserialize_and_execute(serialized_object):
-    if not serialized_object:
+    # Ensure the serialized object is of the expected type
+    if isinstance(serialized_object, dict):
+        # Make sure it has the expected entries
+        if not ("header" in serialized_object and "frames" in serialized_object):
+            raise RuntimeError(
+                "serialized_object dict does not have expected keys [header, frames]"
+            )
+    else:
         raise RuntimeError("Cannot deserialize without a serialized_object")
     func = deserialize(serialized_object["header"], serialized_object["frames"])
     if serialized_object.get("args_header"):
@@ -130,23 +137,31 @@ def deserialize_and_execute(serialized_object):
         return result
 
 
-def mpi_deserialize_and_execute(serialized_object=None, root=0):
+def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
     from mpi4py import MPI
 
-    comm = MPI.COMM_WORLD
+    if comm is None:
+        comm = MPI.COMM_WORLD
+
     # We only handle the case where root has the object and is the one who returns
     # something
     if serialized_object:
-        rank = comm.Get_rank()
+        # Check we have a valid communicator
+        try:
+            rank = comm.Get_rank()
+        except MPI.Exception:
+            raise RuntimeError("Looks like you did not pass a valid MPI communicator")
         if rank != root:
-            print("Only root (%d) can contain a serialized object for this call, my "
-                  "rank is %d...aborting!" % (root, rank))
+            print(
+                "Only root (%d) can contain a serialized object for this call, my "
+                "rank is %d...aborting!" % (root, rank)
+            )
             comm.abort()
         return_something = True
     else:
         return_something = False
     serialized_object = comm.bcast(serialized_object, root=root)
-    result = deserialize_and_execute(serialized_object=serialized_object)
+    result = deserialize_and_execute(serialized_object)
 
     if return_something and result:
         return result

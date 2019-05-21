@@ -3,7 +3,10 @@
 Distribution of MPI enabled tasks
 """
 
-from jobqueue_features.mpi_wrapper import serialize_function_and_args, mpi_deserialize_and_execute
+from jobqueue_features.mpi_wrapper import (
+    serialize_function_and_args,
+    mpi_deserialize_and_execute,
+)
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
