@@ -43,6 +43,8 @@ if rank == 0:
         print(result)
     serialized_object = serialize_function_and_args(task2, "alan", task_name="task2")
     mpi_deserialize_and_execute(serialized_object=serialized_object)
+
+    # As a final task, send a shutdown to the other MPI ranks
     serialized_object = serialize_function_and_args(shutdown_mpitask_worker)
     mpi_deserialize_and_execute(serialized_object=serialized_object)
 
