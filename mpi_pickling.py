@@ -4,8 +4,9 @@ Distribution of MPI enabled tasks
 """
 
 from jobqueue_features.mpi_wrapper import (
-    serialize_function_and_args,
     mpi_deserialize_and_execute,
+    serialize_function_and_args,
+    shutdown_mpitask_worker,
 )
 from mpi4py import MPI
 
@@ -35,16 +36,6 @@ if rank == 0:
         rank = comm.Get_rank()
         print("Hi %s, my rank is %d for task of type %s" % (name, rank, task_name))
 
-    def shutdown():
-        from mpi4py import MPI
-
-        # Add a barrier to be careful
-        comm = MPI.COMM_WORLD
-        comm.Barrier()
-        # Finalise MPI
-        MPI.Finalize()
-        # and then exit
-        exit()
 
     serialized_object = serialize_function_and_args(task1, "task1")
     result = mpi_deserialize_and_execute(serialized_object=serialized_object)
@@ -52,9 +43,10 @@ if rank == 0:
         print(result)
     serialized_object = serialize_function_and_args(task2, "alan", task_name="task2")
     mpi_deserialize_and_execute(serialized_object=serialized_object)
-    serialized_object = serialize_function_and_args(shutdown)
+    serialized_object = serialize_function_and_args(shutdown_mpitask_worker)
     mpi_deserialize_and_execute(serialized_object=serialized_object)
 
 else:
     while True:
+        # Calling with no arguments means these are non-root processes
         mpi_deserialize_and_execute()

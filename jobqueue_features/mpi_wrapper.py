@@ -1,6 +1,7 @@
 from distributed.protocol import serialize, deserialize
 import shlex
 import subprocess
+import sys
 from typing import Dict  # noqa
 
 
@@ -94,6 +95,13 @@ def mpi_wrap(
         )
     return {"cmd": cmd, "out": out, "err": err}
 
+def shutdown_mpitask_worker():
+    from mpi4py import MPI
+
+    # Finalise MPI
+    MPI.Finalize()
+    # and then exit
+    exit()
 
 def deserialize_and_execute(serialized_object):
     # Ensure the serialized object is of the expected type
@@ -137,6 +145,16 @@ def deserialize_and_execute(serialized_object):
         return result
 
 
+def flush_and_abort(msg='Flushing proint buffer and aborting', comm=None):
+    from mpi4py import MPI
+
+    if comm is None:
+        comm = MPI.COMM_WORLD
+    print(msg)
+    sys.stdout.flush()
+    MPI.COMM_WORLD.Abort(1)
+
+
 def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
     from mpi4py import MPI
 
@@ -149,14 +167,19 @@ def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
         # Check we have a valid communicator
         try:
             rank = comm.Get_rank()
-        except MPI.Exception:
-            raise RuntimeError("Looks like you did not pass a valid MPI communicator")
-        if rank != root:
-            print(
-                "Only root (%d) can contain a serialized object for this call, my "
-                "rank is %d...aborting!" % (root, rank)
+        except AttributeError:
+            flush_and_abort(
+                msg="Looks like you did not pass a valid MPI communicator, aborting "
+                    "using global communicator"
             )
-            comm.abort()
+            sys.stdout.flush()
+            MPI.COMM_WORLD.Abort(1)
+        if rank != root:
+            flush_and_abort(
+                msg="Only root rank (%d) can contain a serialized object for this "
+                    "call, my rank is %d...aborting!" % (root, rank),
+                comm=comm
+            )
         return_something = True
     else:
         return_something = False
