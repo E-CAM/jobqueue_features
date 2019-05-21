@@ -95,6 +95,7 @@ def mpi_wrap(
         )
     return {"cmd": cmd, "out": out, "err": err}
 
+
 def shutdown_mpitask_worker():
     from mpi4py import MPI
 
@@ -102,6 +103,7 @@ def shutdown_mpitask_worker():
     MPI.Finalize()
     # and then exit
     exit()
+
 
 def deserialize_and_execute(serialized_object):
     # Ensure the serialized object is of the expected type
@@ -119,40 +121,32 @@ def deserialize_and_execute(serialized_object):
             serialized_object["args_header"], serialized_object["args_frames"]
         )
     else:
-        args = False
+        args = []
     if serialized_object.get("kwargs_header"):
         kwargs = deserialize(
             serialized_object["kwargs_header"], serialized_object["kwargs_frames"]
         )
     else:
-        kwargs = False
+        kwargs = {}
 
     # Free memory space used by (potentially large) serialised object
     del serialized_object
 
-    # Execute the function
-    if args and kwargs:
-        result = func(*args, **kwargs)
-    elif args:
-        result = func(*args)
-    elif kwargs:
-        result = func(**kwargs)
-    else:
-        result = func()
-
-    # If a return value is expected, return it
-    if result:
-        return result
+    # Execute the function and return
+    return func(*args, **kwargs)
 
 
-def flush_and_abort(msg='Flushing proint buffer and aborting', comm=None):
+def flush_and_abort(msg='Flushing print buffer and aborting', comm=None, error_code=1):
     from mpi4py import MPI
 
     if comm is None:
         comm = MPI.COMM_WORLD
     print(msg)
     sys.stdout.flush()
-    MPI.COMM_WORLD.Abort(1)
+    if error_code == 0:
+        print("To abort correctly, we need to use a non-zero error code")
+        error_code = 1
+    comm.Abort(error_code)
 
 
 def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
