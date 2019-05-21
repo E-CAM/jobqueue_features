@@ -104,6 +104,7 @@ def mpi_wrap(
 
 def shutdown_mpitask_worker():
     from mpi4py import MPI
+
     # Finalise MPI
     MPI.Finalize()
     # and then exit
@@ -141,7 +142,7 @@ def deserialize_and_execute(serialized_object):
     return func(*args, **kwargs)
 
 
-def flush_and_abort(msg='Flushing print buffer and aborting', comm=None, error_code=1):
+def flush_and_abort(msg="Flushing print buffer and aborting", comm=None, error_code=1):
     from mpi4py import MPI
 
     if comm is None:
@@ -169,15 +170,15 @@ def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
         except AttributeError:
             flush_and_abort(
                 msg="Looks like you did not pass a valid MPI communicator, aborting "
-                    "using global communicator"
+                "using global communicator"
             )
             sys.stdout.flush()
             MPI.COMM_WORLD.Abort(1)
         if rank != root:
             flush_and_abort(
                 msg="Only root rank (%d) can contain a serialized object for this "
-                    "call, my rank is %d...aborting!" % (root, rank),
-                comm=comm
+                "call, my rank is %d...aborting!" % (root, rank),
+                comm=comm,
             )
         return_something = True
     else:

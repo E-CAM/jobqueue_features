@@ -36,7 +36,6 @@ if rank == 0:
         rank = comm.Get_rank()
         print("Hi %s, my rank is %d for task of type %s" % (name, rank, task_name))
 
-
     serialized_object = serialize_function_and_args(task1, "task1")
     result = mpi_deserialize_and_execute(serialized_object=serialized_object)
     if result:
