@@ -21,6 +21,7 @@ def mpi_wrap(
     cpus_per_task=None,
     ntasks_per_node=None,
     exec_args="",
+    return_wrapped_command=False,
     **kwargs
 ):
     # type: (str, str, str, str, str, ...) -> Dict[str, str]
@@ -81,24 +82,28 @@ def mpi_wrap(
             exec_args=exec_args,
         )
     )
-    try:
-        proc = subprocess.Popen(
-            shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        out = proc.stdout.read()
-        err = proc.stderr.read()
-    except OSError as err:
-        raise OSError(
-            "OS error caused by constructed command: {cmd}\n\n{err}".format(
-                cmd=cmd, err=err
+    if return_wrapped_command:
+        result = cmd
+    else:
+        try:
+            proc = subprocess.Popen(
+                shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-        )
-    return {"cmd": cmd, "out": out, "err": err}
+            out = proc.stdout.read()
+            err = proc.stderr.read()
+        except OSError as err:
+            raise OSError(
+                "OS error caused by constructed command: {cmd}\n\n{err}".format(
+                    cmd=cmd, err=err
+                )
+            )
+        result = {"cmd": cmd, "out": out, "err": err}
+
+    return result
 
 
 def shutdown_mpitask_worker():
     from mpi4py import MPI
-
     # Finalise MPI
     MPI.Finalize()
     # and then exit
