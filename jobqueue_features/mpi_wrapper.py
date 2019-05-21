@@ -143,37 +143,47 @@ def deserialize_and_execute(serialized_object):
 
 
 def flush_and_abort(msg="Flushing print buffer and aborting", comm=None, error_code=1):
-    from mpi4py import MPI
+    import traceback
 
     if comm is None:
+        from mpi4py import MPI
+
         comm = MPI.COMM_WORLD
     print(msg)
-    sys.stdout.flush()
+    traceback.print_stack()
     if error_code == 0:
         print("To abort correctly, we need to use a non-zero error code")
         error_code = 1
+    sys.stdout.flush()
+    sys.stderr.flush()
     comm.Abort(error_code)
 
 
+def verify_mpi_communicator(comm):
+    # Check we have a valid communicator
+    try:
+        comm.Get_rank()
+    except AttributeError:
+        flush_and_abort(
+            msg="Looks like you did not pass a valid MPI communicator, aborting "
+            "using global communicator"
+        )
+
+
 def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
-    from mpi4py import MPI
 
     if comm is None:
+        from mpi4py import MPI
+
         comm = MPI.COMM_WORLD
+
+    # Check we have a valid communicator
+    verify_mpi_communicator(comm)
 
     # We only handle the case where root has the object and is the one who returns
     # something
     if serialized_object:
-        # Check we have a valid communicator
-        try:
-            rank = comm.Get_rank()
-        except AttributeError:
-            flush_and_abort(
-                msg="Looks like you did not pass a valid MPI communicator, aborting "
-                "using global communicator"
-            )
-            sys.stdout.flush()
-            MPI.COMM_WORLD.Abort(1)
+        rank = comm.Get_rank()
         if rank != root:
             flush_and_abort(
                 msg="Only root rank (%d) can contain a serialized object for this "
