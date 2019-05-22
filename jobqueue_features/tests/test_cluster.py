@@ -2,6 +2,7 @@ from unittest import TestCase
 from dask.distributed import Client
 
 from jobqueue_features.clusters import get_cluster, SLURM
+from jobqueue_features.mpi_wrapper import MPIEXEC
 
 
 class TestClusters(TestCase):
@@ -10,11 +11,12 @@ class TestClusters(TestCase):
         self.kwargs = {
             # 'interface': 'eth0',  # most likely won't have ib0 available so just use
             # a safe default for the tests
-            "interface": ""
+            "interface": "",
+            "mpi_launcher": MPIEXEC
         }
 
     def test_custom_cluster(self):
-        cluster = get_cluster(SLURM, **self.kwargs)
+        cluster = get_cluster(scheduler=SLURM, **self.kwargs)
         self.assertEqual(cluster.name, self.cluster_name)
         self.assertIsInstance(cluster.client, Client)
         with self.assertRaises(ValueError):
