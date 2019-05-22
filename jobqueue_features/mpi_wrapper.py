@@ -58,6 +58,13 @@ def mpi_wrap(
             # by the batch script
             return ""
         elif mpi_launcher == MPIEXEC:
+            # Let's not error-check excessively, only the most obvious
+            if mpi_tasks is None and any([nodes is None, ntasks_per_node is None]):
+                raise ValueError(
+                    "If mpi_tasks is not set then nodes and ntasks_per_node must be set instead"
+                )
+            if mpi_tasks is None:
+                mpi_tasks = nodes * ntasks_per_node
             # mpiexec is defined by the standard and very basic, you can only tell it
             # how many MPI tasks to start
             return "-np {}".format(mpi_tasks)
@@ -83,11 +90,6 @@ def mpi_wrap(
                 "The executable should be available in the users path and have execute "
                 "rights: please check %(executable)".format(executable=executable)
             )
-    # Let's not error-check excessively, only the most obvious
-    if mpi_tasks is None and any([nodes is None, ntasks_per_node is None]):
-        raise ValueError(
-            "If mpi_tasks is not set then nodes and ntasks_per_node must be set instead"
-        )
     default_launcher_args = get_default_mpi_params(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node
     )

@@ -2,6 +2,7 @@ from unittest import TestCase
 from dask.distributed import Client
 
 from jobqueue_features.clusters import get_cluster, SLURM
+from jobqueue_features.mpi_wrapper import SRUN
 
 
 class TestClusters(TestCase):
@@ -11,7 +12,8 @@ class TestClusters(TestCase):
             # 'interface': 'eth0',  # most likely won't have ib0 available so just use
             # a safe default for the tests
             "interface": "",
-            "fork_mpi": True
+            "fork_mpi": False,
+            "mpi_launcher": SRUN,
         }
 
     def test_custom_cluster(self):
@@ -162,6 +164,7 @@ class TestClusters(TestCase):
         self.assertEqual(cluster.worker_processes, 1)
         self.assertEqual(cluster.worker_threads, 1)
         self.assertIn("#SBATCH -n 24", cluster.job_script())
+        print cluster.job_script()
         self.assertIn(
             "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}", cluster.job_script()
         )

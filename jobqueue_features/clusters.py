@@ -553,10 +553,16 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         if not self.fork_mpi:
             command_template = self._command_template
             dask_worker_module = "distributed.cli.dask_worker"
-            command_template = command_template.replace(
-                "-m %s".format(dask_worker_module),
-                "-m %s".format(MPI_DASK_WRAPPER_MODULE),
-            )
+            if dask_worker_module in command_template:
+                command_template = command_template.replace(
+                    dask_worker_module, MPI_DASK_WRAPPER_MODULE
+                )
+            else:
+                raise RuntimeError(
+                    "Python module {} not found in command template:\n{}".format(
+                        dask_worker_module, command_template
+                    )
+                )
             # The first part of the string is the python executable to use for the
             # worker
             [python, arguments] = command_template.split(" ", 1)
