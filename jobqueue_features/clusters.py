@@ -555,16 +555,14 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             dask_worker_module = "distributed.cli.dask_worker"
             command_template = command_template.replace(
                 "-m %s".format(dask_worker_module),
-                "-m %s".format(MPI_DASK_WRAPPER_MODULE)
+                "-m %s".format(MPI_DASK_WRAPPER_MODULE),
             )
             # The first part of the string is the python executable to use for the
             # worker
-            [python, arguments] = command_template.split(' ', 1)
+            [python, arguments] = command_template.split(" ", 1)
             # Wrap the launch command with our mpi wrapper
             command_template = mpi_wrap(
-                python,
-                exec_args=arguments,
-                return_wrapped_command=True
+                python, exec_args=arguments, return_wrapped_command=True
             )
             self.warnings.append(
                 "Replaced command template\n\t%s\nwith\n\t%s\nin jobscript".format(
