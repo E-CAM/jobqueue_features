@@ -526,7 +526,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             mpi_job_extra.extend(kwargs["job_extra"])
             kwargs.update({"job_extra": mpi_job_extra})
         super(CustomSLURMCluster, self).__init__(**kwargs)
-        self._update_script_nodes()
+        self._update_script_nodes(**kwargs)
         self.client = Client(self)  # type: Client
         # Log all the warnings that we may have accumulated
         if self.warnings:
@@ -535,7 +535,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
                 logger.debug(warning)
             logger.debug("\n")
 
-    def _update_script_nodes(self):  # type: () -> None
+    def _update_script_nodes(self, **kwargs):  # type: () -> None
         # If we're not in mpi_mode no need to do anything
         if not self.mpi_mode:
             return
@@ -562,7 +562,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             [python, arguments] = command_template.split(" ", 1)
             # Wrap the launch command with our mpi wrapper
             command_template = mpi_wrap(
-                python, exec_args=arguments, return_wrapped_command=True
+                python, exec_args=arguments, return_wrapped_command=True, **kwargs
             )
             self.warnings.append(
                 "Replaced command template\n\t%s\nwith\n\t%s\nin jobscript".format(

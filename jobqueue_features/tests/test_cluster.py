@@ -2,7 +2,6 @@ from unittest import TestCase
 from dask.distributed import Client
 
 from jobqueue_features.clusters import get_cluster, SLURM
-from jobqueue_features.mpi_wrapper import MPIEXEC
 
 
 class TestClusters(TestCase):
@@ -12,7 +11,7 @@ class TestClusters(TestCase):
             # 'interface': 'eth0',  # most likely won't have ib0 available so just use
             # a safe default for the tests
             "interface": "",
-            "mpi_launcher": MPIEXEC
+            "fork_mpi": True
         }
 
     def test_custom_cluster(self):
