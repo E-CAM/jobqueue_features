@@ -571,7 +571,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
                 python, exec_args=arguments, return_wrapped_command=True, **kwargs
             )
             self.warnings.append(
-                "Replaced command template\n\t%s\nwith\n\t%s\nin jobscript".format(
+                "Replaced command template\n\t{}\nwith\n\t{}\nin jobscript".format(
                     self._command_template, command_template
                 )
             )
