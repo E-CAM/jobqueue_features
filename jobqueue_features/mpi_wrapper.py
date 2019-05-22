@@ -11,6 +11,19 @@ MPIEXEC = "mpiexec"
 SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC]
 
 
+def which(filename):
+    # Check we can immediately find the executable
+    if os.path.exists(filename) and os.access(filename, os.X_OK):
+        return filename
+    else:
+        # Look everywhere in the users PATH
+        for path in os.environ["PATH"].split(os.pathsep):
+            full_path = os.path.join(path, filename)
+            if os.path.exists(full_path) and os.access(full_path, os.X_OK):
+                return full_path
+        return None
+
+
 def mpi_wrap(
     executable=None,
     pre_launcher_opts="",
@@ -63,6 +76,13 @@ def mpi_wrap(
                 executable=executable
             )
         )
+        # Also check for the existence of the executable (unless we
+        # "return_wrapped_command")
+        if not which(executable) and not return_wrapped_command:
+            ValueError(
+                "The executable should be available in the users path and have execute "
+                "rights: please check %(executable)".format(executable=executable)
+            )
     # Let's not error-check excessively, only the most obvious
     if mpi_tasks is None and any([nodes is None, ntasks_per_node is None]):
         raise ValueError(

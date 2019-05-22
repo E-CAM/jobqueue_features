@@ -11,6 +11,7 @@ from jobqueue_features.mpi_wrapper import (
 )
 from distributed.cli.dask_worker import go
 
+MPI_DASK_WRAPPER_MODULE = "jobqueue_features.mpi_wrapper.mpi_dask_worker"
 
 def prepare_for_mpi_tasks(root=0, comm=None):
     if comm is None:

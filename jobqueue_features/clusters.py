@@ -3,6 +3,9 @@ from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
 from typing import TypeVar, Dict  # noqa
 
+from mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
+from mpi_wrapper import mpi_wrap
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -84,13 +87,16 @@ class CustomClusterMixin(object):
     gpu_job_extra : List[str]
         Extra scheduler arguments when requesting a GPU job
     warnings : List[str]
-        A string that holds any desired warning (is turned into a list of
-        warnings in self.warnings)
+        A string that holds any desired warning (is turned into a list of warnings in
+        self.warnings)
     mpi_mode : bool
-        Whether the cluster is to run MPI tasks (jobqueue only manages a single
-         core, the rest are by the mpi_launcher)
+        Whether the cluster is to run MPI tasks
     mpi_launcher : str
         The command that launches MPI jobs (srun, mpiexec, mpirun,...)
+    fork_mpi: bool
+        If true, assume all tasks for the cluster fork MPI processes (using mpi_wrap())
+        rather than that the task itself is MPI-enabled (jobqueue will then only manage
+        a single core, the rest are managed by the mpi_launcher)
     nodes : int
         The number of nodes required for MPI
     ntasks_per_node : int
@@ -115,6 +121,7 @@ class CustomClusterMixin(object):
     warnings = None  # type: List[str]
     mpi_mode = None  # type: bool
     mpi_launcher = None  # type: str
+    fork_mpi = None  # type: bool
     nodes = None  # type: int
     ntasks_per_node = None  # type: int
     cpus_per_task = None  # type: int
@@ -140,9 +147,14 @@ class CustomClusterMixin(object):
         self._get_gpu_job_extra(kwargs.get("gpu_job_extra"))
         self._get_warnings(kwargs.get("warning"))
 
-        # Now do MPI related kwargs
+        # Now do MPI related kwargs.
+        # Check if tasks use MPI interface or will fork MPI processes
+        self._get_fork_mpi(kwargs.get("fork_mpi"))
+        # Gather parameters for distribution of MPI/OpenMP processes (this also
+        # modifies the cores reported to dask by the worker)
         kwargs = self._update_kwargs_cores(**kwargs)
-        # Check for any updates to other modifiable jobqueue values: name, queue, memory
+        # Check for any updates to other modifiable jobqueue values:
+        #   name, queue, memory
         kwargs = self._update_kwargs_modifiable(**kwargs)
         # update job_extra as needed, first check if we should initialise it
         kwargs = self._update_kwargs_job_extra(**kwargs)
@@ -263,6 +275,13 @@ class CustomClusterMixin(object):
                 "be set via the mpi_launcher kwarg or the yaml configuration"
             )
 
+    def _get_fork_mpi(self, fork_mpi, default=False):  # type: (bool) -> None
+        self.fork_mpi = (
+            fork_mpi
+            if isinstance(fork_mpi, bool)
+            else self.get_kwarg(name="fork-mpi", default=default)
+        )
+
     def _get_maximum_scale(self, maximum_scale, default=1):
         # type: (int) -> None
         self.maximum_scale = maximum_scale if maximum_scale is not None else default
@@ -378,9 +397,12 @@ class CustomClusterMixin(object):
                 self.openmp_env_extra = self.get_kwarg("openmp-env-extra") or []
 
             # We need to "trick" jobqueue into managing an MPI job, we will pretend
-            # there is on one core available but we will actually allocate more. It
-            # will then schedule tasks to this Cluster type that can in turn fork out
-            # MPI executables using our wrapper
+            # there is on one core available (root) but we will actually allocate more.
+            # It will then schedule tasks to this Cluster type that can, depending on
+            # the value of 'fork_mpi', either:
+            # - Leverage all available processes via the tasks MPI capabilities and
+            #   MPI.COMM_WORLD
+            # - or fork out MPI executables using our wrapper
             kwargs.update({"cores": 1})
 
         else:
@@ -514,13 +536,42 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             logger.debug("\n")
 
     def _update_script_nodes(self):  # type: () -> None
+        # If we're not in mpi_mode no need to do anything
         if not self.mpi_mode:
             return
+
         # When in MPI mode, after jobqueue has initialised we update the jobscript with
         # the `real` number of MPI tasks
         self.job_header = self.job_header.replace(
             "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
         )
+
+        # The default for jobqueue is not to use an MPI launcher (since it is not MPI
+        # aware). However, if self.fork_mpi=False then the tasks intended for this
+        # cluster are MPI-enabled. In order to give them an MPI environment we need to
+        # use our custom wrapper and launch with our MPI launcher
+        if not self.fork_mpi:
+            command_template = self._command_template
+            dask_worker_module = "distributed.cli.dask_worker"
+            command_template = command_template.replace(
+                "-m %s".format(dask_worker_module),
+                "-m %s".format(MPI_DASK_WRAPPER_MODULE)
+            )
+            # The first part of the string is the python executable to use for the
+            # worker
+            [python, arguments] = command_template.split(' ', 1)
+            # Wrap the launch command with our mpi wrapper
+            command_template = mpi_wrap(
+                python,
+                exec_args=arguments,
+                return_wrapped_command=True
+            )
+            self.warnings.append(
+                "Replaced command template\n\t%s\nwith\n\t%s\nin jobscript".format(
+                    self._command_template, command_template
+                )
+            )
+            self._command_template = command_template
 
 
 ClusterType = TypeVar("ClusterType", JobQueueCluster, LocalCluster, CustomSLURMCluster)
