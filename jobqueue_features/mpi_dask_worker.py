@@ -11,7 +11,8 @@ from .mpi_wrapper import (
 )
 from distributed.cli.dask_worker import go
 
-MPI_DASK_WRAPPER_MODULE = "jobqueue_features.mpi_dask_worker"
+# Add the no-nanny option so we don't fork additional processes
+MPI_DASK_WRAPPER_MODULE = "jobqueue_features.mpi_dask_worker --no-nanny"
 
 
 def prepare_for_mpi_tasks(root=0, comm=None):
