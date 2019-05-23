@@ -1,4 +1,5 @@
 from distributed.protocol import serialize, deserialize
+import os
 import shlex
 import subprocess
 import sys
