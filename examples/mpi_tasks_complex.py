@@ -25,6 +25,7 @@ if GPU:
         walltime="00:15:00",
         nodes=2,
         mpi_mode=True,
+        fork_mpi=True,
         queue_type="gpus",
         maximum_scale=5,
         env_extra=[
@@ -46,6 +47,7 @@ if KNL:
         walltime="00:15:00",
         nodes=4,
         mpi_mode=True,
+        fork_mpi=True,
         maximum_scale=10,
         queue_type="knl",
         python="python",
@@ -68,6 +70,7 @@ if HSW:
         walltime="00:15:00",
         nodes=2,
         mpi_mode=True,
+        fork_mpi=True,
         maximum_scale=10,
         env_extra=[
             "module --force purge",
