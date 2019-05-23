@@ -15,12 +15,7 @@ from jobqueue_features.functions import set_default_cluster
 set_default_cluster(CustomSLURMCluster)
 
 custom_cluster = CustomSLURMCluster(
-    name="mpiCluster",
-    walltime="00:04:00",
-    nodes=2,
-    mpi_mode=True,
-    fork_mpi=True,
-    queue_type="gpus",
+    name="mpiCluster", walltime="00:04:00", nodes=2, mpi_mode=True, fork_mpi=True
 )
 
 
