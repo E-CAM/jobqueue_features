@@ -3,7 +3,7 @@
 Distribution of MPI enabled tasks
 """
 
-from jobqueue_features.mpi_wrapper import (
+from .mpi_wrapper import (
     mpi_deserialize_and_execute,
     serialize_function_and_args,
     shutdown_mpitask_worker,
