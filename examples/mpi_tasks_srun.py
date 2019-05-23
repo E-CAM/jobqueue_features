@@ -6,6 +6,7 @@ from dask.distributed import LocalCluster
 from jobqueue_features.clusters import CustomSLURMCluster
 from jobqueue_features.decorators import on_cluster, mpi_task
 from jobqueue_features.functions import set_default_cluster
+from jobqueue_features.mpi_wrapper import SRUN
 
 import logging
 
@@ -15,7 +16,12 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 set_default_cluster(CustomSLURMCluster)
 
 custom_cluster = CustomSLURMCluster(
-    name="mpiCluster", walltime="00:04:00", nodes=2, mpi_mode=True, queue_type="gpus"
+    name="mpiCluster",
+    walltime="00:04:00",
+    nodes=2,
+    mpi_mode=True,
+    queue_type="gpus",
+    mpi_launcher=SRUN,
 )
 
 
