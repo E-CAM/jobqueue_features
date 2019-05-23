@@ -124,25 +124,30 @@ class mpi_task(task):
 
     def _submit(self, cluster, client, f, *args, **kwargs):
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
-        kwargs.update(
-            {
-                "mpi_launcher": getattr(
-                    cluster, "mpi_launcher", getattr(kwargs, "mpi_launcher", MPIEXEC)
-                ),
-                "mpi_tasks": getattr(
-                    cluster,
-                    "mpi_tasks",
-                    getattr(kwargs, "mpi_tasks", self.default_mpi_tasks),
-                ),
-                "nodes": getattr(cluster, "nodes", getattr(kwargs, "nodes", None)),
-                "cpus_per_task": getattr(
-                    cluster, "cpus_per_task", getattr(kwargs, "cpus_per_task", None)
-                ),
-                "ntasks_per_node": getattr(
-                    cluster, "ntasks_per_node", getattr(kwargs, "ntasks_per_node", None)
-                ),
-            }
-        )
+        if getattr(cluster, "fork_mpi", getattr(kwargs, "fork_mpi", False)):
+            kwargs.update(
+                {
+                    "mpi_launcher": getattr(
+                        cluster,
+                        "mpi_launcher",
+                        getattr(kwargs, "mpi_launcher", MPIEXEC),
+                    ),
+                    "mpi_tasks": getattr(
+                        cluster,
+                        "mpi_tasks",
+                        getattr(kwargs, "mpi_tasks", self.default_mpi_tasks),
+                    ),
+                    "nodes": getattr(cluster, "nodes", getattr(kwargs, "nodes", None)),
+                    "cpus_per_task": getattr(
+                        cluster, "cpus_per_task", getattr(kwargs, "cpus_per_task", None)
+                    ),
+                    "ntasks_per_node": getattr(
+                        cluster,
+                        "ntasks_per_node",
+                        getattr(kwargs, "ntasks_per_node", None),
+                    ),
+                }
+            )
         # For MPI tasks, since we are forking a process let's assume functions are not
         # pure (by default)
         kwargs.update(
