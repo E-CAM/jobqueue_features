@@ -14,10 +14,9 @@ branches:
 
 # command to install dependencies
 install:
-  - pip install -r requirements.txt
-  # Enable running MPI tests
+  # Enable running MPI tests (and installing MPI4PY)
   - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
-  - pip install mpi4py
+  - pip install -r requirements.txt
 
 # command to run tests
 script:
