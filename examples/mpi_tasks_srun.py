@@ -16,12 +16,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 set_default_cluster(CustomSLURMCluster)
 
 custom_cluster = CustomSLURMCluster(
-    name="mpiCluster",
-    walltime="00:04:00",
-    nodes=2,
-    mpi_mode=True,
-    queue_type="gpus",
-    mpi_launcher=SRUN,
+    name="mpiCluster", walltime="00:03:00", nodes=2, mpi_mode=True, mpi_launcher=SRUN
 )
 
 
