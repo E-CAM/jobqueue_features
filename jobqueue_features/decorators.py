@@ -71,8 +71,8 @@ class on_cluster(object):
     def __call__(self, f):
         # type: (Callable) -> Callable
         @wraps(f)
-        def wrapped_function(*args):
-            return f(*args)
+        def wrapped_function(*args, **kwargs):
+            return f(*args, **kwargs)
 
         return wrapped_function
 
