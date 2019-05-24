@@ -213,6 +213,7 @@ def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
                 "call, my rank is %d...aborting!" % (root, rank),
                 comm=comm,
             )
+        print("Root ({}) has received the task and is broadcasting".format(rank))
         return_something = True
     else:
         return_something = False

@@ -131,6 +131,8 @@ class mpi_task(task):
         fork_mpi = getattr(cluster, "fork_mpi", getattr(kwargs, "fork_mpi", False))
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
         if fork_mpi:
+            # Add a set of kwargs that define the job layout to be picked up by
+            # our mpi_wrap function
             kwargs.update(
                 {
                     "mpi_launcher": getattr(
@@ -154,12 +156,12 @@ class mpi_task(task):
                     ),
                 }
             )
-        # For MPI tasks, since we are forking a process let's assume functions are not
-        # pure (by default)
-        kwargs.update(
-            {"pure": getattr(cluster, "pure", getattr(kwargs, "pure", False))}
-        )
-        if fork_mpi:
+            # For MPI tasks, when we are forking a process let's assume functions are not
+            # pure (by default)
+            kwargs.update(
+                {"pure": getattr(cluster, "pure", getattr(kwargs, "pure", False))}
+            )
+
             return super(mpi_task, self)._submit(cluster, client, f, *args, **kwargs)
         else:
             # If we are not forking we need to serialize the task and arguments
