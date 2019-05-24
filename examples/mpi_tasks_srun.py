@@ -41,6 +41,7 @@ def task1(task_name):
     return return_string
 
 
+@on_cluster(cluster=custom_cluster, cluster_id="mpiCluster")
 @mpi_task(cluster_id="mpiCluster")
 def task2(name, task_name="default"):
     from mpi4py import MPI
