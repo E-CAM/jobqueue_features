@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os
+import sys
 
 from jobqueue_features.clusters import CustomSLURMCluster
 from jobqueue_features.decorators import on_cluster, mpi_task
@@ -38,6 +38,7 @@ def task1(task_name):
         all_nodes,
     )
     print(return_string)
+    sys.stdout.flush()
     return return_string
 
 
@@ -51,7 +52,7 @@ def task2(name, task_name="default"):
     # This only appears in the slurm job output
     return_string = "Hi %s, my rank is %d for task of type %s" % (name, rank, task_name)
     print(return_string)
-
+    sys.stdout.flush()
     return return_string
 
 
