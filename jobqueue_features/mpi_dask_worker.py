@@ -9,7 +9,6 @@ from .mpi_wrapper import (
     shutdown_mpitask_worker,
     verify_mpi_communicator,
 )
-from distributed.cli.dask_worker import go
 
 # Add the no-nanny option so we don't fork additional processes
 MPI_DASK_WRAPPER_MODULE = "jobqueue_features.mpi_dask_worker --no-nanny"
@@ -27,7 +26,9 @@ def prepare_for_mpi_tasks(root=0, comm=None):
     if rank == root:
         # Start dask so root reports to scheduler and accepts tasks
         # Task distribution is part of task itself (via our wrapper)
-        go()
+        from distributed.cli import dask_worker
+
+        dask_worker.go()
 
         # As a final task, send a shutdown to the other MPI ranks
         serialized_object = serialize_function_and_args(shutdown_mpitask_worker)
