@@ -34,7 +34,13 @@ def task1(task_name):
     else:
         all_nodes = []
     # Since it is a return  value it will only get printed by root
-    return "Running %d tasks of type %s on nodes %s." % (size, task_name, all_nodes)
+    return_string = "Running %d tasks of type %s on nodes %s." % (
+        size,
+        task_name,
+        all_nodes,
+    )
+    print(return_string)
+    return return_string
 
 
 # @on_cluster()  # LocalCluster

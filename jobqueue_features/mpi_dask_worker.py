@@ -36,6 +36,7 @@ def prepare_for_mpi_tasks(root=0, comm=None):
             serialized_object=serialized_object, root=root, comm=comm
         )
     else:
+        print("Rank {} is waiting for work".format(rank))
         while True:
             # Calling with no arguments means these are non-root processes
             mpi_deserialize_and_execute(root=root, comm=comm)
