@@ -1,16 +1,14 @@
 from __future__ import print_function
 import os
 
-from dask.distributed import LocalCluster
-
 from jobqueue_features.clusters import CustomSLURMCluster
 from jobqueue_features.decorators import on_cluster, mpi_task
 from jobqueue_features.functions import set_default_cluster
 from jobqueue_features.mpi_wrapper import SRUN
 
-import logging
+# import logging
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
 # set_default_cluster(LocalCluster)
 set_default_cluster(CustomSLURMCluster)
@@ -45,9 +43,10 @@ def task1(task_name):
 
 # @on_cluster()  # LocalCluster
 def main():
-    script_path = os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
-    t = task1("task1")
-    print(t.result())
+    t1 = task1("task1")
+    t2 = task1("task1, 2nd iteration")
+    print(t1.result())
+    print(t2.result())
 
 
 if __name__ == "__main__":
