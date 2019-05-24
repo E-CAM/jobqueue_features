@@ -126,48 +126,54 @@ class mpi_task(task):
         self.default_mpi_tasks = default_mpi_tasks
         super(mpi_task, self).__init__(cluster_id=cluster_id)
 
+    def get_cluster_attribute(self, cluster, attribute, default, **kwargs):
+        return getattr(cluster, attribute, getattr(kwargs, attribute, default))
+
     def _submit(self, cluster, client, f, *args, **kwargs):
+        # For MPI tasks, let's assume functions are not pure (by default)
+        pure = self.get_cluster_attribute(cluster, "pure", False, **kwargs)
         # Check if it is a forking task
-        fork_mpi = getattr(cluster, "fork_mpi", getattr(kwargs, "fork_mpi", False))
+        fork_mpi = self.get_cluster_attribute(cluster, "fork_mpi", False, **kwargs)
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
         if fork_mpi:
             # Add a set of kwargs that define the job layout to be picked up by
             # our mpi_wrap function
-            kwargs.update(
-                {
-                    "mpi_launcher": getattr(
-                        cluster,
-                        "mpi_launcher",
-                        getattr(kwargs, "mpi_launcher", MPIEXEC),
-                    ),
-                    "mpi_tasks": getattr(
-                        cluster,
-                        "mpi_tasks",
-                        getattr(kwargs, "mpi_tasks", self.default_mpi_tasks),
-                    ),
-                    "nodes": getattr(cluster, "nodes", getattr(kwargs, "nodes", None)),
-                    "cpus_per_task": getattr(
-                        cluster, "cpus_per_task", getattr(kwargs, "cpus_per_task", None)
-                    ),
-                    "ntasks_per_node": getattr(
-                        cluster,
-                        "ntasks_per_node",
-                        getattr(kwargs, "ntasks_per_node", None),
-                    ),
-                }
+            mpi_launcher = self.get_cluster_attribute(
+                cluster, "mpi_launcher", MPIEXEC, **kwargs
             )
-            # For MPI tasks, when we are forking a process let's assume functions are not
-            # pure (by default)
-            kwargs.update(
-                {"pure": getattr(cluster, "pure", getattr(kwargs, "pure", False))}
+            mpi_tasks = self.get_cluster_attribute(
+                cluster, "mpi_tasks", self.default_mpi_tasks, **kwargs
+            )
+            nodes = self.get_cluster_attribute(cluster, "nodes", None, **kwargs)
+            cpus_per_task = self.get_cluster_attribute(
+                cluster, "cpus_per_task", None, **kwargs
+            )
+            ntasks_per_node = self.get_cluster_attribute(
+                cluster, "ntasks_per_node", None, **kwargs
             )
 
-            return super(mpi_task, self)._submit(cluster, client, f, *args, **kwargs)
+            return super(mpi_task, self)._submit(
+                cluster,
+                client,
+                f,
+                *args,
+                pure=pure,
+                mpi_launcher=mpi_launcher,
+                mpi_tasks=mpi_tasks,
+                nodes=nodes,
+                cpus_per_task=cpus_per_task,
+                ntasks_per_node=ntasks_per_node,
+                **kwargs
+            )
         else:
             # If we are not forking we need to serialize the task and arguments
             serialized_object = serialize_function_and_args(f, *args, **kwargs)
 
             # Then we submit our deserializing/executing function as the task
             return super(mpi_task, self)._submit(
-                cluster, client, mpi_deserialize_and_execute, serialized_object
+                cluster,
+                client,
+                mpi_deserialize_and_execute,
+                serialized_object,
+                pure=pure,
             )
