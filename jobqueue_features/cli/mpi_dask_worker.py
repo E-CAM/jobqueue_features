@@ -3,7 +3,7 @@
 Distribution of MPI enabled tasks
 """
 
-from .mpi_wrapper import (
+from jobqueue_features.mpi_wrapper import (
     mpi_deserialize_and_execute,
     serialize_function_and_args,
     shutdown_mpitask_worker,
@@ -12,7 +12,7 @@ from .mpi_wrapper import (
 import sys
 
 # Add the no-nanny option so we don't fork additional processes
-MPI_DASK_WRAPPER_MODULE = "jobqueue_features.mpi_dask_worker --no-nanny"
+MPI_DASK_WRAPPER_MODULE = "jobqueue_features.cli.mpi_dask_worker --no-nanny"
 
 
 def prepare_for_mpi_tasks(root=0, comm=None):
