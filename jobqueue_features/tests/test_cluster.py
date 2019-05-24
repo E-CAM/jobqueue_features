@@ -164,7 +164,6 @@ class TestClusters(TestCase):
         self.assertEqual(cluster.worker_processes, 1)
         self.assertEqual(cluster.worker_threads, 1)
         self.assertIn("#SBATCH -n 24", cluster.job_script())
-        print cluster.job_script()
         self.assertIn(
             "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}", cluster.job_script()
         )
