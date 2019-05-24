@@ -7,7 +7,11 @@ from dask.distributed import LocalCluster, Client, Future  # noqa
 
 from .clusters_controller import clusters_controller_singleton, ClusterType  # noqa
 from .custom_exceptions import ClusterException
-from .mpi_wrapper import MPIEXEC
+from .mpi_wrapper import (
+    MPIEXEC,
+    serialize_function_and_args,
+    mpi_deserialize_and_execute,
+)
 
 
 def _get_workers_number(client):
@@ -123,8 +127,10 @@ class mpi_task(task):
         super(mpi_task, self).__init__(cluster_id=cluster_id)
 
     def _submit(self, cluster, client, f, *args, **kwargs):
+        # Check if it is a forking task
+        fork_mpi = getattr(cluster, "fork_mpi", getattr(kwargs, "fork_mpi", False))
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
-        if getattr(cluster, "fork_mpi", getattr(kwargs, "fork_mpi", False)):
+        if fork_mpi:
             kwargs.update(
                 {
                     "mpi_launcher": getattr(
@@ -153,4 +159,12 @@ class mpi_task(task):
         kwargs.update(
             {"pure": getattr(cluster, "pure", getattr(kwargs, "pure", False))}
         )
-        return super(mpi_task, self)._submit(cluster, client, f, *args, **kwargs)
+        if fork_mpi:
+            return super(mpi_task, self)._submit(cluster, client, f, *args, **kwargs)
+        else:
+            # If we are not forking we need to serialize the task and arguments
+            serialized_object = serialize_function_and_args(f, *args, **kwargs)
+            # Then we submit our deserializing/executing function as the task
+            return super(mpi_task, self)._submit(
+                cluster, client, mpi_deserialize_and_execute, serialized_object
+            )
