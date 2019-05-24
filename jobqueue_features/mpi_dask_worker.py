@@ -9,6 +9,7 @@ from .mpi_wrapper import (
     shutdown_mpitask_worker,
     verify_mpi_communicator,
 )
+import sys
 
 # Add the no-nanny option so we don't fork additional processes
 MPI_DASK_WRAPPER_MODULE = "jobqueue_features.mpi_dask_worker --no-nanny"
@@ -37,6 +38,8 @@ def prepare_for_mpi_tasks(root=0, comm=None):
         )
     else:
         print("Rank {} is waiting for work".format(rank))
+        sys.stdout.flush()
+        sys.stderr.flush()
         while True:
             # Calling with no arguments means these are non-root processes
             mpi_deserialize_and_execute(root=root, comm=comm)
