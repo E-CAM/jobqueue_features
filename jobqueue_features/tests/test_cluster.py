@@ -2,6 +2,8 @@ from unittest import TestCase
 from dask.distributed import Client
 
 from jobqueue_features.clusters import get_cluster, SLURM
+from jobqueue_features.mpi_wrapper import SRUN
+from jobqueue_features.cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 
 
 class TestClusters(TestCase):
@@ -10,11 +12,13 @@ class TestClusters(TestCase):
         self.kwargs = {
             # 'interface': 'eth0',  # most likely won't have ib0 available so just use
             # a safe default for the tests
-            "interface": ""
+            "interface": "",
+            "fork_mpi": False,
+            "mpi_launcher": SRUN,
         }
 
     def test_custom_cluster(self):
-        cluster = get_cluster(SLURM, **self.kwargs)
+        cluster = get_cluster(scheduler=SLURM, **self.kwargs)
         self.assertEqual(cluster.name, self.cluster_name)
         self.assertIsInstance(cluster.client, Client)
         with self.assertRaises(ValueError):
@@ -48,6 +52,7 @@ class TestClusters(TestCase):
         self.assertIn("#SBATCH --cpus-per-task=1", cluster.job_header)
         self.assertIn("#SBATCH --ntasks-per-node=64", cluster.job_header)
         self.assertIn("#SBATCH -n 64", cluster.job_script())
+        self.assertIn(MPI_DASK_WRAPPER_MODULE, cluster._command_template)
         self.assertEqual(cluster.worker_cores, 1)
         self.assertEqual(cluster.worker_processes, 1)
         self.assertEqual(cluster.worker_threads, 1)
@@ -56,6 +61,13 @@ class TestClusters(TestCase):
             get_cluster(
                 queue_type="knl", mpi_mode=True, nodes=64, cores=64, **self.kwargs
             )
+
+    def test_fork_mpi_job_cluster(self):
+        # First do a simple mpi job
+        kwargs = self.kwargs
+        kwargs.update({"fork_mpi": True})
+        cluster = get_cluster(queue_type="knl", mpi_mode=True, cores=64, **kwargs)
+        self.assertNotIn(MPI_DASK_WRAPPER_MODULE, cluster._command_template)
 
     def test_mpi_multi_node_job_cluster(self):
         # First do a simple mpi job

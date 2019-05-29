@@ -1,5 +1,6 @@
-dask>=0.18.1
-distributed>=1.22.0
+dask>=1.2.0
+distributed>=1.27
 dask_jobqueue>=0.4.1
 typing
 pytest-cov
+mpi4py
