@@ -3,22 +3,17 @@ import sys
 
 from jobqueue_features.clusters import CustomSLURMCluster
 from jobqueue_features.decorators import on_cluster, mpi_task
-from jobqueue_features.functions import set_default_cluster
 from jobqueue_features.mpi_wrapper import SRUN
 
 # import logging
 
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
-# set_default_cluster(LocalCluster)
-set_default_cluster(CustomSLURMCluster)
-
 custom_cluster = CustomSLURMCluster(
     name="mpiCluster", walltime="00:03:00", nodes=2, mpi_mode=True, mpi_launcher=SRUN
 )
 
 
-@on_cluster(cluster=custom_cluster, cluster_id="mpiCluster")
 @mpi_task(cluster_id="mpiCluster")
 def task1(task_name):
     from mpi4py import MPI
@@ -37,12 +32,13 @@ def task1(task_name):
         task_name,
         all_nodes,
     )
+    # The flush is required to ensure that the print statements appear in the job log
+    # files
     print(return_string)
     sys.stdout.flush()
     return return_string
 
 
-@on_cluster(cluster=custom_cluster, cluster_id="mpiCluster")
 @mpi_task(cluster_id="mpiCluster")
 def task2(name, task_name="default"):
     from mpi4py import MPI
@@ -51,12 +47,14 @@ def task2(name, task_name="default"):
     rank = comm.Get_rank()
     # This only appears in the slurm job output
     return_string = "Hi %s, my rank is %d for task of type %s" % (name, rank, task_name)
+    # The flush is required to ensure that the print statements appear in the job log
+    # files
     print(return_string)
     sys.stdout.flush()
     return return_string
 
 
-# @on_cluster()  # LocalCluster
+@on_cluster(cluster=custom_cluster, cluster_id="mpiCluster")
 def main():
     t1 = task1("task1")
     t2 = task1("task1, 2nd iteration")

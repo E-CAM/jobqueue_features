@@ -3,7 +3,7 @@ from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
 from typing import TypeVar, Dict  # noqa
 
-from jobqueue_features.cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
+from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 from .mpi_wrapper import mpi_wrap
 
 import logging
