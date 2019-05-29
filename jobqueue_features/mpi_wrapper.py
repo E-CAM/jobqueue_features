@@ -170,31 +170,37 @@ def deserialize_and_execute(serialized_object):
     return func(*args, **kwargs)
 
 
-def flush_and_abort(msg="Flushing print buffer and aborting", comm=None, error_code=1):
+def flush_and_abort(
+    msg="Flushing print buffer and aborting", comm=None, error_code=1, mpi_abort=True
+):
     import traceback
 
     if comm is None:
         from mpi4py import MPI
 
         comm = MPI.COMM_WORLD
-    print(msg)
-    traceback.print_stack()
     if error_code == 0:
         print("To abort correctly, we need to use a non-zero error code")
         error_code = 1
-    sys.stdout.flush()
-    sys.stderr.flush()
-    comm.Abort(error_code)
+    if mpi_abort:
+        print(msg)
+        traceback.print_stack()
+        sys.stdout.flush()
+        sys.stderr.flush()
+        comm.Abort(error_code)
+    sys.exit(error_code)
 
 
-def verify_mpi_communicator(comm):
+def verify_mpi_communicator(comm, mpi_abort=True):
     # Check we have a valid communicator
     try:
         comm.Get_rank()
+        return True
     except AttributeError:
         flush_and_abort(
             msg="Looks like you did not pass a valid MPI communicator, aborting "
-            "using global communicator"
+            "using global communicator",
+            mpi_abort=mpi_abort,
         )
 
 

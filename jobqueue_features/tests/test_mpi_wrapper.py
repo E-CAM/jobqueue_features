@@ -12,6 +12,10 @@ from jobqueue_features import (
     mpi_task,
     which,
     serialize_function_and_args,
+    deserialize_and_execute,
+    mpi_deserialize_and_execute,
+    verify_mpi_communicator,
+    flush_and_abort,
 )
 
 
@@ -52,6 +56,21 @@ class TestMPIWrap(TestCase):
             return result
 
         self.test_function = test_function
+
+        def mpi_task1(task_name):
+            from mpi4py import MPI
+
+            comm = MPI.COMM_WORLD
+            size = comm.Get_size()
+            # Since it is a return  value it will only get printed by root
+            return "Running %d tasks of type %s." % (size, task_name)
+
+        self.mpi_task1 = mpi_task1
+
+        def string_task(string, kwarg_string=None):
+            return " ".join([s for s in [string, kwarg_string] if s])
+
+        self.string_task = string_task
 
     def test_which(self):
         # Check it finds a full path
@@ -103,3 +122,66 @@ class TestMPIWrap(TestCase):
             )
         else:
             pass
+
+    # Test our serialisation method
+    def test_serialize_function_and_args(self):
+        # First check elements in our dict
+        serialized_object = serialize_function_and_args(self.string_task)
+        self.assertEqual(["header", "frames"], list(serialized_object.keys()))
+        serialized_object = serialize_function_and_args(self.string_task, "chicken")
+        self.assertEqual(
+            ["header", "frames", "args_header", "args_frames"],
+            list(serialized_object.keys()),
+        )
+        serialized_object = serialize_function_and_args(
+            self.string_task, kwarg_string="dog"
+        )
+        self.assertEqual(
+            ["header", "frames", "kwargs_header", "kwargs_frames"],
+            list(serialized_object.keys()),
+        )
+        serialized_object = serialize_function_and_args(
+            self.string_task, "chicken", kwarg_string="dog"
+        )
+        self.assertEqual(
+            [
+                "header",
+                "frames",
+                "args_header",
+                "args_frames",
+                "kwargs_header",
+                "kwargs_frames",
+            ],
+            list(serialized_object.keys()),
+        )
+
+    def test_deserialize_and_execute(self):
+        serialized_object = serialize_function_and_args(
+            self.string_task, "chicken", kwarg_string="dog"
+        )
+        self.assertEqual("chicken dog", deserialize_and_execute(serialized_object))
+
+    def test_flush_and_abort(self):
+        with self.assertRaises(SystemExit) as cm:
+            flush_and_abort(mpi_abort=False)
+        self.assertEqual(cm.exception.code, 1)
+        with self.assertRaises(SystemExit) as cm:
+            flush_and_abort(error_code=2, mpi_abort=False)
+        self.assertEqual(cm.exception.code, 2)
+
+    def test_verify_mpi_communicator(self):
+        from mpi4py import MPI
+
+        comm = MPI.COMM_WORLD
+        with self.assertRaises(SystemExit) as cm:
+            verify_mpi_communicator("Not a communicator", mpi_abort=False)
+        self.assertEqual(cm.exception.code, 1)
+        self.assertTrue(verify_mpi_communicator(comm, mpi_abort=False))
+
+    def test_mpi_deserialize_and_execute(self):
+        trivial = "trivial"
+        serialized_object = serialize_function_and_args(self.mpi_task1, trivial)
+        # The test framework is not started with an MPI launcher so we have a single task
+        expected_string = "Running 1 tasks of type {}.".format(trivial)
+        return_value = mpi_deserialize_and_execute(serialized_object)
+        self.assertEqual(expected_string, return_value)

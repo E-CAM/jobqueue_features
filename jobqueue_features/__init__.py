@@ -13,6 +13,7 @@ from .mpi_wrapper import (
     deserialize_and_execute,
     mpi_deserialize_and_execute,
     verify_mpi_communicator,
+    flush_and_abort,
 )
 
 from ._version import get_versions
