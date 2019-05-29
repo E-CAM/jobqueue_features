@@ -127,33 +127,31 @@ class TestMPIWrap(TestCase):
     def test_serialize_function_and_args(self):
         # First check elements in our dict
         serialized_object = serialize_function_and_args(self.string_task)
-        self.assertEqual(["header", "frames"], list(serialized_object.keys()))
+        for key in serialized_object.keys():
+            self.assertIn(key, ["header", "frames"])
         serialized_object = serialize_function_and_args(self.string_task, "chicken")
-        self.assertEqual(
-            ["header", "frames", "args_header", "args_frames"],
-            list(serialized_object.keys()),
-        )
+        for key in serialized_object.keys():
+            self.assertIn(key, ["header", "frames", "args_header", "args_frames"])
         serialized_object = serialize_function_and_args(
             self.string_task, kwarg_string="dog"
         )
-        self.assertEqual(
-            ["header", "frames", "kwargs_header", "kwargs_frames"],
-            list(serialized_object.keys()),
-        )
+        for key in serialized_object.keys():
+            self.assertIn(key, ["header", "frames", "kwargs_header", "kwargs_frames"])
         serialized_object = serialize_function_and_args(
             self.string_task, "chicken", kwarg_string="dog"
         )
-        self.assertEqual(
-            [
-                "header",
-                "frames",
-                "args_header",
-                "args_frames",
-                "kwargs_header",
-                "kwargs_frames",
-            ],
-            list(serialized_object.keys()),
-        )
+        for key in serialized_object.keys():
+            self.assertIn(
+                key,
+                [
+                    "header",
+                    "frames",
+                    "args_header",
+                    "args_frames",
+                    "kwargs_header",
+                    "kwargs_frames",
+                ],
+            )
 
     def test_deserialize_and_execute(self):
         serialized_object = serialize_function_and_args(
