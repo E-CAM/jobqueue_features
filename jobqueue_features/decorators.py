@@ -126,29 +126,42 @@ class mpi_task(task):
         self.default_mpi_tasks = default_mpi_tasks
         super(mpi_task, self).__init__(cluster_id=cluster_id)
 
-    def get_cluster_attribute(self, cluster, attribute, default, **kwargs):
-        return getattr(cluster, attribute, getattr(kwargs, attribute, default))
+    def _get_cluster_attribute(self, cluster, attribute, default, **kwargs):
+        dict_value = kwargs.pop(attribute, default)
+        return getattr(cluster, attribute, dict_value), kwargs
 
     def _submit(self, cluster, client, f, *args, **kwargs):
         # For MPI tasks, let's assume functions are not pure (by default)
-        pure = self.get_cluster_attribute(cluster, "pure", False, **kwargs)
-        # Check if it is a forking task
-        fork_mpi = self.get_cluster_attribute(cluster, "fork_mpi", False, **kwargs)
+        pure, kwargs = self._get_cluster_attribute(cluster, "pure", False, **kwargs)
+        # For a LocalCluster, mpi_mode/fork_mpi will not have been set so let's assume
+        # MPI forking
+        mpi_mode, kwargs = self._get_cluster_attribute(
+            cluster, "mpi_mode", None, **kwargs
+        )
+        if mpi_mode is None:
+            fork_mpi = True
+        else:
+            # Check if it is a forking task
+            fork_mpi, kwargs = self._get_cluster_attribute(
+                cluster, "fork_mpi", False, **kwargs
+            )
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
         if fork_mpi:
             # Add a set of kwargs that define the job layout to be picked up by
             # our mpi_wrap function
-            mpi_launcher = self.get_cluster_attribute(
+            mpi_launcher, kwargs = self._get_cluster_attribute(
                 cluster, "mpi_launcher", MPIEXEC, **kwargs
             )
-            mpi_tasks = self.get_cluster_attribute(
+            mpi_tasks, kwargs = self._get_cluster_attribute(
                 cluster, "mpi_tasks", self.default_mpi_tasks, **kwargs
             )
-            nodes = self.get_cluster_attribute(cluster, "nodes", None, **kwargs)
-            cpus_per_task = self.get_cluster_attribute(
+            nodes, kwargs = self._get_cluster_attribute(
+                cluster, "nodes", None, **kwargs
+            )
+            cpus_per_task, kwargs = self._get_cluster_attribute(
                 cluster, "cpus_per_task", None, **kwargs
             )
-            ntasks_per_node = self.get_cluster_attribute(
+            ntasks_per_node, kwargs = self._get_cluster_attribute(
                 cluster, "ntasks_per_node", None, **kwargs
             )
 

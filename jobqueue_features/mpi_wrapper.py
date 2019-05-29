@@ -13,16 +13,17 @@ SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC]
 
 
 def which(filename):
+    result = None
     # Check we can immediately find the executable
     if os.path.exists(filename) and os.access(filename, os.X_OK):
-        return filename
+        result = filename
     else:
         # Look everywhere in the users PATH
         for path in os.environ["PATH"].split(os.pathsep):
             full_path = os.path.join(path, filename)
             if os.path.exists(full_path) and os.access(full_path, os.X_OK):
-                return full_path
-        return None
+                result = full_path
+    return result
 
 
 def mpi_wrap(
@@ -94,17 +95,21 @@ def mpi_wrap(
     default_launcher_args = get_default_mpi_params(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node
     )
-    cmd = (
-        "{pre_launcher_opts} {mpi_launcher} {default_launcher_args} {launcher_args}"
-        " {executable} {exec_args}".format(
-            pre_launcher_opts=pre_launcher_opts,
-            mpi_launcher=mpi_launcher,
-            default_launcher_args=default_launcher_args,
-            launcher_args=launcher_args,
-            executable=executable,
-            exec_args=exec_args,
-        )
+    cmd = " ".join(
+        [
+            string
+            for string in [
+                pre_launcher_opts,
+                mpi_launcher,
+                default_launcher_args,
+                launcher_args,
+                executable,
+                exec_args,
+            ]
+            if string
+        ]
     )
+
     if return_wrapped_command:
         result = cmd
     else:
@@ -214,6 +219,7 @@ def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
                 comm=comm,
             )
         print("Root ({}) has received the task and is broadcasting".format(rank))
+
         return_something = True
     else:
         return_something = False
