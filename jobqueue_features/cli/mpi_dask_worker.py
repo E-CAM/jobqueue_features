@@ -39,7 +39,7 @@ def prepare_for_mpi_tasks(root=0, comm=None):
         )
     else:
         while True:
-            # Calling with no arguments means these are non-root processes
+            # Calling with no serialized_object means these are non-root processes
             mpi_deserialize_and_execute(root=root, comm=comm)
 
 

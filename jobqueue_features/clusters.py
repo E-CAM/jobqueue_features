@@ -565,7 +565,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
                 )
             # The first part of the string is the python executable to use for the
             # worker
-            [python, arguments] = command_template.split(" ", 1)
+            python, arguments = command_template.split(" ", 1)
             # Wrap the launch command with our mpi wrapper
             command_template = mpi_wrap(
                 python, exec_args=arguments, return_wrapped_command=True, **kwargs
