@@ -25,7 +25,8 @@ def prepare_for_mpi_tasks(root=0, comm=None):
         comm = MPI.COMM_WORLD
     verify_mpi_communicator(comm)
 
-    # The tasks operate within a duplicate of the given communicator
+    # Using a setter for the communicator protects us from operating within the
+    # MPI.COMM_WORLD context
     set_task_mpi_comm(parent_comm=comm)
 
     # the task communicator is now behind a getter, so we need to grab it
