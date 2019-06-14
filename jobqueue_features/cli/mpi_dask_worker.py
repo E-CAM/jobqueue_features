@@ -4,8 +4,10 @@ Distribution of MPI enabled tasks
 """
 
 from jobqueue_features.mpi_wrapper import (
+    get_task_mpi_comm,
     mpi_deserialize_and_execute,
     serialize_function_and_args,
+    set_task_mpi_comm,
     shutdown_mpitask_worker,
     verify_mpi_communicator,
 )
@@ -23,7 +25,13 @@ def prepare_for_mpi_tasks(root=0, comm=None):
         comm = MPI.COMM_WORLD
     verify_mpi_communicator(comm)
 
-    rank = comm.Get_rank()
+    # The tasks operate within a duplicate of the given communicator
+    set_task_mpi_comm(parent_comm=comm)
+
+    # the task communicator is now behind a getter, so we need to grab it
+    task_comm = get_task_mpi_comm()
+
+    rank = task_comm.Get_rank()
 
     if rank == root:
         # Start dask so root reports to scheduler and accepts tasks
@@ -35,12 +43,14 @@ def prepare_for_mpi_tasks(root=0, comm=None):
         # As a final task, send a shutdown to the other MPI ranks
         serialized_object = serialize_function_and_args(shutdown_mpitask_worker)
         mpi_deserialize_and_execute(
-            serialized_object=serialized_object, root=root, comm=comm
+            serialized_object=serialized_object, root=root, comm=task_comm
         )
     else:
         while True:
             # Calling with no serialized_object means these are non-root processes
-            mpi_deserialize_and_execute(root=root, comm=comm)
+            # We use get_task_mpi_comm() to allow for dynamic redefinition of the
+            # communicator group
+            mpi_deserialize_and_execute(root=root, comm=get_task_mpi_comm())
 
 
 if __name__ == "__main__":

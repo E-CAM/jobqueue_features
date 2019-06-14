@@ -12,6 +12,64 @@ MPIEXEC = "mpiexec"
 SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC]
 
 
+__DEFAULT_MPI_COMM = None
+
+__TASK_MPI_COMM = None
+
+
+def get_task_mpi_comm():
+    global __TASK_MPI_COMM
+
+    if __TASK_MPI_COMM is None:
+        raise AttributeError(
+            "get_task_comm() seems to have been called without first "
+            "using set_task_comm()"
+        )
+
+    return __TASK_MPI_COMM
+
+
+def set_task_mpi_comm(parent_comm=None):
+    """
+    This function sets the communicator for the tasks. If the MPI environment is
+    MPI.COMM_WORLD (either provided by parent_comm or set within the function) then
+    the task communicator is set as a duplicate of this.
+
+    :param parent_comm: the MPI communicator environment required for the task
+    :return: None
+    """
+    from mpi4py import MPI
+
+    global __TASK_MPI_COMM
+    global __DEFAULT_MPI_COMM
+
+    if parent_comm is None:
+        parent_comm = MPI.COMM_WORLD
+
+    if parent_comm is MPI.COMM_WORLD:
+        # Don't allow tasks to operate directly with MPI.COMM_WORLD
+        __TASK_MPI_COMM = parent_comm.Dup()
+    else:
+        __TASK_MPI_COMM = parent_comm
+
+    # if the default value (used for resetting) has not yet been set, do it now
+    if __DEFAULT_MPI_COMM is None:
+        __DEFAULT_MPI_COMM = __TASK_MPI_COMM
+
+
+def reset_task_comm():
+
+    global __TASK_MPI_COMM
+    global __DEFAULT_MPI_COMM
+
+    if __DEFAULT_MPI_COMM is None:
+        raise AttributeError(
+            "Cannot reset task communicator, default value has not been set"
+        )
+
+    __TASK_MPI_COMM = __DEFAULT_MPI_COMM
+
+
 def which(filename):
     result = None
     # Check we can immediately find the executable
@@ -132,6 +190,8 @@ def mpi_wrap(
 
 def shutdown_mpitask_worker():
     from mpi4py import MPI
+
+    # Could do other stuff here
 
     # Finalise MPI
     MPI.Finalize()
