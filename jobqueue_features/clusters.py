@@ -130,8 +130,8 @@ class CustomClusterMixin(object):
     pure = None  # type: bool
 
     def update_init_kwargs(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
-        # self.scheduler_name is set by the JobQueueCluster class, make sure it exists
-        if not hasattr(self, "scheduler_name"):
+        # self.submit_command is set by the JobQueueCluster class, make sure it exists
+        if self.submit_command is None:
             raise NotImplementedError(
                 "For inheritance to work as intended you need to create new "
                 "CustomCluster class that inherits from the base CustomCluster class "
@@ -497,6 +497,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
      adds client attribute to SLURMCluster class."""
 
     def __init__(self, **kwargs):
+        self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
         # Do custom initialisation here
         if self.mpi_mode:
