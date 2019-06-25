@@ -45,6 +45,8 @@ class ClusterController(object):
         kwargs = {}
         if self.default_cluster is not LocalCluster:
             kwargs["name"] = name
+        else:
+            kwargs["processes"] = False
         return self.default_cluster(**kwargs)
 
     def _make_client(self, id_):
