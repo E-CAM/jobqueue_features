@@ -1,3 +1,5 @@
+from __future__ import division
+
 from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
@@ -332,7 +334,7 @@ class CustomClusterMixin(object):
                     elif expected_cores % self.cpus_per_task != 0:
                         raise ValueError('"cores" not divisible by "cpus_per_task"')
                     # assume physical cores when 'nodes' not used
-                    self.ntasks_per_node = self.cores_per_node / self.cpus_per_task
+                    self.ntasks_per_node = self.cores_per_node // self.cpus_per_task
                 else:
                     if self.cpus_per_task is None:
                         if (
@@ -343,12 +345,12 @@ class CustomClusterMixin(object):
                             )
                         else:
                             self.cpus_per_task = (
-                                self.cores_per_node / self.ntasks_per_node
+                                self.cores_per_node // self.ntasks_per_node
                             )
                     if expected_cores % self.cpus_per_task != 0:
                         raise ValueError("'cores' not divisible by 'cpus_per_task'")
                 # self.mpi_tasks is derived from expected_cores and cpus_per_task
-                self.mpi_tasks = expected_cores / self.cpus_per_task
+                self.mpi_tasks = expected_cores // self.cpus_per_task
             else:
                 if expected_cores is not None:
                     raise ValueError(
@@ -373,7 +375,7 @@ class CustomClusterMixin(object):
                             self.ntasks_per_node < self.cores_per_node
                         ):  # assume physical is what we want
                             self.cpus_per_task = (
-                                self.cores_per_node / self.ntasks_per_node
+                                self.cores_per_node // self.ntasks_per_node
                             )  # safe since ints
                         else:
                             self.cpus_per_task = 1
