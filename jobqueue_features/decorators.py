@@ -22,26 +22,27 @@ class on_cluster(object):
     """Decorator gets or create clusters from clusters controller.
     Parameters
     ----------
+    cluster : ClusterType
+        Work on given cluster
     cluster_id : str
         Gets or create cluster with given id. If no id provided controller
         gets default cluster (cluster_id = 'default').
-    cluster : ClusterType
-        Pass own cluster for given cluster_id.
     scale : int
         Scale cluster (default or given by id or passes by cluster parameter).
     """
 
-    def __init__(self, cluster_id=None, cluster=None, scale=None):
-        # type: (str, ClusterType, int) -> None
+    def __init__(self, cluster=None, cluster_id=None, scale=None):
+        # type: (ClusterType, str, int) -> None
+        _id = self._get_cluster_id(cluster=cluster, cluster_id=cluster_id)
         try:
             self.cluster, client = clusters_controller_singleton.get_cluster(
-                id_=cluster_id
+                id_=_id
             )  # type: ClusterType
         except ClusterException:
             self.cluster, client = clusters_controller_singleton.add_cluster(
-                id_=cluster_id, cluster=cluster
+                id_=_id, cluster=cluster
             )  # type: ClusterType
-        if type(self.cluster) is not LocalCluster:
+        if not self._is_local_cluster(cluster=self.cluster):
             if scale is not None:
                 # If the kwarg 'scale' has been used in the decorator call we adaptively
                 # scale up to that many workers
@@ -49,7 +50,7 @@ class on_cluster(object):
                     print(
                         "Scaling cluster {cluster_id} to {scale} exceeds default "
                         "maximum workers ({maximum_scale})".format(
-                            cluster_id=cluster_id,
+                            cluster_id=_id,
                             scale=scale,
                             maximum_scale=self.cluster.maximum_scale,
                         )
@@ -80,19 +81,52 @@ class on_cluster(object):
 
         return wrapped_function
 
+    @staticmethod
+    def _is_local_cluster(cluster):
+        # type: (ClusterType) -> bool
+        return type(cluster) is LocalCluster
+
+    def _get_cluster_id(self, cluster=None, cluster_id=None):
+        # type: (ClusterType, str) -> str
+        if cluster:
+            if not self._is_local_cluster(cluster=cluster):
+                if cluster_id is not None:
+                    assert cluster_id == cluster.name
+                    return cluster_id
+                else:
+                    return cluster.name
+            else:
+                if cluster_id is None:
+                    raise ClusterException('LocalCluster requires "cluster_id" argument.')
+                return cluster_id
+        return cluster_id
+
 
 class task(object):
     """Decorator gets client from clusters controller and submits
     wrapped function to given cluster.
     Parameters
     ----------
+    cluster : ClusterType
+
     cluster_id : str
         Gets client of given cluster by id or 'default' if none given.
     """
 
-    def __init__(self, cluster_id=None):
+    def __init__(self, cluster_id=None, cluster=None):
         # type: (str) -> None
         self.cluster_id = cluster_id
+        if cluster:
+            if type(cluster) is not LocalCluster:
+                _id = getattr(cluster, "name", None)
+                if not _id:
+                    raise ClusterException("Cluster has no name attribute set.")
+                elif cluster_id and _id != cluster_id:
+                    raise ClusterException("Cluster 'name' and cluster_id are different.")
+                else:
+                    self.cluster_id = _id
+            elif not cluster_id:
+                raise ClusterException("'cluster_id' argument is required for LocalCluster.")
 
     def __call__(self, f):
         # type: (Callable) -> Callable

@@ -6,6 +6,8 @@ from dask.distributed import Client, LocalCluster
 from .clusters import ClusterType  # noqa
 from .custom_exceptions import ClusterException
 
+_DEFAULT = "default"
+
 
 class ClusterController(object):
     """Controller keeps collection of clusters and clients so it can
@@ -15,27 +17,37 @@ class ClusterController(object):
 
     def __init__(self):
         # type: () -> None
-        self._clusters = {"default": None}  # type: Dict[str, ClusterType]
-        self._clients = {"default": None}  # type: Dict[str, Client]
+        self._clusters = {_DEFAULT: None}  # type: Dict[str, ClusterType]
+        self._clients = {_DEFAULT: None}  # type: Dict[str, Client]
         atexit.register(self._close)
 
     def get_cluster(self, id_=None):
         # type: (str) -> Tuple[ClusterType, Client]
-        cluster = self._clusters.get(id_ or "default")
+        cluster = self._clusters.get(id_ or _DEFAULT)
         if cluster is None:
             raise ClusterException('No cluster "{}" set!'.format(id_))
-        client = self._clients.get(id_ or "default")
+        client = self._clients.get(id_ or _DEFAULT)
         if client is None:
             raise ClusterException('No client for cluster "{}" set!'.format(id_))
         return cluster, client
 
     def add_cluster(self, id_=None, cluster=None):
         # type: (str, ClusterType) -> Tuple[ClusterType, Client]
-        return self._make_cluster(id_=id_ or "default", cluster=cluster)
+        if hasattr(cluster, "name"):
+            if id_ is None:
+                id_ = cluster.name
+            else:
+                assert id_ == cluster.name
+        return self._make_cluster(id_=id_ or _DEFAULT, cluster=cluster)
+
+    def delete_cluster(self, id_):
+        # type: (str) -> None
+        self._close_client(id_=id_)
+        self._close_cluster(id_=id_)
 
     def _make_cluster(self, id_, cluster=None):
         # type: (str, ClusterType) -> Tuple[ClusterType, Client]
-        if id_ != "default" and id_ in self._clusters:
+        if id_ != _DEFAULT and id_ in self._clusters:
             raise ClusterException('Cluster "{}" already exists!'.format(id_))
         self._clusters[id_] = cluster or self._make_default_cluster(name=id_)
         self._make_client(id_=id_)
@@ -63,19 +75,29 @@ class ClusterController(object):
         self._close_clients()
         self._close_clusters()
 
+    def _close_cluster(self, id_):
+        # type: (str) -> None
+        cluster = self._clusters.pop(id_, None)
+        if cluster and type(cluster) is not LocalCluster:
+            cluster.close()
+
     def _close_clusters(self):
         # type: () -> None
-        for cluster in self._clusters.values():
-            if cluster and type(cluster) is not LocalCluster:
-                cluster.close()
-        self._clusters = {"default": None}
+        for id_ in self._clusters.keys():
+            self._close_cluster(id_)
+        self._clusters = {_DEFAULT: None}
+
+    def _close_client(self, id_):
+        # type: (str) -> None
+        client = self._clients.get(id_)
+        if client:
+            client.close()
 
     def _close_clients(self):
         # type: () -> None
-        for client in self._clients.values():
-            if client:
-                client.close()
-        self._clients = {"default": None}
+        for id_ in self._clients.keys():
+            self._close_client(id_)
+        self._clients = {_DEFAULT: None}
 
 
 clusters_controller_singleton = ClusterController()
