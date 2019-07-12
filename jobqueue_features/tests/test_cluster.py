@@ -4,7 +4,9 @@ from dask.distributed import Client
 from jobqueue_features.clusters import get_cluster, SLURM
 from jobqueue_features.mpi_wrapper import SRUN
 from jobqueue_features.cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
-from jobqueue_features.clusters_controller import clusters_controller_singleton as controller
+from jobqueue_features.clusters_controller import (
+    clusters_controller_singleton as controller,
+)
 
 
 class TestClusters(TestCase):

@@ -5,7 +5,9 @@ from dask.distributed import Client, LocalCluster, Future
 
 from jobqueue_features import on_cluster, set_default_cluster, task, ClusterException
 from jobqueue_features.clusters import CustomSLURMCluster
-from jobqueue_features.clusters_controller import clusters_controller_singleton as controller
+from jobqueue_features.clusters_controller import (
+    clusters_controller_singleton as controller,
+)
 
 
 class TweakedCustomCluster(CustomSLURMCluster):
@@ -32,6 +34,7 @@ class TestOnClusterDecorator(TestCase):
     cluster=SLURMCluster, cluster_id=str  : assert cluster.name == id
     cluster=LocalCluster, cluster_id=str  : register cluster by given id
     """
+
     def tearDown(self):
         controller._close()
 
@@ -68,11 +71,14 @@ class TestOnClusterDecorator(TestCase):
     def test_init_only_cluster_local(self):
         original_cluster = LocalCluster()
         with self.assertRaises(ClusterException) as ctx:
+
             @on_cluster(cluster=original_cluster)
             def f():
                 pass
-        self.assertEqual('LocalCluster requires "cluster_id" argument.',
-                         str(ctx.exception))
+
+        self.assertEqual(
+            'LocalCluster requires "cluster_id" argument.', str(ctx.exception)
+        )
 
         _id = "test1"
 
@@ -90,8 +96,7 @@ class TestOnClusterDecorator(TestCase):
         original_cluster = CustomSLURMCluster(name=_id)
         with self.assertRaises(ClusterException) as ctx:
             controller.add_cluster(cluster=original_cluster)
-        self.assertEqual('Cluster "{}" already exists!'.format(_id),
-                         str(ctx.exception))
+        self.assertEqual('Cluster "{}" already exists!'.format(_id), str(ctx.exception))
 
         @on_cluster(cluster_id=_id)
         def f():
@@ -122,9 +127,11 @@ class TestOnClusterDecorator(TestCase):
         original_cluster = CustomSLURMCluster()
 
         with self.assertRaises(AssertionError):
+
             @on_cluster(cluster_id=_id, cluster=original_cluster)
             def f():
                 pass
+
         controller.delete_cluster(original_cluster.name)
         original_cluster = CustomSLURMCluster()
 
@@ -222,12 +229,15 @@ class TestTaskDecorator(TestCase):
         original_cluster = cluster_type()
 
         with self.assertRaises(ClusterException) as ctx:
+
             @on_cluster(cluster=original_cluster, cluster_id=_id)
             @task(cluster=original_cluster)
             def f():
                 pass
-        self.assertEqual("'cluster_id' argument is required for LocalCluster.",
-                         str(ctx.exception))
+
+        self.assertEqual(
+            "'cluster_id' argument is required for LocalCluster.", str(ctx.exception)
+        )
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
         @task(cluster=original_cluster, cluster_id=_id)
@@ -243,12 +253,15 @@ class TestTaskDecorator(TestCase):
         original_cluster = cluster_type(name=_id)
 
         with self.assertRaises(ClusterException) as ctx:
+
             @on_cluster(cluster=original_cluster)
             @task(cluster=original_cluster, cluster_id="bad name")
             def f():
                 pass
-        self.assertEqual("Cluster 'name' and cluster_id are different.",
-                         str(ctx.exception))
+
+        self.assertEqual(
+            "Cluster 'name' and cluster_id are different.", str(ctx.exception)
+        )
 
         @on_cluster(cluster=original_cluster)
         @task(cluster=original_cluster, cluster_id=_id)
@@ -300,6 +313,7 @@ class TestTaskExecutionLocalCluster(TestCase):
         @task()
         def f():
             return "test"
+
         r = f()
         self.assertIsInstance(r, Future)
         self.assertEqual(r.result(), "test")
@@ -307,10 +321,10 @@ class TestTaskExecutionLocalCluster(TestCase):
     def test_bad_task(self):
         _id = "bad_ID"
         with self.assertRaises(ClusterException) as ctx:
+
             @task(cluster_id=_id)
             def bad_function():
                 return "test"
 
             bad_function()
-        self.assertEqual('No cluster "{}" set!'.format(_id),
-                         str(ctx.exception))
+        self.assertEqual('No cluster "{}" set!'.format(_id), str(ctx.exception))

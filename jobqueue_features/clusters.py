@@ -502,7 +502,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     def __init__(self, **kwargs):
         self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
-        self._validate_name(kwargs['name'])
+        self._validate_name(kwargs["name"])
         # Do custom initialisation here
         if self.mpi_mode:
             # Most obvious customisation is for when we use mpi_mode, relevant variables
@@ -543,6 +543,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 
     def _validate_name(self, name):
         from .clusters_controller import clusters_controller_singleton
+
         try:
             clusters_controller_singleton.get_cluster(id_=name)
         except:
@@ -552,6 +553,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 
     def _add_to_cluster_controller(self):
         from .clusters_controller import clusters_controller_singleton
+
         clusters_controller_singleton.add_cluster(id_=self.name, cluster=self)
 
     def _update_script_nodes(self, **kwargs):  # type: () -> None

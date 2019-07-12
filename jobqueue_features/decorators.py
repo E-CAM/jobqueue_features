@@ -97,7 +97,9 @@ class on_cluster(object):
                     return cluster.name
             else:
                 if cluster_id is None:
-                    raise ClusterException('LocalCluster requires "cluster_id" argument.')
+                    raise ClusterException(
+                        'LocalCluster requires "cluster_id" argument.'
+                    )
                 return cluster_id
         return cluster_id
 
@@ -122,11 +124,15 @@ class task(object):
                 if not _id:
                     raise ClusterException("Cluster has no name attribute set.")
                 elif cluster_id and _id != cluster_id:
-                    raise ClusterException("Cluster 'name' and cluster_id are different.")
+                    raise ClusterException(
+                        "Cluster 'name' and cluster_id are different."
+                    )
                 else:
                     self.cluster_id = _id
             elif not cluster_id:
-                raise ClusterException("'cluster_id' argument is required for LocalCluster.")
+                raise ClusterException(
+                    "'cluster_id' argument is required for LocalCluster."
+                )
 
     def __call__(self, f):
         # type: (Callable) -> Callable
