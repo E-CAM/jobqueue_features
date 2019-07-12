@@ -1,6 +1,6 @@
-dask>=1.2.2
-distributed>=1.28
-dask_jobqueue>=0.5.0
+dask==1.2.2
+distributed==1.28.1
+dask_jobqueue==0.5.0
 typing
 pytest-cov
 mpi4py
