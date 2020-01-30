@@ -9,6 +9,8 @@ from .mpi_wrapper import (
     MPIEXEC,
     SRUN,
     which,
+    get_task_mpi_comm,
+    set_task_mpi_comm,
     serialize_function_and_args,
     deserialize_and_execute,
     mpi_deserialize_and_execute,

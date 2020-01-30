@@ -11,6 +11,8 @@ from jobqueue_features import (
     on_cluster,
     mpi_task,
     which,
+    get_task_mpi_comm,
+    set_task_mpi_comm,
     serialize_function_and_args,
     deserialize_and_execute,
     mpi_deserialize_and_execute,
@@ -58,9 +60,7 @@ class TestMPIWrap(TestCase):
         self.test_function = test_function
 
         def mpi_task1(task_name):
-            from mpi4py import MPI
-
-            comm = MPI.COMM_WORLD
+            comm = get_task_mpi_comm()
             size = comm.Get_size()
             # Since it is a return  value it will only get printed by root
             return "Running %d tasks of type %s." % (size, task_name)
@@ -179,6 +179,10 @@ class TestMPIWrap(TestCase):
     def test_mpi_deserialize_and_execute(self):
         trivial = "trivial"
         serialized_object = serialize_function_and_args(self.mpi_task1, trivial)
+        # For the deserializer to work we need to first set the task MPI communicator
+        with self.assertRaises(AttributeError):
+            mpi_deserialize_and_execute(serialized_object)
+        set_task_mpi_comm()
         # The test framework is not started with an MPI launcher so we have a single task
         expected_string = "Running 1 tasks of type {}.".format(trivial)
         return_value = mpi_deserialize_and_execute(serialized_object)

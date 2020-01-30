@@ -3,7 +3,7 @@ import sys
 
 from jobqueue_features.clusters import CustomSLURMCluster
 from jobqueue_features.decorators import on_cluster, mpi_task
-from jobqueue_features.mpi_wrapper import SRUN
+from jobqueue_features.mpi_wrapper import SRUN, get_task_mpi_comm
 
 # import logging
 
@@ -18,7 +18,7 @@ custom_cluster = CustomSLURMCluster(
 def task1(task_name):
     from mpi4py import MPI
 
-    comm = MPI.COMM_WORLD
+    comm = get_task_mpi_comm()
     size = comm.Get_size()
     name = MPI.Get_processor_name()
     all_nodes = comm.gather(name, root=0)
@@ -41,9 +41,7 @@ def task1(task_name):
 
 @mpi_task(cluster_id="mpiCluster")
 def task2(name, task_name="default"):
-    from mpi4py import MPI
-
-    comm = MPI.COMM_WORLD
+    comm = get_task_mpi_comm()
     rank = comm.Get_rank()
     # This only appears in the slurm job output
     return_string = "Hi %s, my rank is %d for task of type %s" % (name, rank, task_name)
