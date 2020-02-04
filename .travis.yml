@@ -8,6 +8,7 @@ services:
 
 python:
   - "3.6"
+  - "3.7"
 
 branches:
   only:
@@ -26,8 +27,7 @@ matrix:
           #      env:
           #        - OS=ubuntu-14.04
           #        - JOBQUEUE=pbs
-    - python: "3.6"
-      env:
+    - env:
         - OS=ubuntu-16.04
         # JOBQUEUE=none is for tests that do not need a cluster to run
         - JOBQUEUE=none
