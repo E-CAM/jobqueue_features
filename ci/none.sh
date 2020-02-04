@@ -8,6 +8,9 @@ function jobqueue_before_install {
   pip install git+https://github.com/dask/dask-jobqueue@master --upgrade --no-deps
   # install MPI runtime
   sudo apt-get install -y -q openmpi-bin libopenmpi-dev
+  # Add checkers
+  pip install black --upgrade
+  pip install codespell --upgrade
 }
 
 function jobqueue_install {
@@ -18,6 +21,7 @@ function jobqueue_install {
 function jobqueue_script {
   flake8 -j auto jobqueue_features
   black --exclude versioneer.py --check .
+  codespell --quiet-level=2
   pytest --verbose --cov=jobqueue_features -s
 }
 

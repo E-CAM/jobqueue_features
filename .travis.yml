@@ -15,54 +15,27 @@ branches:
   only:
   - master
 
-jobs:
-  include:
-    - stage: style
-      python:
-        - "3.7"
-      # Use black for style checking (Python3 only)
-      install:
-        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
-            echo installing black for Python $TRAVIS_PYTHON_VERSION;
-            pip install black;
-          else
-            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
-          fi
-      script: 
-        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
-            black --check .;
-          else
-            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
-          fi
-
-    - stage: spelling
-      python:
-        - "3.7"
-      # Use codespell for spell checking
-      install:
-        pip install codespell
-      script: codespell --quiet-level=2
-
 notifications:
   email: false
+
 matrix:
   include:
           #    - python: "3.6"
           #      env:
           #        - OS=ubuntu-14.04
           #        - JOBQUEUE=sge
-    - python: "3.6"
-      env:
-        - OS=ubuntu-14.04
-        # JOBQUEUE=none is for tests that do not need a cluster to run
-        - JOBQUEUE=none
           #    - python: "3.6"
           #      env:
           #        - OS=ubuntu-14.04
           #        - JOBQUEUE=pbs
     - python: "3.6"
       env:
-        - OS=ubuntu-14.04
+        - OS=ubuntu-16.04
+        # JOBQUEUE=none is for tests that do not need a cluster to run
+        - JOBQUEUE=none
+    - python: "3.6"
+      env:
+        - OS=ubuntu-16.04
         - JOBQUEUE=slurm
 
 env:
