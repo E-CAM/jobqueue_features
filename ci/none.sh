@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 function jobqueue_before_install {
+  # Install MPI runtime
+  sudo apt-get install -y -q openmpi-bin libopenmpi-dev
   # Install miniconda
   ./ci/conda_setup.sh
   export PATH="$HOME/miniconda/bin:$PATH"
   conda install --yes -c conda-forge python=$TRAVIS_PYTHON_VERSION dask distributed flake8 black pytest pytest-asyncio
   pip install git+https://github.com/dask/dask-jobqueue@master --upgrade --no-deps
-  # install MPI runtime
-  sudo apt-get install -y -q openmpi-bin libopenmpi-dev
   # Add checkers
   pip install black --upgrade
   pip install codespell --upgrade
