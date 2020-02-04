@@ -12,6 +12,7 @@ function jobqueue_before_install {
   # Add checkers
   pip install black --upgrade
   pip install codespell --upgrade
+  pip install -r requirements.txt
 }
 
 function jobqueue_install {
