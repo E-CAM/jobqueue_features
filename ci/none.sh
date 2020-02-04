@@ -12,18 +12,21 @@ function jobqueue_before_install {
   # Add checkers
   pip install black --upgrade
   pip install codespell --upgrade
-  pip install -r requirements.txt
 }
 
 function jobqueue_install {
   which python
+  pip install -r requirements.txt
   pip install --no-deps -e .
 }
 
 function jobqueue_script {
   # flake8 -j auto jobqueue_features
+  echo Running black
   black --exclude versioneer.py --check .
+  echo Success...running codespell
   codespell --quiet-level=2
+  echo Success...running pytest
   pytest -s --cov=jobqueue_features
 }
 
