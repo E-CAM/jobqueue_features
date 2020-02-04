@@ -22,11 +22,11 @@ function jobqueue_install {
 
 function jobqueue_script {
   # flake8 -j auto jobqueue_features
-  echo Running black
+  echo \e[1mRunning black\e[0m
   black --exclude versioneer.py --check .
-  echo Success...running codespell
+  echo \e[1mSuccess...running codespell\e[0m
   codespell --quiet-level=2
-  echo Success...running pytest
+  echo \e[1mSuccess...running pytest\e[0m
   pytest -s --cov=jobqueue_features
 }
 
