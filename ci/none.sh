@@ -20,7 +20,7 @@ function jobqueue_install {
 }
 
 function jobqueue_script {
-  flake8 -j auto jobqueue_features
+  # flake8 -j auto jobqueue_features
   black --exclude versioneer.py --check .
   codespell --quiet-level=2
   pytest --verbose --cov=jobqueue_features -s
