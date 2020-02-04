@@ -27,7 +27,7 @@ function jobqueue_script {
   echo -e "\e[1mSuccess...running codespell\e[0m"
   codespell --quiet-level=2
   echo -e "\e[1mSuccess...running pytest\e[0m"
-  pytest -s --cov=jobqueue_features
+  pytest --verbose -s --cov=jobqueue_features
 }
 
 function jobqueue_after_script {
