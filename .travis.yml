@@ -1,26 +1,19 @@
 language: python
-python:
-  - "2.7"
-  - "3.6"
-  - "3.7"
-
 os: linux
 dist: xenial
 sudo: required
 
+services:
+  - docker
+
+python:
+  - "3.6"
+  - "3.7"
+
+
 branches:
   only:
   - master
-
-# command to install dependencies
-install:
-  # Enable running MPI tests (and installing MPI4PY)
-  - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
-  - pip install -r requirements.txt
-
-# command to run tests
-script:
-  - pytest -s --cov=jobqueue_features
 
 jobs:
   include:
@@ -49,3 +42,47 @@ jobs:
       install:
         pip install codespell
       script: codespell --quiet-level=2
+
+notifications:
+  email: false
+matrix:
+  include:
+          #    - python: "3.6"
+          #      env:
+          #        - OS=ubuntu-14.04
+          #        - JOBQUEUE=sge
+    - python: "3.6"
+      env:
+        - OS=ubuntu-14.04
+        # JOBQUEUE=none is for tests that do not need a cluster to run
+        - JOBQUEUE=none
+          #    - python: "3.6"
+          #      env:
+          #        - OS=ubuntu-14.04
+          #        - JOBQUEUE=pbs
+    - python: "3.6"
+      env:
+        - OS=ubuntu-14.04
+        - JOBQUEUE=slurm
+
+env:
+  global:
+    - DOCKER_COMPOSE_VERSION=1.6.0
+
+before_install:
+  - set -e
+  - pwd
+  # Init jobqueue environment: load init and test methods
+  - source ci/${JOBQUEUE}.sh
+  - jobqueue_before_install
+  - set +e
+install:
+  - set -e
+  - jobqueue_install
+  - set +e
+script:
+  - set -e
+  - jobqueue_script
+  - set +e
+after_script:
+  - jobqueue_after_script
