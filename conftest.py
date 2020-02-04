@@ -31,16 +31,16 @@ def pytest_runtest_setup(item):
             pytest.skip("test requires env in %r" % envnames)
 
 
-@pytest.fixture(autouse=True)
-def mock_lsf_version(monkeypatch, request):
-    # Monkey-patch lsf_version() UNLESS the 'lsf' environment is selected.
-    # In that case, the real lsf_version() function should work.
-    markers = list(request.node.iter_markers())
-    if any("lsf" in marker.args for marker in markers):
-        return
+# @pytest.fixture(autouse=True)
+# def mock_lsf_version(monkeypatch, request):
+# Monkey-patch lsf_version() UNLESS the 'lsf' environment is selected.
+# In that case, the real lsf_version() function should work.
+#    markers = list(request.node.iter_markers())
+#    if any("lsf" in marker.args for marker in markers):
+#        return
 
-    try:
-        dask_jobqueue.lsf.lsf_version()
-    except OSError:
-        # Provide a fake implementation of lsf_version()
-        monkeypatch.setattr(dask_jobqueue.lsf, "lsf_version", lambda: "10")
+#    try:
+#        dask_jobqueue.lsf.lsf_version()
+#    except OSError:
+#        # Provide a fake implementation of lsf_version()
+#        monkeypatch.setattr(dask_jobqueue.lsf, "lsf_version", lambda: "10")
