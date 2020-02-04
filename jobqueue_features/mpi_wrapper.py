@@ -23,7 +23,7 @@ def get_task_mpi_comm():
     
     :return: MPI Communicator
     """
-    
+
     if __TASK_MPI_COMM is None:
         raise AttributeError(
             "get_task_comm() seems to have been called without first "
