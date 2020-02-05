@@ -436,6 +436,8 @@ class CustomClusterMixin(object):
                         "jobqueue.{}.cores".format(self.scheduler_name),
                         default=self.minimum_cores,
                     )
+                    if features_cores is None:
+                        features_cores = self.minimum_cores
             else:
                 features_cores = cores
             if features_cores > self.cores_per_node * self.hyperthreading_factor:
@@ -457,6 +459,7 @@ class CustomClusterMixin(object):
         return kwargs
 
     def _update_kwargs_modifiable(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
+        print(kwargs)
         for key in ("name", "queue", "memory"):
             if key not in kwargs:
                 # search for the key in our config
