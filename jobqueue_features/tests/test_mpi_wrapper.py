@@ -50,10 +50,7 @@ class TestMPIWrap(TestCase):
                 mpi_tasks=self.number_of_processes,
                 return_wrapped_command=return_wrapped_command,
             )
-            if return_wrapped_command:
-                result = t.result()
-            else:
-                result = t.result()["out"]
+            result = t.result()
 
             return result
 
@@ -89,11 +86,12 @@ class TestMPIWrap(TestCase):
         if which(MPIEXEC) is not None:
             print("Found {}, running MPI test".format(MPIEXEC))
             result = self.test_function(self.script_path)
+            print(result)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes
                 )
-                self.assertIn(text.encode(), result)
+                self.assertIn(text.encode(), result["out"])
             result = self.test_function(self.script_path, return_wrapped_command=True)
             expected_result = "{} -np {} {} {}".format(
                 MPIEXEC, self.number_of_processes, self.executable, self.script_path
