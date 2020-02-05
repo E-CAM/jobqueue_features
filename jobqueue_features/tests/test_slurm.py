@@ -28,6 +28,7 @@ class TestSLURM(TestCase):
             name="mpiCluster",
             walltime="00:04:00",
             nodes=2,
+            memory="1 GB",
             mpi_mode=True,
             fork_mpi=True,
         )
