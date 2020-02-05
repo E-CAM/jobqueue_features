@@ -18,6 +18,7 @@ class TestClusters(TestCase):
             "interface": "",
             "fork_mpi": False,
             "mpi_launcher": SRUN,
+            "memory": "1GB",
         }
 
     def test_custom_cluster(self):
