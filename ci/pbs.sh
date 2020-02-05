@@ -15,11 +15,11 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec -it pbs_master /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install -e ."
+    docker exec -it slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
 }
 
 function jobqueue_script {
-    docker exec -it -u pbsuser pbs_master /bin/bash -c "cd; pytest /jobqueue_features/jobqueue_features --verbose -s -E pbs"
+    docker exec -it slurmctld /bin/bash -c "pip list; cd /jobqueue_features; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E pbs -s"
 }
 
 function jobqueue_after_script {

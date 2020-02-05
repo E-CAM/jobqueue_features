@@ -3,7 +3,10 @@ version: "2"
 services:
 
   master:
-    build: .
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
     container_name: pbs_master
     hostname: pbs_master
     volumes:
@@ -11,7 +14,10 @@ services:
     command: bash /run-master.sh
 
   slave_one:
-    build: .
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
     container_name: pbs_slave_1
     hostname: pbs_slave_1
     volumes:
@@ -26,7 +32,10 @@ services:
       - master
 
   slave_two:
-    build: .
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
     container_name: pbs_slave_2
     hostname: pbs_slave_2
     volumes:

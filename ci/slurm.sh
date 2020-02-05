@@ -18,7 +18,7 @@ function jobqueue_install {
 }
 
 function jobqueue_script {
-    docker exec -it slurmctld /bin/bash -c "pip list; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features/jobqueue_features --verbose -E slurm -s"
+    docker exec -it slurmctld /bin/bash -c "pip list; cd /jobqueue_features; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E slurm -s"
 }
 
 function jobqueue_after_script {
