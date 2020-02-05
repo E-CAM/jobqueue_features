@@ -27,14 +27,7 @@ class TestMPIWrap(TestCase):
         self.local_cluster = LocalCluster()
         self.executable = "python"
         self.script_path = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "..",
-                "examples",
-                "resources",
-                "helloworld.py",
-            )
+            os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
 
         @mpi_task(cluster_id="test", default_mpi_tasks=4)
