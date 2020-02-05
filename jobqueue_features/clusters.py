@@ -436,9 +436,6 @@ class CustomClusterMixin(object):
                         "jobqueue.{}.cores".format(self.scheduler_name),
                         default=self.minimum_cores,
                     )
-                    # Value may not be defined to integer
-                    if not isinstance(features_cores, int):
-                        features_cores = self.minimum_cores
             else:
                 features_cores = cores
             if features_cores > self.cores_per_node * self.hyperthreading_factor:
