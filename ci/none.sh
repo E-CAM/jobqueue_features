@@ -24,7 +24,9 @@ function jobqueue_script {
   black --exclude versioneer.py --check .
   echo -e "\e[1mSuccess...running codespell\e[0m"
   codespell --quiet-level=2
-  echo -e "\e[1mSuccess...running pytest\e[0m"
+  echo -e "\e[1mSuccess...running pip list\e[0m"
+  pip list
+  echo -e "\e[1mRunning pytest...\e[0m"
   pytest --verbose -s --cov=jobqueue_features
 }
 

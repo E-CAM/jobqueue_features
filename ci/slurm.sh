@@ -18,7 +18,7 @@ function jobqueue_install {
 }
 
 function jobqueue_script {
-    docker exec -it slurmctld /bin/bash -c "pytest /jobqueue_features/jobqueue_features --verbose -E slurm -s"
+    docker exec -it slurmctld /bin/bash -c "pip list; pytest /jobqueue_features/jobqueue_features --verbose -E slurm -s"
 }
 
 function jobqueue_after_script {
