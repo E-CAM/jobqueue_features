@@ -13,7 +13,7 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec -it sge_master /bin/bash -c "cd /jobqueue_features; pip install -e ."
+    docker exec -it sge_master /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install -e ."
 }
 
 function jobqueue_script {

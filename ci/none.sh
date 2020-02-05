@@ -9,12 +9,12 @@ function jobqueue_before_install {
   export PATH="$HOME/miniconda/bin:$PATH"
   conda install --yes -c conda-forge python=$TRAVIS_PYTHON_VERSION dask distributed flake8 black pytest pytest-asyncio codespell
   pip install git+https://github.com/dask/dask-jobqueue@master --upgrade --no-deps
-  # Make sure requirements are met
-  pip install -r requirements.txt
 }
 
 function jobqueue_install {
   which python
+  # Make sure requirements are met
+  pip install -r requirements.txt
   pip install --no-deps -e .
 }
 
