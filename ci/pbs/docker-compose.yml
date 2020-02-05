@@ -1,0 +1,51 @@
+version: "2"
+
+services:
+
+  master:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
+    container_name: pbs_master
+    hostname: pbs_master
+    volumes:
+      - ../..:/jobqueue_features
+    command: bash /run-master.sh
+
+  slave_one:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
+    container_name: pbs_slave_1
+    hostname: pbs_slave_1
+    volumes:
+      - ../..:/jobqueue_features
+    entrypoint: "bash /slave-entrypoint.sh"
+    command: bash /run-slave.sh
+    links:
+      - "master:pbs_master"
+    environment:
+      - PBS_MASTER=pbs_master
+    depends_on:
+      - master
+
+  slave_two:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
+    container_name: pbs_slave_2
+    hostname: pbs_slave_2
+    volumes:
+      - ../..:/jobqueue_features
+    entrypoint: "bash /slave-entrypoint.sh"
+    command: bash /run-slave.sh
+    links:
+      - "master:pbs_master"
+    environment:
+      - PBS_MASTER=pbs_master
+    depends_on:
+      - master
+

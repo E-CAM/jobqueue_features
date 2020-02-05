@@ -1,51 +1,59 @@
 language: python
-python:
-  - "2.7"
-  - "3.6"
-  - "3.7"
-
 os: linux
-dist: xenial
+dist: bionic
 sudo: required
+
+services:
+  - docker
+
+python:
+  - "3.6"
 
 branches:
   only:
   - master
 
-# command to install dependencies
-install:
-  # Enable running MPI tests (and installing MPI4PY)
-  - sudo apt-get install -y -q openmpi-bin libopenmpi-dev
-  - pip install -r requirements.txt
+notifications:
+  email: false
 
-# command to run tests
-script:
-  - pytest -s --cov=jobqueue_features
-
-jobs:
+matrix:
   include:
-    - stage: style
-      python:
-        - "3.7"
-      # Use black for style checking (Python3 only)
-      install:
-        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
-            echo installing black for Python $TRAVIS_PYTHON_VERSION;
-            pip install black;
-          else
-            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
-          fi
-      script: 
-        - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^[3-9].+ ]]; then
-            black --check .;
-          else
-            echo Python is $TRAVIS_PYTHON_VERSION so not using black;
-          fi
+          #    - python: "3.6"
+          #      env:
+          #        - OS=ubuntu-14.04
+          #        - JOBQUEUE=sge
+          #    - python: "3.6"
+          #      env:
+          #        - OS=ubuntu-14.04
+          #        - JOBQUEUE=pbs
+    - python: "3.6"
+      env:
+        - OS=ubuntu-18.04
+        # JOBQUEUE=none is for tests that do not need a cluster to run
+        - JOBQUEUE=none
+    - python: "3.6"
+      env:
+        - OS=ubuntu-18.04
+        - JOBQUEUE=slurm
 
-    - stage: spelling
-      python:
-        - "3.7"
-      # Use codespell for spell checking
-      install:
-        pip install codespell
-      script: codespell --quiet-level=2
+env:
+  global:
+    - DOCKER_COMPOSE_VERSION=1.6.0
+
+before_install:
+  - set -e
+  - pwd
+  # Init jobqueue environment: load init and test methods
+  - source ci/${JOBQUEUE}.sh
+  - jobqueue_before_install
+  - set +e
+install:
+  - set -e
+  - jobqueue_install
+  - set +e
+script:
+  - set -e
+  - jobqueue_script
+  - set +e
+after_script:
+  - jobqueue_after_script

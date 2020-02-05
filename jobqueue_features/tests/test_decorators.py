@@ -13,6 +13,7 @@ from jobqueue_features.clusters_controller import (
 class TweakedCustomCluster(CustomSLURMCluster):
     def __init__(self, **kwargs):
         kwargs["interface"] = ""
+        kwargs["memory"] = "1GB"
         super(TweakedCustomCluster, self).__init__(**kwargs)
 
 
