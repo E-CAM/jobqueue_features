@@ -38,10 +38,8 @@ class TestSLURM(TestCase):
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
 
-        @on_cluster(
-            cluster=self.slurm_cluster, cluster_id="mpiCluster", default_mpi_tasks=4
-        )
-        @mpi_task(cluster_id="mpiCluster")
+        @on_cluster(cluster=self.slurm_cluster, cluster_id="mpiCluster")
+        @mpi_task(cluster_id="mpiCluster", default_mpi_tasks=4)
         def mpi_wrap_task(**kwargs):
             return mpi_wrap(**kwargs)
 
