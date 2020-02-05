@@ -1,6 +1,7 @@
 from __future__ import print_function
 from unittest import TestCase
 import os
+import pytest
 
 from jobqueue_features import (
     mpi_wrap,
