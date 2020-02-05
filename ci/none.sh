@@ -17,6 +17,7 @@ function jobqueue_install {
   which python
   # Make sure requirements are met
   pip install -r requirements.txt
+  pip install --no-deps -e .
 }
 
 function jobqueue_script {
