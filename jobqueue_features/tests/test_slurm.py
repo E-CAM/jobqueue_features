@@ -43,7 +43,7 @@ class TestSLURM(TestCase):
         def mpi_wrap_task(**kwargs):
             return mpi_wrap(**kwargs)
 
-        @on_cluster(cluster=self.slurm_cluster, cluster_id="test")
+        @on_cluster(cluster=self.slurm_cluster)
         def test_function(script_path, return_wrapped_command=False):
             script_path = os.path.join(
                 os.path.dirname(__file__), "resources", "helloworld.py"
@@ -68,6 +68,7 @@ class TestSLURM(TestCase):
         if which(SRUN) is not None:
             print("Found {}, running MPI test".format(SRUN))
             result = self.test_function(self.script_path)
+            print(result)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes
