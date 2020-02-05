@@ -4,6 +4,8 @@ function jobqueue_before_install {
   # Install miniconda
   ./ci/conda_setup.sh
   export PATH="$HOME/miniconda/bin:$PATH"
+  export LD_LIBRARY_PATH="$HOME/miniconda/lib:$LD_LIBRARY_PATH"
+  export CPATH="$HOME/miniconda/include:$CPATH"
   conda install --yes -c conda-forge python=$TRAVIS_PYTHON_VERSION flake8 black pytest pytest-asyncio codespell openmpi
   # also install mpi
   conda install --yes -c conda-forge python=$TRAVIS_PYTHON_VERSION openmpi
