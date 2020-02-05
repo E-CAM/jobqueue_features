@@ -436,17 +436,17 @@ class CustomClusterMixin(object):
                         "jobqueue.{}.cores".format(self.scheduler_name),
                         default=self.minimum_cores,
                     )
+                    print(
+                        "Checking\n",
+                        features_cores,
+                        "\n",
+                        cores,
+                        "\n",
+                        self.minimum_cores,
+                        "\n",
+                    )
             else:
                 features_cores = cores
-            print(
-                "Checking\n",
-                features_cores,
-                "\n",
-                self.cores_per_node,
-                "\n",
-                self.hyperthreading_factor,
-                "\n",
-            )
             if features_cores > self.cores_per_node * self.hyperthreading_factor:
                 raise ValueError(
                     "cores cannot be > {} (cores_per_node * "
