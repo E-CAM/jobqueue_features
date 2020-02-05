@@ -14,7 +14,7 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec -it slurmctld /bin/bash -c "cd /jobqueue_features; conda install openmpi; pip install -r requirements.txt; pip install -e ."
+    docker exec -it slurmctld /bin/bash -c "cd /jobqueue_features; conda --yes -c conda-forge install openmpi; env MPICC=$(which cc) pip install -r requirements.txt; pip install -e ."
 }
 
 function jobqueue_script {

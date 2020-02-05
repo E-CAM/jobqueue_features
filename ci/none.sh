@@ -5,6 +5,8 @@ function jobqueue_before_install {
   ./ci/conda_setup.sh
   export PATH="$HOME/miniconda/bin:$PATH"
   conda install --yes -c conda-forge python=$TRAVIS_PYTHON_VERSION flake8 black pytest pytest-asyncio codespell openmpi
+  # also install mpi
+  conda install --yes -c conda-forge python=$TRAVIS_PYTHON_VERSION openmpi
   # Would use the below to get the latest master of jobqueue
   # pip install git+https://github.com/dask/dask-jobqueue@master --upgrade --no-deps
 }
@@ -12,7 +14,7 @@ function jobqueue_before_install {
 function jobqueue_install {
   which python
   # Make sure requirements are met
-  pip install -r requirements.txt
+  env MPICC=$(which cc) pip install -r requirements.txt
   pip install --no-deps -e .
 }
 
