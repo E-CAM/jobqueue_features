@@ -29,7 +29,7 @@ function jobqueue_script {
   echo -e "\e[1mSuccess...running pip list\e[0m"
   pip list
   echo -e "\e[1mRunning pytest...\e[0m"
-  pytest --verbose -s --cov=jobqueue_features
+  OMPI_ALLOW_RUN_AS_ROOT=1 pytest --verbose -s --cov=jobqueue_features
 }
 
 function jobqueue_after_script {
