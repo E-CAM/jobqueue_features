@@ -32,7 +32,7 @@ class TestSLURM(TestCase):
             minimum_cores=2,
             hyperthreading_factor=1,
             ntasks_per_node=2,
-            memory="1 GB",
+            memory="256 MB",
             mpi_mode=True,
             fork_mpi=True,
         )
