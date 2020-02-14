@@ -62,6 +62,7 @@ services:
       - etc_slurm:/etc/slurm
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
+      - ../..:/jobqueue_features
     expose:
       - "6818"
     depends_on:
@@ -80,6 +81,7 @@ services:
       - etc_slurm:/etc/slurm
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
+      - ../..:/jobqueue_features
     expose:
       - "6818"
     depends_on:
