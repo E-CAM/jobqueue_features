@@ -26,6 +26,9 @@ class TestMPIWrap(TestCase):
         self.number_of_processes = 4
         self.local_cluster = LocalCluster()
         self.executable = "python"
+        self.launcher = MPIEXEC
+        # Include some (non-standard) OpenMPI options so that we can run this in CI
+        self.launcher_args = "--allow-run-as-root --oversubscribe"
         self.script_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
@@ -39,7 +42,8 @@ class TestMPIWrap(TestCase):
             t = mpi_wrap_task(
                 executable=self.executable,
                 exec_args=script_path,
-                mpi_launcher=MPIEXEC,
+                mpi_launcher=self.launcher,
+                launcher_args=self.launcher_args,
                 mpi_tasks=self.number_of_processes,
                 return_wrapped_command=return_wrapped_command,
             )
@@ -76,8 +80,8 @@ class TestMPIWrap(TestCase):
     def test_mpi_wrap(self):
         #
         # Assume here we have mpiexec support
-        if which(MPIEXEC) is not None:
-            print("Found {}, running MPI test".format(MPIEXEC))
+        if which(self.launcher) is not None:
+            print("Found {}, running MPI test".format(self.launcher))
             result = self.test_function(self.script_path)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
@@ -85,8 +89,12 @@ class TestMPIWrap(TestCase):
                 )
                 self.assertIn(text.encode(), result["out"])
             result = self.test_function(self.script_path, return_wrapped_command=True)
-            expected_result = "{} -np {} {} {}".format(
-                MPIEXEC, self.number_of_processes, self.executable, self.script_path
+            expected_result = "{} -np {} {} {} {}".format(
+                self.launcher,
+                self.number_of_processes,
+                self.launcher_args,
+                self.executable,
+                self.script_path,
             )
             self.assertEqual(result, expected_result)
         else:
