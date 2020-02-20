@@ -186,7 +186,7 @@ def mpi_wrap(
                 proc.wait()
             return_code = proc.returncode
             if return_code < 0:
-                raise ChildProcessError("Error code {}".format(return_code))
+                raise ChildProcessError("Error code {} from command: {}".format(return_code, cmd))
             else:
                 out, err = proc.communicate()
         except OSError as err:
