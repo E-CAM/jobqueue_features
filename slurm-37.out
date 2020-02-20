@@ -1,0 +1,22 @@
+distributed.nanny - INFO -         Start Nanny at: 'tcp://172.23.0.5:42109'
+distributed.diskutils - INFO - Found stale lock file and directory '/tmp/worker-s61cna93', purging
+distributed.worker - INFO -       Start worker at:     tcp://172.23.0.5:33281
+distributed.worker - INFO -          Listening to:     tcp://172.23.0.5:33281
+distributed.worker - INFO -              nanny at:           172.23.0.5:42109
+distributed.worker - INFO - Waiting to connect to:     tcp://172.23.0.4:42751
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  256.00 MB
+distributed.worker - INFO -       Local Directory:       /tmp/worker-e_4xp84y
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -         Registered to:     tcp://172.23.0.4:42751
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO - Stopping worker at tcp://172.23.0.5:33281
+distributed.worker - INFO - Connection to scheduler broken.  Reconnecting...
+distributed.worker - INFO - -------------------------------------------------
+slurmstepd: error: *** JOB 37 ON c1 CANCELLED AT 2020-02-20T09:59:28 ***
+distributed.dask_worker - INFO - Exiting on signal 15
+distributed.nanny - INFO - Closing Nanny at 'tcp://172.23.0.5:42109'
+distributed.dask_worker - INFO - End worker
+distributed.process - WARNING - reaping stray process <ForkServerProcess(ForkServerProcess-1, started daemon)>
