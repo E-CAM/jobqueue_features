@@ -1,6 +1,9 @@
 from __future__ import print_function
+
+import shlex
 from unittest import TestCase
 import os
+import subprocess
 
 from distributed import LocalCluster
 
@@ -28,7 +31,10 @@ class TestMPIWrap(TestCase):
         self.executable = "python"
         self.launcher = MPIEXEC
         # Include some (non-standard) OpenMPI options so that we can run this in CI
-        self.launcher_args = "--allow-run-as-root --oversubscribe"
+        if not self.is_mpich():
+            self.launcher_args = "--allow-run-as-root --oversubscribe"
+        else:
+            self.launcher_args = ''
         self.script_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
@@ -66,6 +72,13 @@ class TestMPIWrap(TestCase):
 
         self.string_task = string_task
 
+    def is_mpich(self):
+        cmd = 'mpicc -v'
+        proc = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if b'mpich' in proc.stdout.read().lower():
+            return True
+        return False
+
     def test_which(self):
         # Check it finds a full path
         self.assertEqual(which(self.script_path), self.script_path)
@@ -89,13 +102,15 @@ class TestMPIWrap(TestCase):
                 )
                 self.assertIn(text.encode(), result["out"])
             result = self.test_function(self.script_path, return_wrapped_command=True)
-            expected_result = "{} -np {} {} {} {}".format(
+            _cmd = (
                 self.launcher,
+                '-np',
                 self.number_of_processes,
                 self.launcher_args,
                 self.executable,
                 self.script_path,
             )
+            expected_result = ' '.join(filter(len, map(str, _cmd)))
             self.assertEqual(result, expected_result)
         else:
             pass
