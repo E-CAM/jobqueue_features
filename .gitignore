@@ -105,5 +105,5 @@ venv.bak/
 
 # dask
 dask-worker-space/
-
+*.out
 .idea/

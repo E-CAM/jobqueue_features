@@ -177,10 +177,20 @@ def mpi_wrap(
     else:
         try:
             proc = subprocess.Popen(
-                shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                shlex.split(cmd),
+                bufsize=0,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
-            out = proc.stdout.read()
-            err = proc.stderr.read()
+            while proc.returncode is None:
+                proc.wait()
+            return_code = proc.returncode
+            if return_code < 0:
+                raise ChildProcessError(
+                    "Error code {} from command: {}".format(return_code, cmd)
+                )
+            else:
+                out, err = proc.communicate()
         except OSError as err:
             raise OSError(
                 "OS error caused by constructed command: {cmd}\n\n{err}".format(
