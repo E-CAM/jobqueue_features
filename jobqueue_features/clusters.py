@@ -3,6 +3,7 @@ from __future__ import division
 from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
+from dask_jobqueue.slurm import SLURMJob
 from typing import TypeVar, Dict, List, Any  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
@@ -70,6 +71,15 @@ def get_features_kwarg(name, scheduler=None, queue_type=None, default=None):
     if value is None and default is not None:
         value = default
     return value
+
+
+class CustomSLURMJob(SLURMJob):
+    def __init__(self, *args, **kwargs):
+        self.mpi_tasks = kwargs.pop("mpi_tasks", 1)
+        super().__init__(*args, **kwargs)
+        self.job_header = self.job_header.replace(
+            "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
+        )
 
 
 class CustomClusterMixin(object):
@@ -220,7 +230,9 @@ class CustomClusterMixin(object):
         )
         self.validate_positive_integer("cores_per_node")
 
-    def _get_hyperthreading_factor(self, hyperthreading_factor: int, default: int = 1) -> None:
+    def _get_hyperthreading_factor(
+        self, hyperthreading_factor: int, default: int = 1
+    ) -> None:
         self.hyperthreading_factor = (
             hyperthreading_factor
             if hyperthreading_factor is not None
@@ -495,10 +507,13 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     """Custom SLURMCluster class with CustomClusterMixin for initial kwargs tweak.
      adds client attribute to SLURMCluster class."""
 
+    job_cls = CustomSLURMJob
+
     def __init__(self, **kwargs):
         self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
         self._validate_name(kwargs["name"])
+        self.name = kwargs["name"]
         # Do custom initialisation here
         if self.mpi_mode:
             # Most obvious customisation is for when we use mpi_mode, relevant variables
@@ -559,9 +574,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 
         # When in MPI mode, after jobqueue has initialised we update the jobscript with
         # the `real` number of MPI tasks
-        self.job_header = self.job_header.replace(
-            "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
-        )
+        self._kwargs["mpi_tasks"] = self.mpi_tasks
 
         # The default for jobqueue is not to use an MPI launcher (since it is not MPI
         # aware). However, if self.fork_mpi=False then the tasks intended for this
