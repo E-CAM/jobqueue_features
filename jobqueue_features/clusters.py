@@ -76,10 +76,13 @@ def get_features_kwarg(name, scheduler=None, queue_type=None, default=None):
 class CustomSLURMJob(SLURMJob):
     def __init__(self, *args, **kwargs):
         self.mpi_tasks = kwargs.pop("mpi_tasks", 1)
+        command_template = kwargs.pop("command_template", None)
         super().__init__(*args, **kwargs)
         self.job_header = self.job_header.replace(
             "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
         )
+        if command_template:
+            self._command_template = command_template
 
 
 class CustomClusterMixin(object):
@@ -581,7 +584,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         # cluster are MPI-enabled. In order to give them an MPI environment we need to
         # use our custom wrapper and launch with our MPI launcher
         if not self.fork_mpi:
-            command_template = self._command_template
+            command_template = self._dummy_job._command_template
             dask_worker_module = "distributed.cli.dask_worker"
             if dask_worker_module in command_template:
                 command_template = command_template.replace(
@@ -602,10 +605,10 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             )
             self.warnings.append(
                 "Replaced command template\n\t{}\nwith\n\t{}\nin jobscript".format(
-                    self._command_template, command_template
+                    self._dummy_job._command_template, command_template
                 )
             )
-            self._command_template = command_template
+            self._kwargs["command_template"] = command_template
 
 
 ClusterType = TypeVar("ClusterType", JobQueueCluster, LocalCluster, CustomSLURMCluster)
