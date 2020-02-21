@@ -59,10 +59,10 @@ class TestClusters(TestCase):
         self.assertIn("#SBATCH --cpus-per-task=1", cluster.job_header)
         self.assertIn("#SBATCH --ntasks-per-node=64", cluster.job_header)
         self.assertIn("#SBATCH -n 64", cluster.job_script())
-        self.assertIn(MPI_DASK_WRAPPER_MODULE, cluster._command_template)
-        self.assertEqual(cluster.worker_cores, 1)
-        self.assertEqual(cluster.worker_processes, 1)
-        self.assertEqual(cluster.worker_process_threads, 1)
+        self.assertIn(MPI_DASK_WRAPPER_MODULE, cluster._dummy_job._command_template)
+        self.assertEqual(cluster._dummy_job.worker_cores, 1)
+        self.assertEqual(cluster._dummy_job.worker_processes, 1)
+        self.assertEqual(cluster._dummy_job.worker_process_threads, 1)
         self.assertIsInstance(cluster.client, Client)
         controller.delete_cluster(cluster.name)
         with self.assertRaises(ValueError):
@@ -76,7 +76,7 @@ class TestClusters(TestCase):
         kwargs = self.kwargs
         kwargs.update({"fork_mpi": True})
         cluster = get_cluster(queue_type="knl", mpi_mode=True, cores=64, **kwargs)
-        self.assertNotIn(MPI_DASK_WRAPPER_MODULE, cluster._command_template)
+        self.assertNotIn(MPI_DASK_WRAPPER_MODULE, cluster._dummy_job._command_template)
         controller.delete_cluster(cluster.name)
 
     def test_mpi_multi_node_job_cluster(self):
@@ -85,9 +85,9 @@ class TestClusters(TestCase):
         self.assertIn("#SBATCH --cpus-per-task=1", cluster.job_header)
         self.assertIn("#SBATCH --ntasks-per-node=64", cluster.job_header)
         self.assertIn("#SBATCH -n 130", cluster.job_script())
-        self.assertEqual(cluster.worker_cores, 1)
-        self.assertEqual(cluster.worker_processes, 1)
-        self.assertEqual(cluster.worker_process_threads, 1)
+        self.assertEqual(cluster._dummy_job.worker_cores, 1)
+        self.assertEqual(cluster._dummy_job.worker_processes, 1)
+        self.assertEqual(cluster._dummy_job.worker_process_threads, 1)
         with self.assertRaises(ValueError):
             get_cluster(queue_type="knl", mpi_mode=True, **self.kwargs)
         with self.assertRaises(ValueError):
@@ -117,9 +117,9 @@ class TestClusters(TestCase):
         self.assertIn("#SBATCH --ntasks-per-node=4", cluster.job_header)
         self.assertIn("#SBATCH --nodes=2", cluster.job_header)
         self.assertIn("#SBATCH --gres=gpu:4", cluster.job_header)
-        self.assertEqual(cluster.worker_cores, 1)
-        self.assertEqual(cluster.worker_processes, 1)
-        self.assertEqual(cluster.worker_process_threads, 1)
+        self.assertEqual(cluster._dummy_job.worker_cores, 1)
+        self.assertEqual(cluster._dummy_job.worker_processes, 1)
+        self.assertEqual(cluster._dummy_job.worker_process_threads, 1)
         self.assertIn("#SBATCH -n 8", cluster.job_script())
         self.assertIn(
             "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}", cluster.job_script()
@@ -183,9 +183,9 @@ class TestClusters(TestCase):
         self.assertIn("#SBATCH --ntasks-per-node=12", cluster.job_header)
         self.assertIn("#SBATCH --nodes=2", cluster.job_header)
         self.assertIn("#SBATCH --gres=gpu:4", cluster.job_header)
-        self.assertEqual(cluster.worker_cores, 1)
-        self.assertEqual(cluster.worker_processes, 1)
-        self.assertEqual(cluster.worker_process_threads, 1)
+        self.assertEqual(cluster._dummy_job.worker_cores, 1)
+        self.assertEqual(cluster._dummy_job.worker_processes, 1)
+        self.assertEqual(cluster._dummy_job.worker_process_threads, 1)
         self.assertIn("#SBATCH -n 24", cluster.job_script())
         self.assertIn(
             "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}", cluster.job_script()

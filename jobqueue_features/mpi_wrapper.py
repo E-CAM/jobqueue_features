@@ -3,7 +3,7 @@ import os
 import shlex
 import subprocess
 import sys
-from typing import Dict  # noqa
+from typing import Dict, Union  # noqa
 
 
 SRUN = "srun"
@@ -20,7 +20,7 @@ __TASK_MPI_COMM = None
 def get_task_mpi_comm():
     """
     This function gets the MPI communicator for the tasks.
-    
+
     :return: MPI Communicator
     """
 
@@ -89,19 +89,18 @@ def which(filename):
 
 
 def mpi_wrap(
-    executable=None,
-    pre_launcher_opts="",
-    mpi_launcher=None,
-    launcher_args="",
-    mpi_tasks=None,
-    nodes=None,
-    cpus_per_task=None,
-    ntasks_per_node=None,
-    exec_args="",
-    return_wrapped_command=False,
+    executable: str = None,
+    pre_launcher_opts: str = "",
+    mpi_launcher: str = None,
+    launcher_args: str = "",
+    mpi_tasks: str = None,
+    nodes: int = None,
+    cpus_per_task: int = None,
+    ntasks_per_node: int = None,
+    exec_args: str = "",
+    return_wrapped_command: bool = False,
     **kwargs
-):
-    # type: (str, str, str, str, str, ...) -> Dict[str, str]
+) -> Union[str, Dict[str, str]]:
     def get_default_mpi_params(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node
     ):
