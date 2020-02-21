@@ -3,7 +3,7 @@ from __future__ import division
 from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
-from typing import TypeVar, Dict  # noqa
+from typing import TypeVar, Dict, List, Any  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 from .mpi_wrapper import mpi_wrap
@@ -115,26 +115,26 @@ class CustomClusterMixin(object):
         Whether the default for tasks submitted to the cluster are pure or not
     """
 
-    default_queue_type = "batch"  # type: str
-    queue_type = None  # type: str
-    cores_per_node = None  # type: int
-    hyperthreading_factor = None  # type: int
-    minimum_cores = None  # type: int
-    gpu_job_extra = None  # type: List[str]
-    warnings = None  # type: List[str]
-    mpi_mode = None  # type: bool
-    mpi_launcher = None  # type: str
-    fork_mpi = None  # type: bool
-    nodes = None  # type: int
-    ntasks_per_node = None  # type: int
-    cpus_per_task = None  # type: int
-    openmp_env_extra = None  # type: List[str]
-    maximum_scale = None  # type: int
-    pure = None  # type: bool
+    default_queue_type: str = "batch"
+    queue_type: str = None
+    cores_per_node: int = None
+    hyperthreading_factor: int = None
+    minimum_cores: int = None
+    gpu_job_extra: List[str] = None
+    warnings: List[str] = None
+    mpi_mode: bool = None
+    mpi_launcher: str = None
+    fork_mpi: bool = None
+    nodes: int = None
+    ntasks_per_node: int = None
+    cpus_per_task: int = None
+    openmp_env_extra: List[str] = None
+    maximum_scale: int = None
+    pure: bool = None
 
-    def update_init_kwargs(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
+    def update_init_kwargs(self, **kwargs):
         # self.submit_command is set by the JobQueueCluster class, make sure it exists
-        if self.submit_command is None:
+        if self.job_cls.submit_command is None:
             raise NotImplementedError(
                 "For inheritance to work as intended you need to create new "
                 "CustomCluster class that inherits from the base CustomCluster class "
@@ -171,7 +171,7 @@ class CustomClusterMixin(object):
 
         return kwargs
 
-    def get_kwarg(self, name, default=None):
+    def get_kwarg(self, name: str, default: Any = None) -> Any:
         return get_features_kwarg(
             name=name,
             scheduler=self.scheduler_name,
@@ -179,12 +179,12 @@ class CustomClusterMixin(object):
             default=default,
         )
 
-    def validate_positive_integer(self, attr_name):  # type: (...) -> None
+    def validate_positive_integer(self, attr_name: str) -> None:
         value = getattr(self, attr_name, None)
         if not (isinstance(value, int) and value >= 1):
             raise ValueError("{} should be an integer >= 1".format(attr_name))
 
-    def _get_queue_type(self, queue_type, default=None):  # type: (str) -> None
+    def _get_queue_type(self, queue_type: str, default: Any = None) -> None:
         if default is None:
             default = self.default_queue_type
         # If the user sets the kwarg make sure that the queue_type actually exists
@@ -212,8 +212,7 @@ class CustomClusterMixin(object):
             name="default-queue-type", default=default
         )
 
-    def _get_cores_per_node(self, cores_per_node, default=1):
-        # type: (int) -> None
+    def _get_cores_per_node(self, cores_per_node: int, default: int = 1) -> None:
         self.cores_per_node = (
             cores_per_node
             if cores_per_node is not None
@@ -221,8 +220,7 @@ class CustomClusterMixin(object):
         )
         self.validate_positive_integer("cores_per_node")
 
-    def _get_hyperthreading_factor(self, hyperthreading_factor, default=1):
-        # type: (int) -> None
+    def _get_hyperthreading_factor(self, hyperthreading_factor: int, default: int = 1) -> None:
         self.hyperthreading_factor = (
             hyperthreading_factor
             if hyperthreading_factor is not None
@@ -230,8 +228,7 @@ class CustomClusterMixin(object):
         )
         self.validate_positive_integer("hyperthreading_factor")
 
-    def _get_minimum_cores(self, minimum_cores, default=1):
-        # type: (int) -> None
+    def _get_minimum_cores(self, minimum_cores: int, default: int = 1) -> None:
         self.minimum_cores = (
             minimum_cores
             if minimum_cores is not None
@@ -246,29 +243,28 @@ class CustomClusterMixin(object):
                 )
             )
 
-    def _get_gpu_job_extra(self, gpu_job_extra, default=None):
-        # type: (List[str]) -> None
+    def _get_gpu_job_extra(self, gpu_job_extra: List[str], default: Any = None) -> None:
         if default is None:
             default = []
         self.gpu_job_extra = gpu_job_extra or self.get_kwarg(
             name="gpu-job-extra", default=default
         )
 
-    def _get_warnings(self, warning, default=None):  # type: (List[str]) -> None
+    def _get_warnings(self, warning: List[str], default: Any = None) -> None:
         if default is None:
             default = []
         if not warning:
             warning = self.get_kwarg("warning", default=default)
         self.warnings = [warning]
 
-    def _get_mpi_mode(self, mpi_mode, default=False):  # type: (bool) -> None
+    def _get_mpi_mode(self, mpi_mode: bool, default: bool = False) -> None:
         self.mpi_mode = (
             mpi_mode
             if isinstance(mpi_mode, bool)
             else self.get_kwarg(name="mpi-mode", default=default)
         )
 
-    def _get_mpi_launcher(self, mpi_launcher, default=None):  # type: (str) -> None
+    def _get_mpi_launcher(self, mpi_launcher: str, default: Any = None) -> None:
         self.mpi_launcher = mpi_launcher or self.get_kwarg(
             name="mpi-launcher", default=default
         )
@@ -278,23 +274,21 @@ class CustomClusterMixin(object):
                 "be set via the mpi_launcher kwarg or the yaml configuration"
             )
 
-    def _get_fork_mpi(self, fork_mpi, default=False):  # type: (bool) -> None
+    def _get_fork_mpi(self, fork_mpi: bool, default: bool = False) -> None:
         self.fork_mpi = (
             fork_mpi
             if isinstance(fork_mpi, bool)
             else self.get_kwarg(name="fork-mpi", default=default)
         )
 
-    def _get_maximum_scale(self, maximum_scale, default=1):
-        # type: (int) -> None
+    def _get_maximum_scale(self, maximum_scale: int, default: int = 1) -> None:
         self.maximum_scale = maximum_scale if maximum_scale is not None else default
         self.validate_positive_integer("maximum_scale")
 
-    def _get_pure(self, pure, default=None):
-        # type: (bool) -> None
+    def _get_pure(self, pure: bool, default: Any = None) -> None:
         self.pure = pure if pure is not None else default
 
-    def _update_kwargs_cores(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
+    def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:
         self._get_mpi_mode(kwargs.get("mpi_mode"))
         if self.mpi_mode:
             self._get_mpi_launcher(kwargs.get("mpi_launcher"))
@@ -458,7 +452,7 @@ class CustomClusterMixin(object):
             kwargs.update({"cores": features_cores})
         return kwargs
 
-    def _update_kwargs_modifiable(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
+    def _update_kwargs_modifiable(self, **kwargs) -> Dict[str, Any]:
         for key in ("name", "queue", "memory"):
             if key not in kwargs:
                 # search for the key in our config
@@ -467,7 +461,7 @@ class CustomClusterMixin(object):
                     kwargs.update({key: value})
         return kwargs
 
-    def _update_kwargs_job_extra(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
+    def _update_kwargs_job_extra(self, **kwargs) -> Dict[str, Any]:
         job_extra = kwargs.get("job_extra", self.get_kwarg("job-extra"))
         if job_extra is None:
             job_extra = config.get(
@@ -481,7 +475,7 @@ class CustomClusterMixin(object):
         kwargs.update({"job_extra": final_job_extra})
         return kwargs
 
-    def _update_kwargs_env_extra(self, **kwargs):  # type: (Dict[...]) -> Dict[...]
+    def _update_kwargs_env_extra(self, **kwargs) -> Dict[str, Any]:
         if self.openmp_env_extra is None:
             return kwargs
         env_extra = kwargs.get("env_extra", self.get_kwarg("env-extra"))
@@ -532,7 +526,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
                 raise KeyError("job_extra keyword should always be set in kwargs")
             mpi_job_extra.extend(kwargs["job_extra"])
             kwargs.update({"job_extra": mpi_job_extra})
-        super(CustomSLURMCluster, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._update_script_nodes(**kwargs)
         self.client = Client(self)  # type: Client
         # Log all the warnings that we may have accumulated
@@ -558,7 +552,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 
         clusters_controller_singleton.add_cluster(id_=self.name, cluster=self)
 
-    def _update_script_nodes(self, **kwargs):  # type: () -> None
+    def _update_script_nodes(self, **kwargs) -> None:
         # If we're not in mpi_mode no need to do anything
         if not self.mpi_mode:
             return
