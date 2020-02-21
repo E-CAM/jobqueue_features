@@ -78,7 +78,7 @@ class ClusterController(object):
     def _close_cluster(self, id_):
         # type: (str) -> None
         cluster = self._clusters.pop(id_, None)
-        if cluster and type(cluster) is not LocalCluster:
+        if cluster and cluster.status != "closed":
             cluster.close()
 
     def _close_clusters(self):

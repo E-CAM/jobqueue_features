@@ -4,6 +4,7 @@ from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
 from dask_jobqueue.slurm import SLURMJob
+from distributed.utils import ignoring
 from typing import TypeVar, Dict, List, Any  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
@@ -554,6 +555,10 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
                 logger.debug(warning)
             logger.debug("\n")
         self._add_to_cluster_controller()
+
+    def __del__(self):
+        with ignoring(AttributeError):
+            super().__del__()
 
     def _validate_name(self, name):
         from .clusters_controller import clusters_controller_singleton
