@@ -165,11 +165,15 @@ class CustomClusterMixin(object):
         self._get_warnings(kwargs.get("warning"))
 
         # Now do MPI related kwargs.
-        # Check if tasks use MPI interface or will fork MPI processes
+        # Check if tasks use MPI runtime or will fork MPI processes
         self._get_fork_mpi(kwargs.get("fork_mpi"))
         # Gather parameters for distribution of MPI/OpenMP processes (this also
         # modifies the cores reported to dask by the worker)
         kwargs = self._update_kwargs_cores(**kwargs)
+
+        # Control default nanny behaviour
+        kwargs = self._update_kwargs_nanny(**kwargs)
+
         # Check for any updates to other modifiable jobqueue values:
         #   name, queue, memory
         kwargs = self._update_kwargs_modifiable(**kwargs)
@@ -466,6 +470,17 @@ class CustomClusterMixin(object):
                 features_cores = self.minimum_cores
             # Can now safely update kwargs with the cores value
             kwargs.update({"cores": features_cores})
+        return kwargs
+
+    def _update_kwargs_nanny(self, **kwargs) -> Dict[str, Any]:
+        # In (non-forked) MPI mode, the nanny is problematic, default to False there
+        if self.mpi_mode and not self.fork_mpi and not kwargs.get("nanny"):
+            self.warnings.append(
+                "In (non-forked) MPI mode the nanny can be problematic, we change "
+                "the default to False for this case, override with the 'nanny' kwarg "
+                "boolean"
+            )
+            kwargs.update({"nanny": False})
         return kwargs
 
     def _update_kwargs_modifiable(self, **kwargs) -> Dict[str, Any]:
