@@ -1,7 +1,9 @@
 from unittest import TestCase
+import psutil
+
 from dask.distributed import Client
 
-from jobqueue_features.clusters import get_cluster, SLURM
+from jobqueue_features.clusters import get_cluster, SLURM, get_features_kwarg
 from jobqueue_features.mpi_wrapper import SRUN
 from jobqueue_features.cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 from jobqueue_features.clusters_controller import (
@@ -12,10 +14,9 @@ from jobqueue_features.clusters_controller import (
 class TestClusters(TestCase):
     def setUp(self):
         self.cluster_name = "dask-worker-batch"  # default
+
         self.kwargs = {
-            # 'interface': 'eth0',  # most likely won't have ib0 available so just use
-            # a safe default for the tests
-            "interface": "",
+            "interface": list(psutil.net_if_addrs().keys())[0],
             "fork_mpi": False,
             "mpi_launcher": SRUN,
             "memory": "1GB",

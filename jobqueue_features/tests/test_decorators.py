@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
 from unittest import TestCase
+
+import psutil
 from dask.distributed import Client, LocalCluster, Future
 
 from jobqueue_features import on_cluster, set_default_cluster, task, ClusterException
@@ -12,7 +14,7 @@ from jobqueue_features.clusters_controller import (
 
 class TweakedCustomCluster(CustomSLURMCluster):
     def __init__(self, **kwargs):
-        kwargs["interface"] = ""
+        kwargs["interface"] = list(psutil.net_if_addrs().keys())[0]
         kwargs["memory"] = "1GB"
         super(TweakedCustomCluster, self).__init__(**kwargs)
 
