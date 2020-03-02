@@ -24,6 +24,8 @@ def get_task_mpi_comm():
     :return: MPI Communicator
     """
 
+    global __TASK_MPI_COMM
+
     if __TASK_MPI_COMM is None:
         raise AttributeError(
             "get_task_comm() seems to have been called without first "
@@ -280,9 +282,7 @@ def verify_mpi_communicator(comm, mpi_abort=True):
 def mpi_deserialize_and_execute(serialized_object=None, root=0, comm=None):
 
     if comm is None:
-        from mpi4py import MPI
-
-        comm = MPI.COMM_WORLD
+        comm = get_task_mpi_comm()
 
     # Check we have a valid communicator
     verify_mpi_communicator(comm)
