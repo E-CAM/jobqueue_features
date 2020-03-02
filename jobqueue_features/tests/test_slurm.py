@@ -30,7 +30,7 @@ class TestSLURM(TestCase):
         # Really hard to get srun in CI, so use mpiexec to keep things simple
         self.launcher = MPIEXEC
         self.slurm_cluster = CustomSLURMCluster(
-            interface=list(psutil.net_if_addrs().keys())[0],
+            interface=None,
             name="mpi_cluster",
             walltime="00:04:00",
             nodes=2,
