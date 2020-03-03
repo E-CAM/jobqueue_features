@@ -1,7 +1,9 @@
 from __future__ import print_function
 
 from unittest import TestCase
+import psutil
 import os
+
 import pytest
 
 from jobqueue_features.clusters_controller import (
@@ -28,7 +30,7 @@ class TestSLURM(TestCase):
         # Really hard to get srun in CI, so use mpiexec to keep things simple
         self.launcher = MPIEXEC
         self.slurm_cluster = CustomSLURMCluster(
-            interface="",
+            interface=None,
             name="mpi_cluster",
             walltime="00:04:00",
             nodes=2,

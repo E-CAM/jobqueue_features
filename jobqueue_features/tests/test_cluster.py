@@ -1,4 +1,6 @@
 from unittest import TestCase
+import psutil
+
 from dask.distributed import Client
 
 from jobqueue_features.clusters import get_cluster, SLURM
@@ -13,9 +15,7 @@ class TestClusters(TestCase):
     def setUp(self):
         self.cluster_name = "dask-worker-batch"  # default
         self.kwargs = {
-            # 'interface': 'eth0',  # most likely won't have ib0 available so just use
-            # a safe default for the tests
-            "interface": "",
+            "interface": list(psutil.net_if_addrs().keys())[0],
             "fork_mpi": False,
             "mpi_launcher": SRUN,
             "memory": "1GB",
