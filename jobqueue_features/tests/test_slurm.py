@@ -80,17 +80,20 @@ class TestSLURM(TestCase):
                     SRUN["launcher"], self.launcher
                 )
             )
-            launcher = self.launcher["launcher"]
+
             # First check we can construct the command
             result = self.test_function(self.script_path, return_wrapped_command=True)
             result = result.result()
             expected_result = "{} -np {} {} {}".format(
-                launcher, self.number_of_processes, self.executable, self.script_path
+                self.launcher["launcher"],
+                self.number_of_processes,
+                self.executable,
+                self.script_path,
             )
             self.assertEqual(result, expected_result)
+            # Then check the execution of it
             result = self.test_function(self.script_path)
             result = result.result()
-            print(result)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes
