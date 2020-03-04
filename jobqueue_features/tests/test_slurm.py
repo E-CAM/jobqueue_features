@@ -80,7 +80,7 @@ class TestSLURM(TestCase):
                     SRUN["launcher"], self.launcher
                 )
             )
-            launcher = self.launcher
+            launcher = self.launcher["launcher"]
             # First check we can construct the command
             result = self.test_function(self.script_path, return_wrapped_command=True)
             result = result.result()
