@@ -147,8 +147,6 @@ def mpi_wrap(
                     )
                 mpi_params = "-np {} --map-by {}".format(mpi_tasks, process_mapping)
             elif mpi_launcher == INTELMPI:
-                # OpenMPI automatically does binding to socket for np>2, so we don't
-                # interfere with that default behaviour
                 if cpus_per_task is None or cpus_per_task == 1:
                     process_mapping = "-perhost {}".format(ntasks_per_node)
                 else:
