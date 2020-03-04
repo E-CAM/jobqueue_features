@@ -155,7 +155,7 @@ class task(object):
         # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
         # For normal tasks, we maintain the Dask default that functions are pure (by
         # default)
-        kwarg_pure = getattr(kwargs, "pure", True)
+        kwarg_pure = kwargs.get("pure", None)
         cluster_pure = getattr(cluster, "pure", kwarg_pure)
         if cluster_pure is None and kwarg_pure is not None:
             pure = kwarg_pure
