@@ -173,6 +173,11 @@ class mpi_task(task):
     def _submit(self, cluster, client, f, *args, **kwargs):
         # For MPI tasks, let's assume functions are not pure (by default)
         pure, kwargs = self._get_cluster_attribute(cluster, "pure", False, **kwargs)
+        # Handle the case where the cluster had a pure attribute
+        if hasattr(cluster, "pure") and pure is None:
+            # Need to override the None value
+            pure = kwargs.get("pure", False)
+            cluster.pure = pure
         # For a LocalCluster, mpi_mode/fork_mpi will not have been set so let's assume
         # MPI forking
         mpi_mode, kwargs = self._get_cluster_attribute(
