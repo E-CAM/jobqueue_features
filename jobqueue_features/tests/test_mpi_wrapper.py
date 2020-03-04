@@ -35,7 +35,7 @@ class TestMPIWrap(TestCase):
         )
         self.number_of_processes = 4
 
-        @mpi_task(cluster_id="test", default_mpi_tasks=4)
+        @mpi_task(cluster_id="test")
         def mpi_wrap_task(**kwargs):
             return mpi_wrap(**kwargs)
 
@@ -45,16 +45,17 @@ class TestMPIWrap(TestCase):
             mpi_launcher=MPIEXEC,
             launcher_args=None,
             nodes=1,
-            ntasks_per_node=self.number_of_processes,
+            ntasks_per_node=4,
             cpus_per_task=1,
             return_wrapped_command=False,
         ):
-
+            mpi_tasks = ntasks_per_node * nodes
             t = mpi_wrap_task(
                 executable=self.executable,
                 exec_args=script_path,
                 mpi_launcher=mpi_launcher,
                 launcher_args=launcher_args,
+                mpi_tasks=mpi_tasks,
                 cpus_per_task=cpus_per_task,
                 ntasks_per_node=ntasks_per_node,
                 nodes=nodes,
@@ -123,9 +124,19 @@ class TestMPIWrap(TestCase):
         # Test syntax of wrapped MPI launcher commands
         mpi_launchers = [SRUN, MPIEXEC, OPENMPI, INTELMPI]
         # specific example of 2 nodes and 3 processes
-        expected_launcher_args = ["", "-n 6", "-np 6 --map-by ", "-n 6"]
+        expected_launcher_args = [
+            "",
+            "-n 6",
+            "-np 6 --map-by ppr:3:node",
+            "-n 6 -perhost 3",
+        ]
         # specific example of 2 nodes, 3 processes and 4 OpenMP threads
-        hybrid_expected_launcher_args = ["", "-n 6", "-np 6 --map-by ", ""]
+        hybrid_expected_launcher_args = [
+            "",
+            "-n 6",
+            "-np 6 --map-by ppr:3:node:pe=4",
+            "-n 6 -perhost 3 -env I_MPI_PIN_DOMAIN 4",
+        ]
         for idx, mpi_launcher in enumerate(mpi_launchers):
             result = self.test_function(
                 self.script_path,
@@ -134,6 +145,7 @@ class TestMPIWrap(TestCase):
                 ntasks_per_node=3,
                 return_wrapped_command=True,
             )
+            print(result)
             _cmd = (
                 mpi_launcher["launcher"],
                 expected_launcher_args[idx],
@@ -152,6 +164,7 @@ class TestMPIWrap(TestCase):
                 cpus_per_task=4,
                 return_wrapped_command=True,
             )
+            print(result)
             _cmd = (
                 mpi_launcher["launcher"],
                 hybrid_expected_launcher_args[idx],
