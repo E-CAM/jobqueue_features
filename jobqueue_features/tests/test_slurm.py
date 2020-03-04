@@ -74,10 +74,10 @@ class TestSLURM(TestCase):
     def test_mpi_wrap(self):
         #
         # Assume here we have srun support
-        if which(SRUN) is not None:
+        if which(SRUN["launcher"]) is not None:
             print(
                 "Found {} so assuming we have Slurm, running MPI test (with {})".format(
-                    SRUN, self.launcher
+                    SRUN["launcher"], self.launcher
                 )
             )
             launcher = self.launcher
