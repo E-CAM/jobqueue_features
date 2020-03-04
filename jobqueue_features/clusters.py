@@ -635,7 +635,10 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             python, arguments = command_template.split(" ", 1)
             # Wrap the launch command with our mpi wrapper
             command_template = mpi_wrap(
-                python, exec_args=arguments, return_wrapped_command=True, **kwargs
+                executable=python,
+                exec_args=arguments,
+                return_wrapped_command=True,
+                **kwargs
             )
             self.warnings.append(
                 "Replaced command template\n\t{}\nwith\n\t{}\nin jobscript".format(

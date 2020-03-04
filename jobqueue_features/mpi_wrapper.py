@@ -6,10 +6,12 @@ import sys
 from typing import Dict, Union  # noqa
 
 
-SRUN = "srun"
-MPIEXEC = "mpiexec"
+SRUN = {"implementation": "slurm", "launcher": "srun"}
+MPIEXEC = {"implementation": "standard", "launcher": "mpiexec"}
+OPENMPI = {"implementation": "openmpi", "launcher": "mpirun"}
+INTELMPI = {"implementation": "intelmpi", "launcher": "mpirun"}
 
-SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC]
+SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC, OPENMPI, INTELMPI]
 
 
 __DEFAULT_MPI_COMM = None
@@ -93,7 +95,7 @@ def which(filename):
 def mpi_wrap(
     executable: str = None,
     pre_launcher_opts: str = "",
-    mpi_launcher: str = None,
+    mpi_launcher: dict = None,
     launcher_args: str = "",
     mpi_tasks: str = None,
     nodes: int = None,
@@ -110,7 +112,7 @@ def mpi_wrap(
         Based on the requested process distribution, return default arguments for the
         MPI launcher.
 
-        :param mpi_launcher: The MPI launcher (such as mpiexec, srun, mpirun,...)
+        :param mpi_launcher: The MPI launcher dict (which contains implementation and launcher,...)
         :param mpi_tasks: Total number of MPI tasks
         :param nodes: Number of nodes requested (optional)
         :param cpus_per_task: Number of CPUs per MPI task (most relevant for hybrid
@@ -121,8 +123,8 @@ def mpi_wrap(
         if mpi_launcher == SRUN:
             # SLURM already has everything it needs from the environment variables set
             # by the batch script
-            return ""
-        elif mpi_launcher == MPIEXEC:
+            mpi_params = ""
+        elif mpi_launcher in [MPIEXEC, OPENMPI, INTELMPI]:
             # Let's not error-check excessively, only the most obvious
             if mpi_tasks is None and any([nodes is None, ntasks_per_node is None]):
                 raise ValueError(
@@ -130,15 +132,38 @@ def mpi_wrap(
                 )
             if mpi_tasks is None:
                 mpi_tasks = nodes * ntasks_per_node
-            # mpiexec is defined by the standard and very basic, you can only tell it
-            # how many MPI tasks to start
-            return "-np {}".format(mpi_tasks)
+            if mpi_launcher == MPIEXEC:
+                # mpiexec is defined by the standard and very basic, you can only tell it
+                # how many MPI tasks to start
+                mpi_params = "-n {}".format(mpi_tasks)
+            elif mpi_launcher == OPENMPI:
+                # OpenMPI automatically does binding to socket for np>2, so we don't
+                # interfere with that default behaviour
+                if cpus_per_task is None or cpus_per_task == 1:
+                    process_mapping = "ppr:{}:node".format(ntasks_per_node)
+                else:
+                    process_mapping = "ppr:{}:node:pe={}".format(
+                        ntasks_per_node, cpus_per_task
+                    )
+                mpi_params = "-np {} --map-by {}".format(mpi_tasks, process_mapping)
+            elif mpi_launcher == INTELMPI:
+                # OpenMPI automatically does binding to socket for np>2, so we don't
+                # interfere with that default behaviour
+                if cpus_per_task is None or cpus_per_task == 1:
+                    process_mapping = "-perhost {}".format(ntasks_per_node)
+                else:
+                    process_mapping = "-perhost {} -env I_MPI_PIN_DOMAIN {}".format(
+                        ntasks_per_node, cpus_per_task
+                    )
+                mpi_params = "-n {} {}".format(mpi_tasks, process_mapping)
         else:
             raise NotImplementedError(
                 "MPI launcher {mpi_launcher} is not yet supported.".format(
                     mpi_launcher=mpi_launcher
                 )
             )
+
+        return mpi_params
 
     if mpi_launcher is None:
         raise ValueError("The kwarg mpi_launcher must be set!")
@@ -163,7 +188,7 @@ def mpi_wrap(
             string
             for string in [
                 pre_launcher_opts,
-                mpi_launcher,
+                mpi_launcher["launcher"],
                 default_launcher_args,
                 launcher_args,
                 executable,

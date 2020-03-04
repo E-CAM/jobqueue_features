@@ -9,6 +9,8 @@ from .mpi_wrapper import (
     mpi_wrap,
     MPIEXEC,
     SRUN,
+    OPENMPI,
+    INTELMPI,
     which,
     get_task_mpi_comm,
     set_task_mpi_comm,
