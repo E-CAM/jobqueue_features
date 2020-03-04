@@ -161,7 +161,8 @@ class task(object):
             pure = kwarg_pure
         else:
             pure = cluster_pure
-        kwargs.update({"pure": pure})
+        if pure is not kwarg_pure:
+            kwargs.update({"pure": pure})
         return client.submit(f, *args, **kwargs)
 
 
