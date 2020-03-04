@@ -168,7 +168,10 @@ class mpi_task(task):
 
     def _get_cluster_attribute(self, cluster, attribute, default, **kwargs):
         dict_value = kwargs.pop(attribute, default)
-        return getattr(cluster, attribute, dict_value), kwargs
+        return_value = getattr(cluster, attribute, dict_value)
+        if return_value is None and dict_value is not None:
+            return_value = dict_value
+        return return_value, kwargs
 
     def _submit(self, cluster, client, f, *args, **kwargs):
         # For MPI tasks, let's assume functions are not pure (by default)
