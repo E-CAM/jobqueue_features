@@ -145,7 +145,6 @@ class TestMPIWrap(TestCase):
                 ntasks_per_node=3,
                 return_wrapped_command=True,
             )
-            print(result)
             _cmd = (
                 mpi_launcher["launcher"],
                 expected_launcher_args[idx],
@@ -164,7 +163,6 @@ class TestMPIWrap(TestCase):
                 cpus_per_task=4,
                 return_wrapped_command=True,
             )
-            print(result)
             _cmd = (
                 mpi_launcher["launcher"],
                 hybrid_expected_launcher_args[idx],
@@ -176,7 +174,7 @@ class TestMPIWrap(TestCase):
 
     # Test the MPI wrapper in isolation for srun (which we assume doesn't exist):
     def test_mpi_srun_wrapper(self):
-        if which(SRUN) is None:
+        if which(SRUN["launcher"]) is None:
             print(
                 "Didn't find {}, running OSError test for no available launcher".format(
                     SRUN
