@@ -185,7 +185,15 @@ class CustomClusterMixin(object):
         # Finally, define how many workers the cluster can scale out to
         self._get_maximum_scale(kwargs.get("maximum_scale"))
         # and whether tasks for this cluster are pure by default or not
-        self._get_pure(kwargs.get("pure"))
+        if self.mpi_mode:
+            # in MPI mode we default pure to false
+            pure = kwargs.get("pure", False)
+            self.warnings.append(
+                "For this cluster with mpi mode, defaulting 'pure' to {}".format(pure)
+            )
+            self._get_pure(pure=pure)
+        else:
+            self._get_pure(pure=kwargs.get("pure"))
 
         return kwargs
 
@@ -306,7 +314,8 @@ class CustomClusterMixin(object):
         self.validate_positive_integer("maximum_scale")
 
     def _get_pure(self, pure: bool, default: Any = None) -> None:
-        self.pure = pure if pure is not None else default
+        if isinstance(pure, bool):
+            self.pure = pure if pure is not None else default
 
     def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:
         self._get_mpi_mode(kwargs.get("mpi_mode"))
