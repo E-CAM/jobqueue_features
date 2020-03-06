@@ -120,11 +120,7 @@ def mpi_wrap(
         :param ntasks_per_node: Number of MPI tasks per node
         :return: string
         """
-        if mpi_launcher == SRUN:
-            # SLURM already has everything it needs from the environment variables set
-            # by the batch script
-            mpi_params = ""
-        elif mpi_launcher in [MPIEXEC, OPENMPI, INTELMPI]:
+        if mpi_launcher in SUPPORTED_MPI_LAUNCHERS:
             # Let's not error-check excessively, only the most obvious
             if mpi_tasks is None and any([nodes is None, ntasks_per_node is None]):
                 raise ValueError(
@@ -136,6 +132,10 @@ def mpi_wrap(
                 # mpiexec is defined by the standard and very basic, you can only tell it
                 # how many MPI tasks to start
                 mpi_params = "-n {}".format(mpi_tasks)
+            elif mpi_launcher == SRUN:
+                # SLURM already has everything it needs from the environment variables set
+                # by the batch script
+                mpi_params = ""
             elif mpi_launcher == OPENMPI:
                 # OpenMPI automatically does binding to socket for np>2, so we don't
                 # interfere with that default behaviour
@@ -156,8 +156,9 @@ def mpi_wrap(
                 mpi_params = "-n {} {}".format(mpi_tasks, process_mapping)
         else:
             raise NotImplementedError(
-                "MPI launcher {mpi_launcher} is not yet supported.".format(
-                    mpi_launcher=mpi_launcher
+                "MPI launcher {mpi_launcher} is not yet supported. "
+                "Supported launchers are {launchers}".format(
+                    mpi_launcher=mpi_launcher, launchers=SUPPORTED_MPI_LAUNCHERS
                 )
             )
 
