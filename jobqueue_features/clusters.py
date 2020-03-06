@@ -187,13 +187,15 @@ class CustomClusterMixin(object):
         # and whether tasks for this cluster are pure by default or not
         if self.mpi_mode:
             # in MPI mode we default pure to false
-            pure = kwargs.get("pure", False)
+            default = False
             self.warnings.append(
-                "For this cluster with mpi mode, defaulting 'pure' to {}".format(pure)
+                "For this cluster with mpi mode, default value of 'pure' set to {} (can be overridden by kwarg)".format(
+                    default
+                )
             )
-            self._get_pure(pure=pure)
         else:
-            self._get_pure(pure=kwargs.get("pure"))
+            default = None
+        self._get_pure(pure=kwargs.get("pure"), default=default)
 
         return kwargs
 
@@ -315,7 +317,13 @@ class CustomClusterMixin(object):
 
     def _get_pure(self, pure: bool, default: Any = None) -> None:
         if isinstance(pure, bool):
-            self.pure = pure if pure is not None else default
+            self.pure = pure
+        elif isinstance(default, bool):
+            self.pure = default
+        else:
+            self.warnings.append(
+                "No boolean value for 'pure' or default, not setting default value for cluster."
+            )
 
     def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:
         self._get_mpi_mode(kwargs.get("mpi_mode"))
