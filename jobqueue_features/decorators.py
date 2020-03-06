@@ -167,12 +167,11 @@ class mpi_task(task):
         super(mpi_task, self).__init__(cluster_id=cluster_id)
 
     def _get_cluster_attribute(self, cluster, attribute, default, **kwargs):
-        # A kwarg wins over an attribute
+        # A kwarg wins over an attribute, then fall back to default
+        return_value = None
         if attribute in kwargs:
             return_value = kwargs.pop(attribute)
-            if return_value is None:
-                return_value = default
-        else:
+        if return_value is None:
             return_value = getattr(cluster, attribute, default)
 
         return return_value, kwargs
