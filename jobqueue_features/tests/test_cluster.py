@@ -215,3 +215,21 @@ class TestClusters(TestCase):
                 hyperthreading_factor=1,
                 **self.kwargs
             )
+
+    def test_cluster_pure_functions_mpi(self):
+        # Check the pure attribute is set to False in MPI mode
+        cluster = get_cluster(queue_type="knl", mpi_mode=True, cores=64, **self.kwargs)
+        self.assertEqual(cluster.pure, False)
+        controller.delete_cluster(cluster.name)
+        # Check this can be overridden with a kwarg
+        cluster = get_cluster(
+            queue_type="knl", mpi_mode=True, cores=64, pure=True, **self.kwargs
+        )
+        self.assertEqual(cluster.pure, True)
+        controller.delete_cluster(cluster.name)
+
+    def test_cluster_pure_functions(self):
+        # Check that the attribute is not set for non-MPI mode
+        cluster = get_cluster(queue_type="knl", **self.kwargs)
+        self.assertEqual(hasattr(cluster, "pure"), False)
+        controller.delete_cluster(cluster.name)
