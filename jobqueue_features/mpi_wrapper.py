@@ -95,7 +95,7 @@ def which(filename):
 def mpi_wrap(
     executable: str = None,
     pre_launcher_opts: str = "",
-    mpi_launcher: dict = None,
+    mpi_launcher: Dict[str, str] = None,
     launcher_args: str = "",
     mpi_tasks: str = None,
     nodes: int = None,

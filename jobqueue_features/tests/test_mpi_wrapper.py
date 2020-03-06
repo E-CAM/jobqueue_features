@@ -137,7 +137,9 @@ class TestMPIWrap(TestCase):
             "-np 6 --map-by ppr:3:node:pe=4",
             "-n 6 -perhost 3 -env I_MPI_PIN_DOMAIN 4",
         ]
-        for idx, mpi_launcher in enumerate(mpi_launchers):
+        for mpi_launcher, expected_launcher_opts, hybrid_expected_launcher_opts in zip(
+            mpi_launchers, expected_launcher_args, hybrid_expected_launcher_args
+        ):
             result = self.test_function(
                 self.script_path,
                 mpi_launcher=mpi_launcher,
@@ -147,7 +149,7 @@ class TestMPIWrap(TestCase):
             )
             _cmd = (
                 mpi_launcher["launcher"],
-                expected_launcher_args[idx],
+                expected_launcher_opts,
                 self.executable,
                 self.script_path,
             )
@@ -165,7 +167,7 @@ class TestMPIWrap(TestCase):
             )
             _cmd = (
                 mpi_launcher["launcher"],
-                hybrid_expected_launcher_args[idx],
+                hybrid_expected_launcher_opts,
                 self.executable,
                 self.script_path,
             )
