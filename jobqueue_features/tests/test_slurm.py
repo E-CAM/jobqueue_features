@@ -84,7 +84,7 @@ class TestSLURM(TestCase):
             # First check we can construct the command
             result = self.test_function(self.script_path, return_wrapped_command=True)
             result = result.result()
-            expected_result = "{} -np {} {} {}".format(
+            expected_result = "{} -n {} {} {}".format(
                 self.launcher["launcher"],
                 self.number_of_processes,
                 self.executable,
