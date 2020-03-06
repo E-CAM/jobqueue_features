@@ -144,7 +144,8 @@ class CustomClusterMixin(object):
     cpus_per_task: int = None
     openmp_env_extra: List[str] = None
     maximum_scale: int = None
-    pure: bool = None
+    # We only set a pure attribute if it is required or requested
+    # pure: bool = None
 
     def update_init_kwargs(self, **kwargs):
         # self.submit_command is set by the JobQueueCluster class, make sure it exists
