@@ -229,7 +229,7 @@ class TestClusters(TestCase):
         controller.delete_cluster(cluster.name)
 
     def test_cluster_pure_functions(self):
-        # Check that the attribute is None for non-MPI mode
+        # Check that the attribute is not set for non-MPI mode
         cluster = get_cluster(queue_type="knl", **self.kwargs)
         self.assertEqual(hasattr(cluster, "pure"), False)
         controller.delete_cluster(cluster.name)
