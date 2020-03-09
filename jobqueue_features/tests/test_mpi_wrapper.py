@@ -101,17 +101,16 @@ class TestMPIWrap(TestCase):
         self.assertIsNone(which(os.path.realpath(__file__)))
 
     def test_mpi_wrap_execution(self):
-        #
-        # Assume here we have mpiexec support
-        default_launcher = MPIEXEC
-        # Include some (non-standard) OpenMPI options so that we can run this in CI
-        if not self.is_mpich():
-            self.launcher_args = "--allow-run-as-root --oversubscribe"
-        else:
-            self.launcher_args = ""
-        if which(default_launcher["launcher"]) is not None:
-            print("Found {}, running MPI test".format(default_launcher["launcher"]))
-            result = self.test_function(self.script_path, mpi_launcher=default_launcher)
+        # Only check the ones that work in CI
+        for launcher in [MPIEXEC, OPENMPI]:
+            # Include some (non-standard) OpenMPI options so that we can run this in CI
+            if not self.is_mpich():
+                self.launcher_args = "--allow-run-as-root --oversubscribe"
+            else:
+                self.launcher_args = ""
+            if which(launcher["launcher"]) is not None:
+                print("Found {} launcher in env, running MPI test".format(launcher))
+            result = self.test_function(self.script_path, mpi_launcher=launcher)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes
