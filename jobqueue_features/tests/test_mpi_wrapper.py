@@ -110,14 +110,14 @@ class TestMPIWrap(TestCase):
                 self.launcher_args = ""
             if which(launcher["launcher"]) is not None:
                 print("Found {} launcher in env, running MPI test".format(launcher))
-            result = self.test_function(self.script_path, mpi_launcher=launcher)
-            for n in range(self.number_of_processes):
-                text = "Hello, World! I am process {} of {}".format(
-                    n, self.number_of_processes
-                )
-                self.assertIn(text.encode(), result["out"])
-        else:
-            pass
+                result = self.test_function(self.script_path, mpi_launcher=launcher)
+                for n in range(self.number_of_processes):
+                    text = "Hello, World! I am process {} of {}".format(
+                        n, self.number_of_processes
+                    )
+                    self.assertIn(text.encode(), result["out"])
+            else:
+                pass
 
     def test_mpi_wrap(self):
         # Test syntax of wrapped MPI launcher commands
