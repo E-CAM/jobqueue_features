@@ -11,6 +11,7 @@ from .mpi_wrapper import (
     SRUN,
     OPENMPI,
     INTELMPI,
+    SUPPORTED_MPI_LAUNCHERS,
     which,
     get_task_mpi_comm,
     set_task_mpi_comm,

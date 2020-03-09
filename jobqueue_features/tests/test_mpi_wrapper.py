@@ -12,7 +12,7 @@ from jobqueue_features import (
     MPIEXEC,
     SRUN,
     OPENMPI,
-    INTELMPI,
+    SUPPORTED_MPI_LAUNCHERS,
     on_cluster,
     mpi_task,
     which,
@@ -121,7 +121,7 @@ class TestMPIWrap(TestCase):
 
     def test_mpi_wrap(self):
         # Test syntax of wrapped MPI launcher commands
-        mpi_launchers = [SRUN, MPIEXEC, OPENMPI, INTELMPI]
+        mpi_launchers = SUPPORTED_MPI_LAUNCHERS
         # specific example of 2 nodes and 3 processes
         expected_launcher_args = [
             "",
