@@ -633,12 +633,26 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             # The first part of the string is the python executable to use for the
             # worker
             python, arguments = command_template.split(" ", 1)
+
             # Wrap the launch command with our mpi wrapper
+
+            # Make sure all appropriate kwargs are found and set
+            mpi_kwargs = {}
+            for attribute in ["mpi_tasks", "nodes", "cpus_per_task", "ntasks_per_node"]:
+                try:
+                    mpi_kwargs.update({attribute: getattr(self, attribute)})
+                except AttributeError:
+                    raise AttributeError(
+                        "No attribute {} found in our custom class, this is needed to "
+                        "wrap the MPI launch command in our job script".format(
+                            attribute
+                        )
+                    )
             command_template = mpi_wrap(
                 executable=python,
                 exec_args=arguments,
                 return_wrapped_command=True,
-                **kwargs
+                **{**kwargs, **mpi_kwargs}
             )
             self.warnings.append(
                 "Replaced command template\n\t{}\nwith\n\t{}\nin jobscript".format(
