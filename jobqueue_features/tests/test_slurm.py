@@ -74,23 +74,26 @@ class TestSLURM(TestCase):
     def test_mpi_wrap(self):
         #
         # Assume here we have srun support
-        if which(SRUN) is not None:
+        if which(SRUN["launcher"]) is not None:
             print(
                 "Found {} so assuming we have Slurm, running MPI test (with {})".format(
-                    SRUN, self.launcher
+                    SRUN["launcher"], self.launcher
                 )
             )
-            launcher = self.launcher
+
             # First check we can construct the command
             result = self.test_function(self.script_path, return_wrapped_command=True)
             result = result.result()
-            expected_result = "{} -np {} {} {}".format(
-                launcher, self.number_of_processes, self.executable, self.script_path
+            expected_result = "{} -n {} {} {}".format(
+                self.launcher["launcher"],
+                self.number_of_processes,
+                self.executable,
+                self.script_path,
             )
             self.assertEqual(result, expected_result)
+            # Then check the execution of it
             result = self.test_function(self.script_path)
             result = result.result()
-            print(result)
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
                     n, self.number_of_processes

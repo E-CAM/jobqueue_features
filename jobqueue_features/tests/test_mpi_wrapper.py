@@ -11,6 +11,8 @@ from jobqueue_features import (
     mpi_wrap,
     MPIEXEC,
     SRUN,
+    OPENMPI,
+    SUPPORTED_MPI_LAUNCHERS,
     on_cluster,
     mpi_task,
     which,
@@ -26,31 +28,37 @@ from jobqueue_features import (
 
 class TestMPIWrap(TestCase):
     def setUp(self):
-        self.number_of_processes = 4
         self.local_cluster = LocalCluster()
         self.executable = "python"
-        self.launcher = MPIEXEC
-        # Include some (non-standard) OpenMPI options so that we can run this in CI
-        if not self.is_mpich():
-            self.launcher_args = "--allow-run-as-root --oversubscribe"
-        else:
-            self.launcher_args = ""
         self.script_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
+        self.number_of_processes = 4
 
-        @mpi_task(cluster_id="test", default_mpi_tasks=4)
+        @mpi_task(cluster_id="test")
         def mpi_wrap_task(**kwargs):
             return mpi_wrap(**kwargs)
 
         @on_cluster(cluster=self.local_cluster, cluster_id="test")
-        def test_function(script_path, return_wrapped_command=False):
+        def test_function(
+            script_path,
+            mpi_launcher=MPIEXEC,
+            launcher_args=None,
+            nodes=1,
+            ntasks_per_node=4,
+            cpus_per_task=1,
+            return_wrapped_command=False,
+        ):
+            mpi_tasks = ntasks_per_node * nodes
             t = mpi_wrap_task(
                 executable=self.executable,
                 exec_args=script_path,
-                mpi_launcher=self.launcher,
-                launcher_args=self.launcher_args,
-                mpi_tasks=self.number_of_processes,
+                mpi_launcher=mpi_launcher,
+                launcher_args=launcher_args,
+                mpi_tasks=mpi_tasks,
+                cpus_per_task=cpus_per_task,
+                ntasks_per_node=ntasks_per_node,
+                nodes=nodes,
                 return_wrapped_command=return_wrapped_command,
             )
             result = t.result()
@@ -92,34 +100,82 @@ class TestMPIWrap(TestCase):
         # Check it returns None when a file is not executable
         self.assertIsNone(which(os.path.realpath(__file__)))
 
+    def test_mpi_wrap_execution(self):
+        # Only check the ones that work in CI
+        for launcher in [MPIEXEC, OPENMPI]:
+            # Include some (non-standard) OpenMPI options so that we can run this in CI
+            if not self.is_mpich():
+                self.launcher_args = "--allow-run-as-root --oversubscribe"
+            else:
+                self.launcher_args = ""
+            if which(launcher["launcher"]) is not None:
+                print("Found {} launcher in env, running MPI test".format(launcher))
+                result = self.test_function(self.script_path, mpi_launcher=launcher)
+                for n in range(self.number_of_processes):
+                    text = "Hello, World! I am process {} of {}".format(
+                        n, self.number_of_processes
+                    )
+                    self.assertIn(text.encode(), result["out"])
+            else:
+                pass
+
     def test_mpi_wrap(self):
-        #
-        # Assume here we have mpiexec support
-        if which(self.launcher) is not None:
-            print("Found {}, running MPI test".format(self.launcher))
-            result = self.test_function(self.script_path)
-            for n in range(self.number_of_processes):
-                text = "Hello, World! I am process {} of {}".format(
-                    n, self.number_of_processes
-                )
-                self.assertIn(text.encode(), result["out"])
-            result = self.test_function(self.script_path, return_wrapped_command=True)
+        # Test syntax of wrapped MPI launcher commands
+        mpi_launchers = SUPPORTED_MPI_LAUNCHERS
+        # specific example of 2 nodes and 3 processes
+        expected_launcher_args = [
+            "",
+            "-n 6",
+            "-np 6 --map-by ppr:3:node",
+            "-n 6 -perhost 3",
+        ]
+        # specific example of 2 nodes, 3 processes and 4 OpenMP threads
+        hybrid_expected_launcher_args = [
+            "",
+            "-n 6",
+            "-np 6 --map-by ppr:3:node:pe=4",
+            "-n 6 -perhost 3 -env I_MPI_PIN_DOMAIN 4",
+        ]
+        for mpi_launcher, expected_launcher_opts, hybrid_expected_launcher_opts in zip(
+            mpi_launchers, expected_launcher_args, hybrid_expected_launcher_args
+        ):
+            result = self.test_function(
+                self.script_path,
+                mpi_launcher=mpi_launcher,
+                nodes=2,
+                ntasks_per_node=3,
+                return_wrapped_command=True,
+            )
             _cmd = (
-                self.launcher,
-                "-np",
-                self.number_of_processes,
-                self.launcher_args,
+                mpi_launcher["launcher"],
+                expected_launcher_opts,
                 self.executable,
                 self.script_path,
             )
             expected_result = " ".join(filter(len, map(str, _cmd)))
             self.assertEqual(result, expected_result)
-        else:
-            pass
+
+            # Now check OpenMP threaded versions
+            result = self.test_function(
+                self.script_path,
+                mpi_launcher=mpi_launcher,
+                nodes=2,
+                ntasks_per_node=3,
+                cpus_per_task=4,
+                return_wrapped_command=True,
+            )
+            _cmd = (
+                mpi_launcher["launcher"],
+                hybrid_expected_launcher_opts,
+                self.executable,
+                self.script_path,
+            )
+            expected_result = " ".join(filter(len, map(str, _cmd)))
+            self.assertEqual(result, expected_result)
 
     # Test the MPI wrapper in isolation for srun (which we assume doesn't exist):
     def test_mpi_srun_wrapper(self):
-        if which(SRUN) is None:
+        if which(SRUN["launcher"]) is None:
             print(
                 "Didn't find {}, running OSError test for no available launcher".format(
                     SRUN

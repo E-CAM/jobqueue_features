@@ -1,10 +1,11 @@
 from unittest import TestCase
 import psutil
+import sys
 
 from dask.distributed import Client
 
 from jobqueue_features.clusters import get_cluster, SLURM
-from jobqueue_features.mpi_wrapper import SRUN
+from jobqueue_features.mpi_wrapper import SRUN, SUPPORTED_MPI_LAUNCHERS
 from jobqueue_features.cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 from jobqueue_features.clusters_controller import (
     clusters_controller_singleton as controller,
@@ -65,6 +66,25 @@ class TestClusters(TestCase):
         self.assertEqual(cluster._dummy_job.worker_process_threads, 1)
         self.assertIsInstance(cluster.client, Client)
         controller.delete_cluster(cluster.name)
+        # Now check our command template when we use different MPI runtimes
+        remaining_launchers = SUPPORTED_MPI_LAUNCHERS.copy()
+        # Don't recheck SRUN since we did it above (and it takes no args)
+        remaining_launchers.remove(SRUN)
+        expected_outputs = ["-n 64", "-np 64 --map-by ppr:64:node", "-n 64 -perhost 64"]
+        for launcher, args in zip(remaining_launchers, expected_outputs):
+            temp_kwargs = self.kwargs.copy()
+            temp_kwargs.update({"mpi_launcher": launcher})
+            cluster = get_cluster(
+                queue_type="knl", mpi_mode=True, cores=64, **temp_kwargs
+            )
+            self.assertIn(
+                " ".join([launcher["launcher"], args, sys.executable]),
+                cluster._dummy_job._command_template,
+            )
+            controller.delete_cluster(cluster.name)
+
+        # Finally check that we catch the assumption that cores means total CPU
+        # elements for the job (in MPI mode)
         with self.assertRaises(ValueError):
             cluster = get_cluster(
                 queue_type="knl", mpi_mode=True, nodes=64, cores=64, **self.kwargs
