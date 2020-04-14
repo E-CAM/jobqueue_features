@@ -579,7 +579,6 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
             mpi_job_extra.extend(kwargs["job_extra"])
             kwargs.update({"job_extra": mpi_job_extra})
         super().__init__(**kwargs)
-        self._kwargs["name"] = self.name
         self._update_script_nodes(**kwargs)
         self.client = Client(self)  # type: Client
         # Log all the warnings that we may have accumulated
@@ -593,19 +592,6 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     def __del__(self):
         with ignoring(AttributeError):
             super().__del__()
-
-    @property
-    def _dummy_job(self):
-        """
-        Overridden property for passing variable `name` to job.
-        """
-        try:
-            address = self.scheduler.address
-        except AttributeError:
-            address = "tcp://<insert-scheduler-address-here>:8786"
-        return self.job_cls(
-            address or "tcp://<insert-scheduler-address-here>:8786", **self._kwargs
-        )
 
     def _validate_name(self, name):
         from .clusters_controller import clusters_controller_singleton
