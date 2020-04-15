@@ -507,7 +507,10 @@ class CustomClusterMixin(object):
                 # search for the key in our config
                 value = self.get_kwarg(key)
                 if value is not None:
-                    kwargs.update({key: value})
+                    if key == "name":
+                        kwargs.update({"job_name": value})
+                    else:
+                        kwargs.update({key: value})
         return kwargs
 
     def _update_kwargs_job_extra(self, **kwargs) -> Dict[str, Any]:
