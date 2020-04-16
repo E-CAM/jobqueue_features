@@ -21,7 +21,7 @@ def mul(x):
 @on_cluster(
     cluster_id="inc-cluster",
     cluster=CustomSLURMCluster(name="inc-cluster", walltime="00:04:00"),
-    scale=2,
+    jobs=2,
 )
 @task(cluster_id="inc-cluster")
 def increment_task(x):
@@ -31,7 +31,7 @@ def increment_task(x):
 @on_cluster(
     cluster_id="mul-cluster",
     cluster=CustomSLURMCluster(name="mul-cluster", walltime="00:04:00"),
-    scale=2,
+    jobs=2,
 )
 @task(cluster_id="mul-cluster")
 def multiplication_task(x):
