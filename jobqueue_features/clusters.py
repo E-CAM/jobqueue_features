@@ -507,10 +507,11 @@ class CustomClusterMixin(object):
                 # search for the key in our config
                 value = self.get_kwarg(key)
                 if value is not None:
-                    if key == "name":
-                        kwargs.update({"job_name": value})
-                    else:
-                        kwargs.update({key: value})
+                    kwargs.update({key: value})
+            # When we use `name`, we also mean `job_name`
+            if key == "name":
+                kwargs.update({"job_name": kwargs[key]})
+
         return kwargs
 
     def _update_kwargs_job_extra(self, **kwargs) -> Dict[str, Any]:
@@ -552,8 +553,8 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     def __init__(self, **kwargs):
         self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
-        self._validate_name(kwargs["job_name"])
-        self.name = kwargs["job_name"]
+        self._validate_name(kwargs["name"])
+        self.name = kwargs["name"]
         # Do custom initialisation here
         if self.mpi_mode:
             # Most obvious customisation is for when we use mpi_mode, relevant variables
