@@ -27,7 +27,7 @@ if GPU:
         mpi_mode=True,
         fork_mpi=True,
         queue_type="gpus",
-        maximum_scale=5,
+        maximum_jobs=5,
         env_extra=[
             "module --force purge",
             "module use /usr/local/software/jureca/OtherStages",
@@ -48,7 +48,7 @@ if KNL:
         nodes=4,
         mpi_mode=True,
         fork_mpi=True,
-        maximum_scale=10,
+        maximum_jobs=10,
         queue_type="knl",
         python="python",
         env_extra=[
@@ -71,7 +71,7 @@ if HSW:
         nodes=2,
         mpi_mode=True,
         fork_mpi=True,
-        maximum_scale=10,
+        maximum_jobs=10,
         env_extra=[
             "module --force purge",
             "module use /usr/local/software/jureca/OtherStages",
