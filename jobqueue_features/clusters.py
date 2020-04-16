@@ -123,8 +123,8 @@ class CustomClusterMixin(object):
     openmp_env_extra : List[str]
         List of additional environment settings for OpenMP workloads
         (similar to job_env_extra in jobqueue)
-    maximum_scale : int
-        Maximum amount of workers for the cluster to scale to
+    maximum_jobs : int
+        Maximum amount of jobs for the cluster to scale to
     pure : bool
         Whether the default for tasks submitted to the cluster are pure or not
     """
@@ -143,7 +143,7 @@ class CustomClusterMixin(object):
     ntasks_per_node: int = None
     cpus_per_task: int = None
     openmp_env_extra: List[str] = None
-    maximum_scale: int = None
+    maximum_jobs: int = None
     # We only set a pure attribute if it is required or requested
     # pure: bool = None
 
@@ -184,7 +184,7 @@ class CustomClusterMixin(object):
         kwargs = self._update_kwargs_env_extra(**kwargs)
 
         # Finally, define how many workers the cluster can scale out to
-        self._get_maximum_scale(kwargs.get("maximum_scale"))
+        self._get_maximum_jobs(kwargs.get("maximum_jobs"))
         # and whether tasks for this cluster are pure by default or not
         if self.mpi_mode:
             # in MPI mode we default pure to false
@@ -312,9 +312,9 @@ class CustomClusterMixin(object):
             else self.get_kwarg(name="fork-mpi", default=default)
         )
 
-    def _get_maximum_scale(self, maximum_scale: int, default: int = 1) -> None:
-        self.maximum_scale = maximum_scale if maximum_scale is not None else default
-        self.validate_positive_integer("maximum_scale")
+    def _get_maximum_jobs(self, maximum_jobs: int, default: int = 1) -> None:
+        self.maximum_jobs = maximum_jobs if maximum_jobs is not None else default
+        self.validate_positive_integer("maximum_jobs")
 
     def _get_pure(self, pure: bool, default: Any = None) -> None:
         if isinstance(pure, bool):

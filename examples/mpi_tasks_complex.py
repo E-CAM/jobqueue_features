@@ -86,7 +86,7 @@ if HSW:
 
 if GPU:
 
-    @on_cluster(cluster=GROMACS_gpu_cluster, cluster_id="GROMACS_gpu_cluster", scale=10)
+    @on_cluster(cluster=GROMACS_gpu_cluster, cluster_id="GROMACS_gpu_cluster", jobs=10)
     @mpi_task(cluster_id="GROMACS_gpu_cluster")
     def run_mpi_gpu(**kwargs):
         script_path = os.path.join(
