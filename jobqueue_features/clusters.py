@@ -553,7 +553,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
         self._validate_name(kwargs["job_name"])
-        self.job_name = kwargs["job_name"]
+        self.name = kwargs["job_name"]
         # Do custom initialisation here
         if self.mpi_mode:
             # Most obvious customisation is for when we use mpi_mode, relevant variables
