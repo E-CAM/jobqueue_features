@@ -53,11 +53,6 @@ class TestSLURM(TestCase):
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
 
-        @on_cluster(cluster_id="fork_cluster")
-        @mpi_task(cluster_id="fork_cluster")
-        def mpi_wrap_task(**kwargs):
-            return mpi_wrap(**kwargs)
-
         def test_function(script_path, return_wrapped_command=False):
             t = mpi_wrap_task(
                 executable=self.executable,
@@ -83,6 +78,12 @@ class TestSLURM(TestCase):
             fork_slurm_cluster = CustomSLURMCluster(
                 name="fork_cluster", fork_mpi=True, **self.common_kwargs
             )
+
+            # Create the function that wraps tasks for this cluster
+            @on_cluster(cluster_id="fork_cluster")
+            @mpi_task(cluster_id="fork_cluster")
+            def mpi_wrap_task(**kwargs):
+                return mpi_wrap(**kwargs)
 
             # First check we can construct the command
             result = self.test_function(self.script_path, return_wrapped_command=True)
