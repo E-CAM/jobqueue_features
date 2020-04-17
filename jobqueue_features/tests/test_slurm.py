@@ -79,6 +79,11 @@ class TestSLURM(TestCase):
                 )
             )
 
+            # Create the cluster
+            fork_slurm_cluster = CustomSLURMCluster(
+                name="fork_cluster", fork_mpi=True, **self.common_kwargs
+            )
+
             # First check we can construct the command
             result = self.test_function(self.script_path, return_wrapped_command=True)
             result = result.result()
@@ -89,10 +94,8 @@ class TestSLURM(TestCase):
                 self.script_path,
             )
             self.assertEqual(result, expected_result)
+
             # Then check the execution of it
-            fork_slurm_cluster = CustomSLURMCluster(
-                name="fork_cluster", fork_mpi=True, **self.common_kwargs
-            )
             result = self.test_function(self.script_path)
             result = result.result()
             for n in range(self.number_of_processes):
