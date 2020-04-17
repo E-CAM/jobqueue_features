@@ -95,7 +95,7 @@ class TestSLURM(TestCase):
             self.assertEqual(result, expected_result)
 
             # Then check the execution of it
-            result = self.test_function(self.script_path)
+            result = test_function(self.script_path)
             result = result.result()
             for n in range(self.number_of_processes):
                 text = "Hello, World! I am process {} of {}".format(
