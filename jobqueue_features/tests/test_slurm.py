@@ -53,16 +53,6 @@ class TestSLURM(TestCase):
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
 
-        def test_function(script_path, return_wrapped_command=False):
-            t = mpi_wrap_task(
-                executable=self.executable,
-                exec_args=script_path,
-                return_wrapped_command=return_wrapped_command,
-            )
-            return t
-
-        self.test_function = test_function
-
     @pytest.mark.env("slurm")
     def test_mpi_wrap(self):
         #
@@ -85,8 +75,16 @@ class TestSLURM(TestCase):
             def mpi_wrap_task(**kwargs):
                 return mpi_wrap(**kwargs)
 
+            def test_function(script_path, return_wrapped_command=False):
+                t = mpi_wrap_task(
+                    executable=self.executable,
+                    exec_args=script_path,
+                    return_wrapped_command=return_wrapped_command,
+                )
+                return t
+
             # First check we can construct the command
-            result = self.test_function(self.script_path, return_wrapped_command=True)
+            result = test_function(self.script_path, return_wrapped_command=True)
             result = result.result()
             expected_result = "{} -n {} {} {}".format(
                 self.launcher["launcher"],
