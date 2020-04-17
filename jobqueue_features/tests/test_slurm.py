@@ -63,7 +63,6 @@ class TestSLURM(TestCase):
             t = mpi_wrap_task(
                 executable=self.executable,
                 exec_args=script_path,
-                # mpi_tasks=self.number_of_processes,
                 return_wrapped_command=return_wrapped_command,
             )
             return t
