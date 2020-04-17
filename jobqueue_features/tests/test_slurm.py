@@ -18,6 +18,7 @@ from jobqueue_features import (
     mpi_task,
     which,
     CustomSLURMCluster,
+    get_task_mpi_comm,
 )
 
 
@@ -102,6 +103,77 @@ class TestSLURM(TestCase):
                     n, self.number_of_processes
                 )
                 self.assertIn(text.encode(), result["out"])
+            controller._close_clusters()
+        else:
+            pass
+
+    @pytest.mark.env("slurm")
+    def test_mpi_task(self):
+        #
+        # Assume here we have srun support
+        if which(SRUN["launcher"]) is not None:
+            controller._close_clusters()
+            custom_cluster = CustomSLURMCluster(name="mpiCluster", **self.common_kwargs)
+
+            @on_cluster(cluster_id="mpiCluster")
+            @mpi_task(cluster_id="mpiCluster")
+            def task1(task_name):
+                from mpi4py import MPI
+
+                comm = get_task_mpi_comm()
+                size = comm.Get_size()
+                name = MPI.Get_processor_name()
+                all_nodes = comm.gather(name, root=0)
+                if all_nodes:
+                    all_nodes = list(set(all_nodes))
+                else:
+                    all_nodes = []
+                # Since it is a return  value it will only get printed by root
+                return_string = "Running %d tasks of type %s on nodes %s." % (
+                    size,
+                    task_name,
+                    all_nodes.sort(),
+                )
+                return return_string
+
+            @on_cluster(cluster_id="mpiCluster")
+            @mpi_task(cluster_id="mpiCluster")
+            def task2(name, task_name="default"):
+                comm = get_task_mpi_comm()
+                rank = comm.Get_rank()
+                # This only appears in the slurm job output
+                return_string = "Hi %s, my rank is %d for task of type %s" % (
+                    name,
+                    rank,
+                    task_name,
+                )
+                return return_string
+
+            tasks = []
+            tasks.append(
+                (
+                    task1("task1"),
+                    "Running {} tasks of type task1 on nodes {}.".format(
+                        self.number_of_processes, ["c1", "c2"]
+                    ),
+                )
+            )
+            tasks.append(
+                (
+                    task1("task1, 2nd iteration"),
+                    "Running {} tasks of type task1, 2nd iteration on nodes {}.".format(
+                        self.number_of_processes, ["c1", "c2"]
+                    ),
+                )
+            )
+            tasks.append(
+                (
+                    task2("Alan", task_name="Task 2"),
+                    "Hi Alan, my rank is 0 for task of type Task 2",
+                )
+            )
+            for task, text in iter(tasks):
+                self.assertIn(text.encode(), task.result())
             controller._close_clusters()
         else:
             pass
