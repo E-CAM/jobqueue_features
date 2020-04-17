@@ -173,7 +173,7 @@ class TestSLURM(TestCase):
                 )
             )
             for task, text in iter(tasks):
-                self.assertIn(text.encode(), task.result())
+                self.assertIn(text, task.result())
             controller._close_clusters()
         else:
             pass
