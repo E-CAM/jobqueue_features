@@ -126,13 +126,14 @@ class TestSLURM(TestCase):
                 all_nodes = comm.gather(name, root=0)
                 if all_nodes:
                     all_nodes = list(set(all_nodes))
+                    all_nodes.sort()
                 else:
                     all_nodes = []
                 # Since it is a return  value it will only get printed by root
                 return_string = "Running %d tasks of type %s on nodes %s." % (
                     size,
                     task_name,
-                    all_nodes.sort(),
+                    all_nodes,
                 )
                 return return_string
 
