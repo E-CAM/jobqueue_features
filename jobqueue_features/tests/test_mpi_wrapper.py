@@ -107,6 +107,7 @@ class TestMPIWrap(TestCase):
             if self.is_mpich():
                 self.launcher_args = ""
             else:
+                # we're root so we need some args
                 self.launcher_args = "--allow-run-as-root --oversubscribe"
             if which(launcher["launcher"]) is None:
                 pass
