@@ -21,6 +21,10 @@ from jobqueue_features import (
     get_task_mpi_comm,
 )
 
+import logging
+
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+
 
 class TestSLURM(TestCase):
     def setUp(self):
@@ -191,11 +195,11 @@ class TestSLURM(TestCase):
             # We only have 2 worker nodes so to have multiple jobs we need one worker
             # per node
             custom_cluster = CustomSLURMCluster(
-                name="mpiCluster", nodes=1, maximum_jobs=2, **self.common_kwargs
+                name="mpiMultiCluster", nodes=1, maximum_jobs=2, **self.common_kwargs
             )
 
-            @on_cluster(cluster_id="mpiCluster")
-            @mpi_task(cluster_id="mpiCluster")
+            @on_cluster(cluster_id="mpiMultiCluster")
+            @mpi_task(cluster_id="mpiMultiCluster")
             def task(task_name):
                 import time
                 from mpi4py import MPI
