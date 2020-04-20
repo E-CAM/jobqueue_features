@@ -612,22 +612,6 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         with ignoring(AttributeError):
             super().__del__()
 
-
-    def _validate_name(self, name):
-        from .clusters_controller import clusters_controller_singleton
-
-        try:
-            clusters_controller_singleton.get_cluster(id_=name)
-        except:
-            pass
-        else:
-            raise ClusterException('Cluster with name "{}" already exists'.format(name))
-
-    def _add_to_cluster_controller(self):
-        from .clusters_controller import clusters_controller_singleton
-
-        clusters_controller_singleton.add_cluster(id_=self.name, cluster=self)
-
     def _update_script_nodes(self, **kwargs) -> None:
         # If we're not in mpi_mode no need to do anything
         if not self.mpi_mode:
