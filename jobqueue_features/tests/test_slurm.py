@@ -191,7 +191,7 @@ class TestSLURM(TestCase):
             # We only have 2 worker nodes so to have multiple jobs we need one worker
             # per node
             custom_cluster = CustomSLURMCluster(
-                name="mpiCluster", nodes=1, **self.common_kwargs
+                name="mpiCluster", nodes=1, maximum_jobs=2, **self.common_kwargs
             )
 
             @on_cluster(cluster_id="mpiCluster")
