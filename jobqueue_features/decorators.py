@@ -27,11 +27,11 @@ class on_cluster(object):
     cluster_id : str
         Gets or create cluster with given id. If no id provided controller
         gets default cluster (cluster_id = 'default').
-    scale : int
-        Scale cluster (default or given by id or passes by cluster parameter).
+    jobs : int
+        Scale cluster to given number of jobs (default or given by id or passes by cluster parameter).
     """
 
-    def __init__(self, cluster=None, cluster_id=None, scale=None):
+    def __init__(self, cluster=None, cluster_id=None, jobs=None):
         # type: (ClusterType, str, int) -> None
         _id = self._get_cluster_id(cluster=cluster, cluster_id=cluster_id)
         try:
@@ -43,35 +43,37 @@ class on_cluster(object):
                 id_=_id, cluster=cluster
             )  # type: ClusterType
         if not self._is_local_cluster(cluster=self.cluster):
-            if scale is not None:
-                # If the kwarg 'scale' has been used in the decorator call we adaptively
-                # scale up to that many workers
-                if scale > self.cluster.maximum_scale:
+            if jobs is not None:
+                # If the kwarg 'jobs' has been used in the decorator call we adaptively
+                # scale up to that many jobs
+                if jobs > self.cluster.maximum_jobs:
                     print(
-                        "Scaling cluster {cluster_id} to {scale} exceeds default "
-                        "maximum workers ({maximum_scale})".format(
+                        "Scaling cluster {cluster_id} to {jobs} jobs exceeds default "
+                        "maximum jobs ({maximum_jobs})".format(
                             cluster_id=_id,
-                            scale=scale,
-                            maximum_scale=self.cluster.maximum_scale,
+                            jobs=jobs,
+                            maximum_jobs=self.cluster.maximum_jobs,
                         )
                     )
                     self.cluster.adapt(
-                        minimum=0, maximum=scale, wait_count=10, interval="6s"
+                        minimum_jobs=0, maximum_jobs=jobs, wait_count=10, interval="6s"
                     )
                 else:
                     self.cluster.adapt(
-                        minimum=0,
-                        maximum=self.cluster.maximum_scale,
+                        minimum_jobs=0,
+                        maximum_jobs=self.cluster.maximum_jobs,
                         wait_count=10,
                         interval="6s",
                     )
-                # We immediately start up `scale` workers rather than wait for adapt to
+                # We immediately start up `jobs` jobs rather than wait for adapt to
                 # kick in the `wait_count`*`interval` should keep them from shutting
                 # down too fast (allows 1 minute idle)
-                self.cluster.scale(scale)
+                self.cluster.scale(jobs=jobs)
             else:
                 # Otherwise we adaptively scale to the maximum number of workers
-                self.cluster.adapt(minimum=0, maximum=self.cluster.maximum_scale)
+                self.cluster.adapt(
+                    minimum_jobs=0, maximum_jobs=self.cluster.maximum_jobs
+                )
 
     def __call__(self, f):
         # type: (Callable) -> Callable

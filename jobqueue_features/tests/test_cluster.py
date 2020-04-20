@@ -25,6 +25,7 @@ class TestClusters(TestCase):
     def test_custom_cluster(self):
         cluster = get_cluster(scheduler=SLURM, **self.kwargs)
         self.assertEqual(cluster.name, self.cluster_name)
+        self.assertIn("#SBATCH -J dask-worker-batch", cluster.job_header)
         self.assertIsInstance(cluster.client, Client)
         with self.assertRaises(ValueError):
             get_cluster(SLURM, cores=128, **self.kwargs)
@@ -33,6 +34,7 @@ class TestClusters(TestCase):
     def test_gpu_cluster(self):
         cluster = get_cluster(queue_type="gpus", **self.kwargs)
         self.assertEqual(cluster.name, "dask-worker-gpus")
+        self.assertIn("#SBATCH -J dask-worker-gpus", cluster.job_header)
         self.assertIn("#SBATCH -p gpus", cluster.job_header)
         self.assertIn("#SBATCH --gres=gpu:4", cluster.job_header)
         self.assertIsInstance(cluster.client, Client)
@@ -41,6 +43,7 @@ class TestClusters(TestCase):
     def test_knl_cluster(self):
         cluster = get_cluster(queue_type="knl", **self.kwargs)
         self.assertEqual(cluster.name, "dask-worker-knl")
+        self.assertIn("#SBATCH -J dask-worker-knl", cluster.job_header)
         self.assertIn("#SBATCH -p booster", cluster.job_header)
         self.assertIn("#SBATCH --cpus-per-task=64", cluster.job_header)
         self.assertIsInstance(cluster.client, Client)

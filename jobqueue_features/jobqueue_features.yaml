@@ -39,7 +39,7 @@ jobqueue-features:
     
     # MPI/OpenMP related settings ----
     mpi-mode: False                 # MPI mode is off by default
-    mpi-launcher: srun              # Default launcher for MPI code (unused unless in MPI mode)
+    mpi-launcher: {"implementation": "slurm", "launcher": "srun"}  # Default launcher for MPI code (unused unless in MPI mode)
     nodes: null                     # Default node allocation (unused unless in MPI mode, setting a value forces user to
                                     # use ntasks_per_node and cpus_per_task)
     ntasks-per-node: 24             # Default tasks per node (unused unless in MPI mode)
