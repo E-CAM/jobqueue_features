@@ -197,6 +197,7 @@ class TestSLURM(TestCase):
             @on_cluster(cluster_id="mpiCluster")
             @mpi_task(cluster_id="mpiCluster")
             def task(task_name):
+                import time
                 from mpi4py import MPI
 
                 comm = get_task_mpi_comm()
@@ -214,6 +215,9 @@ class TestSLURM(TestCase):
                     task_name,
                     all_nodes,
                 )
+
+                # Add a sleep to make the task substantial enough to require scaling
+                time.sleep(5)
                 return return_string
 
             tasks = []
