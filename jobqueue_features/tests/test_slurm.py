@@ -27,13 +27,12 @@ class TestSLURM(TestCase):
         # Kill any existing clusters
         controller._close_clusters()
 
-        self.number_of_processes = 4
+        self.number_of_processes_per_node = 2
         # Really hard to get srun in CI, so use mpiexec to keep things simple
         self.launcher = MPIEXEC
         self.common_kwargs = {
             "interface": None,
             "walltime": "00:04:00",
-            "nodes": 2,
             "cores_per_node": 2,
             "minimum_cores": 2,
             "hyperthreading_factor": 1,
@@ -66,8 +65,9 @@ class TestSLURM(TestCase):
             )
 
             # Create the cluster
+            nodes = 2
             fork_slurm_cluster = CustomSLURMCluster(
-                name="fork_cluster", fork_mpi=True, **self.common_kwargs
+                name="fork_cluster", fork_mpi=True, nodes=nodes, **self.common_kwargs
             )
 
             # Create the function that wraps tasks for this cluster
@@ -89,7 +89,7 @@ class TestSLURM(TestCase):
             result = result.result()
             expected_result = "{} -n {} {} {}".format(
                 self.launcher["launcher"],
-                self.number_of_processes,
+                self.number_of_processes_per_node * nodes,
                 self.executable,
                 self.script_path,
             )
@@ -98,9 +98,9 @@ class TestSLURM(TestCase):
             # Then check the execution of it
             result = test_function(self.script_path)
             result = result.result()
-            for n in range(self.number_of_processes):
+            for n in range(self.number_of_processes_per_node):
                 text = "Hello, World! I am process {} of {}".format(
-                    n, self.number_of_processes
+                    n, self.number_of_processes_per_node * nodes
                 )
                 self.assertIn(text.encode(), result["out"])
             controller._close_clusters()
@@ -108,12 +108,15 @@ class TestSLURM(TestCase):
             pass
 
     @pytest.mark.env("slurm")
-    def test_mpi_task(self):
+    def test_single_mpi_tasks(self):
         #
         # Assume here we have srun support
         if which(SRUN["launcher"]) is not None:
             controller._close_clusters()
-            custom_cluster = CustomSLURMCluster(name="mpiCluster", **self.common_kwargs)
+            nodes = 2
+            custom_cluster = CustomSLURMCluster(
+                name="mpiCluster", nodes=nodes, **self.common_kwargs
+            )
 
             @on_cluster(cluster_id="mpiCluster")
             @mpi_task(cluster_id="mpiCluster")
@@ -155,7 +158,7 @@ class TestSLURM(TestCase):
                 (
                     task1("task1"),
                     "Running {} tasks of type task1 on nodes {}.".format(
-                        self.number_of_processes, ["c1", "c2"]
+                        self.number_of_processes_per_node * nodes, ["c1", "c2"]
                     ),
                 )
             )
@@ -163,7 +166,7 @@ class TestSLURM(TestCase):
                 (
                     task1("task1, 2nd iteration"),
                     "Running {} tasks of type task1, 2nd iteration on nodes {}.".format(
-                        self.number_of_processes, ["c1", "c2"]
+                        self.number_of_processes_per_node * nodes, ["c1", "c2"]
                     ),
                 )
             )
@@ -175,6 +178,68 @@ class TestSLURM(TestCase):
             )
             for task, text in iter(tasks):
                 self.assertIn(text, task.result())
+            controller._close_clusters()
+        else:
+            pass
+
+    @pytest.mark.env("slurm")
+    def test_multi_mpi_tasks(self):
+        #
+        # Assume here we have srun support
+        if which(SRUN["launcher"]) is not None:
+            controller._close_clusters()
+            # We only have 2 worker nodes so to have multiple jobs we need one worker
+            # per node
+            custom_cluster = CustomSLURMCluster(
+                name="mpiCluster", nodes=1, **self.common_kwargs
+            )
+
+            @on_cluster(cluster_id="mpiCluster")
+            @mpi_task(cluster_id="mpiCluster")
+            def task(task_name):
+                from mpi4py import MPI
+
+                comm = get_task_mpi_comm()
+                size = comm.Get_size()
+                name = MPI.Get_processor_name()
+                all_nodes = comm.gather(name, root=0)
+                if all_nodes:
+                    all_nodes = list(set(all_nodes))
+                    all_nodes.sort()
+                else:
+                    all_nodes = []
+                # Since it is a return  value it will only get printed by root
+                return_string = "Running %d tasks of type %s on nodes %s." % (
+                    size,
+                    task_name,
+                    all_nodes,
+                )
+                return return_string
+
+            tasks = []
+            for x in range(20):
+                tasks.append(
+                    (
+                        task("task-{}".format(x)),
+                        # We don't know which node the task will run on
+                        "Running {} tasks of type task-{} on nodes ".format(
+                            self.number_of_processes_per_node, x
+                        ),
+                    )
+                )
+            c1_count = 0
+            c2_count = 0
+            for job, text in iter(tasks):
+                self.assertIn(text, job.result())
+                # Count which node the job executed on
+                self.assertTrue("c1" in job.result() or "c2" in job.result())
+                if "c1" in job.result():
+                    c1_count += 1
+                elif "c2" in job.result():
+                    c2_count += 1
+            self.assertTrue(c1_count > 0)
+            self.assertTrue(c2_count > 0)
+
             controller._close_clusters()
         else:
             pass
