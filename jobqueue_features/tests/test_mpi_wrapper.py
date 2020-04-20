@@ -104,14 +104,11 @@ class TestMPIWrap(TestCase):
         # Only check the ones that work in CI
         for launcher in [MPIEXEC, OPENMPI]:
             # Include some (non-standard) OpenMPI options so that we can run this in CI
-            if self.is_mpich():
-                self.launcher_args = ""
-            else:
-                # we're root so we need some args
+            if not self.is_mpich():
                 self.launcher_args = "--allow-run-as-root --oversubscribe"
-            if which(launcher["launcher"]) is None:
-                pass
             else:
+                self.launcher_args = ""
+            if which(launcher["launcher"]) is not None:
                 print("Found {} launcher in env, running MPI test".format(launcher))
                 result = self.test_function(self.script_path, mpi_launcher=launcher)
                 for n in range(self.number_of_processes):
@@ -119,6 +116,8 @@ class TestMPIWrap(TestCase):
                         n, self.number_of_processes
                     )
                     self.assertIn(text.encode(), result["out"])
+            else:
+                pass
 
     def test_mpi_wrap(self):
         # Test syntax of wrapped MPI launcher commands
