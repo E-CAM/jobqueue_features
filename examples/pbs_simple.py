@@ -8,14 +8,14 @@ cluster_1 = CustomPBSCluster(cores=1, memory='2 GB', queue='workq', name='pbs_1'
 cluster_2 = CustomPBSCluster(cores=1, memory='2 GB', queue='workq', name='pbs_2')
 
 
-@on_cluster(cluster=cluster_1, scale=1)
+@on_cluster(cluster=cluster_1, jobs=1)
 @task(cluster_id=cluster_1.name)
 def square(x):
     time.sleep(1)
     return x ** 2
 
 
-@on_cluster(cluster=cluster_2, scale=1)
+@on_cluster(cluster=cluster_2, jobs=1)
 @task(cluster_id=cluster_2.name)
 def cube(x):
     time.sleep(1)
