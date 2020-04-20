@@ -217,7 +217,7 @@ class TestSLURM(TestCase):
                 )
 
                 # Add a sleep to make the task substantial enough to require scaling
-                time.sleep(5)
+                time.sleep(3)
                 return return_string
 
             tasks = []
