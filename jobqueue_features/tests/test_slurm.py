@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 from unittest import TestCase
-import psutil
 import os
 
 import pytest
@@ -21,9 +20,10 @@ from jobqueue_features import (
     get_task_mpi_comm,
 )
 
-import logging
+# Use logging if there are hard to see issues in the CI
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+# import logging
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
 
 class TestSLURM(TestCase):
@@ -285,7 +285,7 @@ class TestSLURM(TestCase):
                 )
 
                 # Add a sleep to make the task substantial enough to require scaling
-                time.sleep(2)
+                time.sleep(1)
                 return return_string
 
             tasks = []
