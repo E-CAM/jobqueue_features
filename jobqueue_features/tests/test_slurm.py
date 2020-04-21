@@ -29,11 +29,21 @@ from jobqueue_features import (
 class TestSLURM(TestCase):
     def setUp(self):
         # Kill any existing clusters
-        controller._close_clusters()
+        controller._close()
 
         self.number_of_processes_per_node = 2
         # Really hard to get srun in CI, so use mpiexec to keep things simple
         self.launcher = MPIEXEC
+
+        self.run_tests = False
+        if which(SRUN["launcher"]) is not None:
+            print(
+                "Found {} so assuming we have Slurm, running MPI test (with {})".format(
+                    SRUN["launcher"], self.launcher
+                )
+            )
+            self.run_tests = True
+
         self.common_kwargs = {
             "interface": None,
             "walltime": "00:04:00",
@@ -61,13 +71,8 @@ class TestSLURM(TestCase):
     def test_single_mpi_wrap(self):
         #
         # Assume here we have srun support
-        if which(SRUN["launcher"]) is not None:
-            controller._close_clusters()
-            print(
-                "Found {} so assuming we have Slurm, running MPI test (with {})".format(
-                    SRUN["launcher"], self.launcher
-                )
-            )
+        if self.run_tests:
+            controller._close()
 
             # Create the cluster
             nodes = 2
@@ -108,7 +113,7 @@ class TestSLURM(TestCase):
                     n, self.number_of_processes_per_node * nodes
                 )
                 self.assertIn(text.encode(), result["out"])
-            controller._close_clusters()
+            controller._close()
         else:
             pass
 
@@ -116,13 +121,8 @@ class TestSLURM(TestCase):
     def test_multi_mpi_wrap(self):
         #
         # Assume here we have srun support
-        if which(SRUN["launcher"]) is not None:
-            controller._close_clusters()
-            print(
-                "Found {} so assuming we have Slurm, running MPI test (with {})".format(
-                    SRUN["launcher"], self.launcher
-                )
-            )
+        if self.run_tests:
+            controller._close()
 
             # Create the cluster
             nodes = 1
@@ -173,7 +173,7 @@ class TestSLURM(TestCase):
             self.assertTrue(c1_count > 0)
             self.assertTrue(c2_count > 0)
 
-            controller._close_clusters()
+            controller._close()
         else:
             pass
 
@@ -181,8 +181,8 @@ class TestSLURM(TestCase):
     def test_single_mpi_tasks(self):
         #
         # Assume here we have srun support
-        if which(SRUN["launcher"]) is not None:
-            controller._close_clusters()
+        if self.run_tests:
+            controller._close()
             nodes = 2
             custom_cluster = CustomSLURMCluster(
                 name="mpiCluster", nodes=nodes, **self.common_kwargs
@@ -249,7 +249,7 @@ class TestSLURM(TestCase):
             for task, text in iter(tasks):
                 self.assertIn(text, task.result())
 
-            controller._close_clusters()
+            controller._close()
         else:
             pass
 
@@ -257,8 +257,8 @@ class TestSLURM(TestCase):
     def test_multi_mpi_tasks(self):
         #
         # Assume here we have srun support
-        if which(SRUN["launcher"]) is not None:
-            controller._close_clusters()
+        if self.run_tests:
+            controller._close()
             # We only have 2 worker nodes so to have multiple jobs we need one worker
             # per node
             custom_cluster = CustomSLURMCluster(
@@ -315,6 +315,6 @@ class TestSLURM(TestCase):
             self.assertTrue(c1_count > 0)
             self.assertTrue(c2_count > 0)
 
-            controller._close_clusters()
+            controller._close()
         else:
             pass
