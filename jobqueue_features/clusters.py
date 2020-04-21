@@ -88,7 +88,7 @@ class CustomSLURMJob(SLURMJob):
             replacement_name = re.search(
                 r"--name\s*(\S+)", self._command_template
             ).group(1)
-            expected_name = re.search(r"--name\s*(\S+)", command_template).group(1)
+            expected_name = re.search(r"--name\s+(\S+)", command_template).group(1)
             if expected_name == "name":
                 self._command_template = re.sub(
                     "--name {}".format(expected_name),
