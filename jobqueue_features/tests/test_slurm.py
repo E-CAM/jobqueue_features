@@ -58,7 +58,7 @@ class TestSLURM(TestCase):
         )
 
     @pytest.mark.env("slurm")
-    def test_mpi_wrap(self):
+    def test_single_mpi_wrap(self):
         #
         # Assume here we have srun support
         if which(SRUN["launcher"]) is not None:
@@ -107,6 +107,70 @@ class TestSLURM(TestCase):
                     n, self.number_of_processes_per_node * nodes
                 )
                 self.assertIn(text.encode(), result["out"])
+            controller._close_clusters()
+        else:
+            pass
+
+    @pytest.mark.env("slurm")
+    def test_multi_mpi_wrap(self):
+        #
+        # Assume here we have srun support
+        if which(SRUN["launcher"]) is not None:
+            print(
+                "Found {} so assuming we have Slurm, running MPI test (with {})".format(
+                    SRUN["launcher"], self.launcher
+                )
+            )
+
+            # Create the cluster
+            nodes = 1
+            fork_slurm_cluster = CustomSLURMCluster(
+                name="multifork_cluster",
+                fork_mpi=True,
+                nodes=nodes,
+                maximum_jobs=2,
+                **self.common_kwargs
+            )
+
+            # Create the function that wraps tasks for this cluster
+            @on_cluster(cluster_id="multifork_cluster")
+            @mpi_task(cluster_id="multifork_cluster")
+            def mpi_wrap_task(**kwargs):
+                return mpi_wrap(**kwargs)
+
+            def test_function(script_path, return_wrapped_command=False):
+                t = mpi_wrap_task(
+                    executable=self.executable,
+                    exec_args=script_path,
+                    return_wrapped_command=return_wrapped_command,
+                )
+                return t
+
+            tasks = []
+            for x in range(20):
+                tasks.append(
+                    (
+                        test_function(self.script_path),
+                        # Only check for root in the output
+                        "Hello, World! I am process 0 of {}".format(
+                            self.number_of_processes_per_node * nodes
+                        ),
+                    )
+                )
+            c1_count = 0
+            c2_count = 0
+            for job, text in iter(tasks):
+                result = job.result()["out"]
+                self.assertIn(text.encode(), result)
+                # Count which node the job executed on
+                self.assertTrue("c1".encode() in result or "c2".encode() in result)
+                if "c1".encode() in result:
+                    c1_count += 1
+                elif "c2".encode() in result:
+                    c2_count += 1
+            self.assertTrue(c1_count > 0)
+            self.assertTrue(c2_count > 0)
+
             controller._close_clusters()
         else:
             pass
@@ -221,7 +285,7 @@ class TestSLURM(TestCase):
                 )
 
                 # Add a sleep to make the task substantial enough to require scaling
-                time.sleep(3)
+                time.sleep(2)
                 return return_string
 
             tasks = []
