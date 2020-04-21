@@ -62,6 +62,7 @@ class TestSLURM(TestCase):
         #
         # Assume here we have srun support
         if which(SRUN["launcher"]) is not None:
+            controller._close_clusters()
             print(
                 "Found {} so assuming we have Slurm, running MPI test (with {})".format(
                     SRUN["launcher"], self.launcher
@@ -116,6 +117,7 @@ class TestSLURM(TestCase):
         #
         # Assume here we have srun support
         if which(SRUN["launcher"]) is not None:
+            controller._close_clusters()
             print(
                 "Found {} so assuming we have Slurm, running MPI test (with {})".format(
                     SRUN["launcher"], self.launcher
@@ -246,6 +248,7 @@ class TestSLURM(TestCase):
             )
             for task, text in iter(tasks):
                 self.assertIn(text, task.result())
+
             controller._close_clusters()
         else:
             pass
