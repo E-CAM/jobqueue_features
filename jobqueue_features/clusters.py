@@ -1,5 +1,7 @@
 from __future__ import division
 
+import re
+
 from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster, PBSCluster
 from dask.distributed import Client, LocalCluster
@@ -83,7 +85,22 @@ class CustomSLURMJob(SLURMJob):
             "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
         )
         if command_template:
-            self._command_template = command_template
+            replacement_name = re.search(
+                r"--name\s+(\S+)", self._command_template
+            ).group(1)
+            expected_name = re.search(r"--name\s+(\S+)", command_template).group(1)
+            if expected_name == "name":
+                self._command_template = re.sub(
+                    "--name {}".format(expected_name),
+                    "--name {}".format(replacement_name),
+                    command_template,
+                )
+            else:
+                raise ValueError(
+                    "Found unexpected value for 'name' in command template: {}".format(
+                        expected_name
+                    )
+                )
 
 
 class CustomClusterMixin(object):
