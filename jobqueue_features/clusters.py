@@ -704,4 +704,6 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
         self._add_to_cluster_controller()
 
 
-ClusterType = TypeVar("ClusterType", JobQueueCluster, LocalCluster, CustomSLURMCluster, CustomPBSCluster)
+ClusterType = TypeVar(
+    "ClusterType", JobQueueCluster, LocalCluster, CustomSLURMCluster, CustomPBSCluster
+)

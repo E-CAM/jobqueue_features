@@ -29,7 +29,9 @@ class ClusterController(object):
             raise ClusterException('No client for cluster "{}" set!'.format(id_))
         return cluster, client
 
-    def add_cluster(self, id_: str = None, cluster: ClusterType = None) -> Tuple[ClusterType, Client]:
+    def add_cluster(
+        self, id_: str = None, cluster: ClusterType = None
+    ) -> Tuple[ClusterType, Client]:
         if hasattr(cluster, "name"):
             if id_ is None:
                 id_ = cluster.name
@@ -41,7 +43,9 @@ class ClusterController(object):
         self._close_client(id_=id_)
         self._close_cluster(id_=id_)
 
-    def _make_cluster(self, id_: str, cluster: ClusterType = None) -> Tuple[ClusterType, Client]:
+    def _make_cluster(
+        self, id_: str, cluster: ClusterType = None
+    ) -> Tuple[ClusterType, Client]:
         if id_ != _DEFAULT and id_ in self._clusters:
             raise ClusterException('Cluster "{}" already exists!'.format(id_))
         self._clusters[id_] = cluster or self._make_default_cluster(name=id_)
