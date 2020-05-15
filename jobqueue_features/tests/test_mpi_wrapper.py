@@ -37,6 +37,9 @@ from jobqueue_features.clusters_controller import (
 
 class TestMPIWrap(TestCase):
     def setUp(self):
+        #        # Kill any existing clusters
+        #        controller._close()
+
         self.local_cluster = LocalCluster()
         self.executable = "python"
         self.script_path = os.path.abspath(
@@ -89,9 +92,9 @@ class TestMPIWrap(TestCase):
 
         self.string_task = string_task
 
-    def tearDown(self):
-        # Kill any existing clusters
-        controller._close()
+    #    def tearDown(self):
+    #        # Kill any existing clusters
+    #        controller._close()
 
     def is_mpich(self):
         cmd = "mpicc -v"
