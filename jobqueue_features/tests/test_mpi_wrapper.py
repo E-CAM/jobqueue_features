@@ -25,6 +25,10 @@ from jobqueue_features import (
     flush_and_abort,
 )
 
+from jobqueue_features.clusters_controller import (
+    clusters_controller_singleton as controller,
+)
+
 
 class TestMPIWrap(TestCase):
     def setUp(self):
