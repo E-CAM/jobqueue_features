@@ -80,6 +80,10 @@ class TestMPIWrap(TestCase):
 
         self.string_task = string_task
 
+    def tearDown(self):
+        # Kill any existing clusters
+        controller._close()
+
     def is_mpich(self):
         cmd = "mpicc -v"
         proc = subprocess.Popen(
