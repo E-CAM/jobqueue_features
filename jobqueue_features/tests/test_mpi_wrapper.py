@@ -29,6 +29,11 @@ from jobqueue_features.clusters_controller import (
     clusters_controller_singleton as controller,
 )
 
+# Use logging if there are hard to see issues in the CI
+
+# import logging
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+
 
 class TestMPIWrap(TestCase):
     def setUp(self):
@@ -110,18 +115,23 @@ class TestMPIWrap(TestCase):
 
     def test_mpi_wrap_execution(self):
         # Only check the ones that work in CI
-        for launcher in [MPIEXEC, OPENMPI]:
+        for launcher in [OPENMPI, MPIEXEC]:
             # Include some (non-standard) OpenMPI options so that we can run this in CI
-            if self.is_mpich():
+            if launcher is MPIEXEC and self.is_mpich():
                 self.launcher_args = ""
             else:
                 # we're root so we need some args
                 self.launcher_args = "--allow-run-as-root --oversubscribe"
             if which(launcher["launcher"]) is None:
+                print("Didn't find {}, skipping test".format(launcher))
                 pass
             else:
                 print("Found {} launcher in env, running MPI test".format(launcher))
-                result = self.test_function(self.script_path, mpi_launcher=launcher)
+                result = self.test_function(
+                    self.script_path,
+                    mpi_launcher=launcher,
+                    launcher_args=self.launcher_args,
+                )
                 for n in range(self.number_of_processes):
                     text = "Hello, World! I am process {} of {}".format(
                         n, self.number_of_processes
