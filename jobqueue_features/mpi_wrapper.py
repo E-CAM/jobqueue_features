@@ -274,10 +274,6 @@ def flush_and_abort(
 ):
     import traceback
 
-    if comm is None:
-        from mpi4py import MPI
-
-        comm = MPI.COMM_WORLD
     if error_code == 0:
         print("To abort correctly, we need to use a non-zero error code")
         error_code = 1
@@ -286,6 +282,10 @@ def flush_and_abort(
         traceback.print_stack()
         sys.stdout.flush()
         sys.stderr.flush()
+        if comm is None:
+            from mpi4py import MPI
+
+            comm = MPI.COMM_WORLD
         comm.Abort(error_code)
     sys.exit(error_code)
 

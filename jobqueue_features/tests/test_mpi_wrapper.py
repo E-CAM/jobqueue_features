@@ -37,8 +37,8 @@ from jobqueue_features.clusters_controller import (
 
 class TestMPIWrap(TestCase):
     def setUp(self):
-        #        # Kill any existing clusters
-        #        controller._close()
+        # Kill any existing clusters
+        controller._close()
 
         self.local_cluster = LocalCluster()
         self.executable = "python"
@@ -92,9 +92,9 @@ class TestMPIWrap(TestCase):
 
         self.string_task = string_task
 
-    #    def tearDown(self):
-    #        # Kill any existing clusters
-    #        controller._close()
+    def tearDown(self):
+        # Kill any existing clusters
+        controller._close()
 
     def is_mpich(self):
         cmd = "mpicc -v"
@@ -252,22 +252,14 @@ class TestMPIWrap(TestCase):
         )
         self.assertEqual("chicken dog", deserialize_and_execute(serialized_object))
 
-    def test_flush_and_abort(self):
-        with self.assertRaises(SystemExit) as cm:
-            flush_and_abort(mpi_abort=False)
-        self.assertEqual(cm.exception.code, 1)
-        with self.assertRaises(SystemExit) as cm:
-            flush_and_abort(error_code=2, mpi_abort=False)
-        self.assertEqual(cm.exception.code, 2)
-
     def test_verify_mpi_communicator(self):
-        from mpi4py import MPI
-
-        comm = MPI.COMM_WORLD
         with self.assertRaises(SystemExit) as cm:
             verify_mpi_communicator("Not a communicator", mpi_abort=False)
         self.assertEqual(cm.exception.code, 1)
-        self.assertTrue(verify_mpi_communicator(comm, mpi_abort=False))
+
+        # from mpi4py import MPI
+        # comm = MPI.COMM_WORLD
+        # self.assertTrue(verify_mpi_communicator(comm, mpi_abort=False))
 
     def test_mpi_deserialize_and_execute(self):
         trivial = "trivial"
@@ -275,8 +267,16 @@ class TestMPIWrap(TestCase):
         # For the deserializer to work we need to first set the task MPI communicator
         with self.assertRaises(AttributeError):
             mpi_deserialize_and_execute(serialized_object)
-        set_task_mpi_comm()
         # The test framework is not started with an MPI launcher so we have a single task
-        expected_string = "Running 1 tasks of type {}.".format(trivial)
-        return_value = mpi_deserialize_and_execute(serialized_object)
-        self.assertEqual(expected_string, return_value)
+        # set_task_mpi_comm()
+        # expected_string = "Running 1 tasks of type {}.".format(trivial)
+        # return_value = mpi_deserialize_and_execute(serialized_object)
+        # self.assertEqual(expected_string, return_value)
+
+    def test_flush_and_abort(self):
+        with self.assertRaises(SystemExit) as cm:
+            flush_and_abort(mpi_abort=False)
+        self.assertEqual(cm.exception.code, 1)
+        with self.assertRaises(SystemExit) as cm:
+            flush_and_abort(error_code=2, mpi_abort=False)
+        self.assertEqual(cm.exception.code, 2)
