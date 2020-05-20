@@ -122,10 +122,10 @@ class TestMPIWrap(TestCase):
         for launcher in [OPENMPI, MPIEXEC]:
             # Include some (non-standard) OpenMPI options so that we can run this in CI
             if launcher is MPIEXEC and self.is_mpich():
-                self.launcher_args = ""
+                launcher_args = ""
             else:
                 # we're root so we need some args
-                self.launcher_args = "--allow-run-as-root --oversubscribe"
+                launcher_args = "--allow-run-as-root --oversubscribe"
             if which(launcher["launcher"]) is None:
                 print("Didn't find {}, skipping test".format(launcher))
                 pass
@@ -134,7 +134,7 @@ class TestMPIWrap(TestCase):
                 result = self.test_function(
                     self.script_path,
                     mpi_launcher=launcher,
-                    launcher_args=self.launcher_args,
+                    launcher_args=launcher_args,
                 )
                 for n in range(self.number_of_processes):
                     text = "Hello, World! I am process {} of {}".format(
