@@ -11,6 +11,7 @@ from distributed import LocalCluster
 from jobqueue_features import (
     mpi_wrap,
     MPIEXEC,
+    MPICH,
     SRUN,
     OPENMPI,
     SUPPORTED_MPI_LAUNCHERS,
@@ -121,25 +122,23 @@ class TestMPIWrap(TestCase):
         # Only check the ones that work in CI
         if self.is_mpich():
             # Haven't implemented explicit MPICH support yet
-            launchers = [MPIEXEC]
+            launchers = [MPICH, MPIEXEC]
         else:
             launchers = [OPENMPI, MPIEXEC]
         for launcher in launchers:
             # Include some (non-standard) OpenMPI options so that we can run this in CI
-            if launcher is MPIEXEC and self.is_mpich():
+            launcher_args = "--allow-run-as-root --oversubscribe"
+            if self.is_mpich():
+                # In PBS we use mpich which doesn't require these
                 launcher_args = ""
-            else:
-                # we're root so we need some args
-                launcher_args = "--allow-run-as-root --oversubscribe"
+
             if which(launcher["launcher"]) is None:
                 print("Didn't find {}, skipping test".format(launcher))
                 pass
             else:
                 print("Found {} launcher in env, running MPI test".format(launcher))
                 result = self.test_function(
-                    self.script_path,
-                    mpi_launcher=launcher,
-                    launcher_args=launcher_args,
+                    self.script_path, mpi_launcher=launcher, launcher_args=launcher_args
                 )
                 for n in range(self.number_of_processes):
                     text = "Hello, World! I am process {} of {}".format(
@@ -156,6 +155,7 @@ class TestMPIWrap(TestCase):
             "-n 6",
             "-np 6 --map-by ppr:3:node",
             "-n 6 -perhost 3",
+            "-n 6 -ppn 3",
         ]
         # specific example of 2 nodes, 3 processes and 4 OpenMP threads
         hybrid_expected_launcher_args = [
@@ -163,6 +163,7 @@ class TestMPIWrap(TestCase):
             "-n 6",
             "-np 6 --map-by ppr:3:node:pe=4",
             "-n 6 -perhost 3 -env I_MPI_PIN_DOMAIN 4",
+            "-n 6 -ppn 3 -genv OMP_NUM_THREADS 4 -bind-to core:4",
         ]
         for mpi_launcher, expected_launcher_opts, hybrid_expected_launcher_opts in zip(
             mpi_launchers, expected_launcher_args, hybrid_expected_launcher_args
