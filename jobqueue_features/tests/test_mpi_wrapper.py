@@ -119,7 +119,12 @@ class TestMPIWrap(TestCase):
 
     def test_mpi_wrap_execution(self):
         # Only check the ones that work in CI
-        for launcher in [OPENMPI, MPIEXEC]:
+        if self.is_mpich():
+            # Haven't implemented explicit MPICH support yet
+            launchers = [MPIEXEC]
+        else:
+            launchers = [OPENMPI, MPIEXEC]
+        for launcher in launchers:
             # Include some (non-standard) OpenMPI options so that we can run this in CI
             if launcher is MPIEXEC and self.is_mpich():
                 self.launcher_args = ""
