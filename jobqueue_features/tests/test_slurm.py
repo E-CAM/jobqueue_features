@@ -67,6 +67,10 @@ class TestSLURM(TestCase):
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
 
+    def tearDown(self):
+        # Kill any existing clusters
+        controller._close()
+
     @pytest.mark.env("slurm")
     def test_single_mpi_wrap(self):
         #

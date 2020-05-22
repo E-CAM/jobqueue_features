@@ -210,17 +210,17 @@ def mpi_wrap(
             while proc.returncode is None:
                 proc.wait()
             return_code = proc.returncode
-            if return_code < 0:
+            out, err = proc.communicate()
+            if return_code != 0:
                 raise ChildProcessError(
-                    "Error code {} from command: {}".format(return_code, cmd)
+                    "Error code {} from command: {}\n with stderr: {}".format(
+                        return_code, cmd, err
+                    )
                 )
-            else:
-                out, err = proc.communicate()
-        except OSError as err:
+
+        except OSError as error:
             raise OSError(
-                "OS error caused by constructed command: {cmd}\n\n{err}".format(
-                    cmd=cmd, err=err
-                )
+                "OS error caused by constructed command:\n\n{err}".format(err=error)
             )
         result = {"cmd": cmd, "out": out, "err": err}
 
@@ -274,10 +274,6 @@ def flush_and_abort(
 ):
     import traceback
 
-    if comm is None:
-        from mpi4py import MPI
-
-        comm = MPI.COMM_WORLD
     if error_code == 0:
         print("To abort correctly, we need to use a non-zero error code")
         error_code = 1
@@ -286,6 +282,10 @@ def flush_and_abort(
         traceback.print_stack()
         sys.stdout.flush()
         sys.stderr.flush()
+        if comm is None:
+            from mpi4py import MPI
+
+            comm = MPI.COMM_WORLD
         comm.Abort(error_code)
     sys.exit(error_code)
 
