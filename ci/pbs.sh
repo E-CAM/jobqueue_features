@@ -28,21 +28,26 @@ function jobqueue_install {
     docker exec -it pbs-slave-1 /bin/bash -c "/usr/sbin/sshd"
     docker exec -it pbs-slave-2 /bin/bash -c "ssh-keygen -A"
     docker exec -it pbs-slave-2 /bin/bash -c "/usr/sbin/sshd"
+    # create a place to share the ssh key
+    mkdir ssh
+    chmod 777 ssh
     # as user on 1
     docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
     docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
     docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
-    docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "cp -r ~/.ssh /jobqueue_features/"
+    docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "cp -r ~/.ssh/* /jobqueue_features/ssh"
     docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
     docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-2.pbs_default >> ~/.ssh/known_hosts"
     # as user on 2
-    docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "cp -r /jobqueue_features/.ssh ~/"
-    docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "rm -r /jobqueue_features/.ssh"
+    docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+    docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "cp /jobqueue_features/ssh/* ~/.ssh"
     docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
     docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keyscan pbs-slave-2.pbs_default >> ~/.ssh/known_hosts"
     # fiddle with the PATH on the slaves so they find the conda env in an MPI job
     docker exec -it -u pbsuser pbs-slave-1 /bin/bash -c "echo 'export PATH=/opt/anaconda/bin:$PATH' >> ~/.bashrc"
     docker exec -it -u pbsuser pbs-slave-2 /bin/bash -c "echo 'export PATH=/opt/anaconda/bin:$PATH' >> ~/.bashrc"
+    # remove ssh dir we created
+    rm -rf ssh
 }
 
 function jobqueue_script {
