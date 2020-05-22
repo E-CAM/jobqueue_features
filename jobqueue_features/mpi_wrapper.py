@@ -10,8 +10,9 @@ SRUN = {"implementation": "slurm", "launcher": "srun"}
 MPIEXEC = {"implementation": "standard", "launcher": "mpiexec"}
 OPENMPI = {"implementation": "openmpi", "launcher": "mpirun"}
 INTELMPI = {"implementation": "intelmpi", "launcher": "mpirun"}
+MPICH = {"implementation": "mpich", "launcher": "mpiexec"}
 
-SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC, OPENMPI, INTELMPI]
+SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC, OPENMPI, INTELMPI, MPICH]
 
 
 __DEFAULT_MPI_COMM = None
@@ -152,6 +153,14 @@ def mpi_wrap(
                 else:
                     process_mapping = "-perhost {} -env I_MPI_PIN_DOMAIN {}".format(
                         ntasks_per_node, cpus_per_task
+                    )
+                mpi_params = "-n {} {}".format(mpi_tasks, process_mapping)
+            elif mpi_launcher == MPICH:
+                if cpus_per_task is None or cpus_per_task == 1:
+                    process_mapping = "-ppn {}".format(ntasks_per_node)
+                else:
+                    process_mapping = "-ppn {} -genv OMP_NUM_THREADS {} -bind-to core:{}".format(
+                        ntasks_per_node, cpus_per_task, cpus_per_task
                     )
                 mpi_params = "-n {} {}".format(mpi_tasks, process_mapping)
         else:
