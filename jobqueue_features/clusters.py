@@ -723,7 +723,8 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
             mpi_job_extra.extend(kwargs["job_extra"])
             kwargs.update({"job_extra": mpi_job_extra})
         super().__init__(**kwargs)
-        self._kwargs["mpi_tasks"] = self.mpi_tasks
+        if hasattr(self, "mpi_tasks"):
+            self._kwargs["mpi_tasks"] = self.mpi_tasks
         self.client: Client = Client(self)
         # Log all the warnings that we may have accumulated
         if self.warnings:
