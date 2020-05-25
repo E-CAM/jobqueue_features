@@ -14,8 +14,8 @@ function jobqueue_before_install {
 
 function jobqueue_install {
     docker exec -it sge-master /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec -it sge-slave1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec -it sge-slave2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec -it slave-one /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec -it slave-two /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
 }
 
 function jobqueue_script {
