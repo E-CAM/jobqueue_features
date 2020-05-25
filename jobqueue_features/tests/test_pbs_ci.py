@@ -12,11 +12,11 @@ from jobqueue_features.clusters_controller import (
 from jobqueue_features import (
     mpi_wrap,
     MPIEXEC,
-    SRUN,
+    OPENMPI,
     on_cluster,
     mpi_task,
     which,
-    CustomSLURMCluster,
+    CustomPBSCluster,
     get_task_mpi_comm,
 )
 
@@ -26,7 +26,7 @@ from jobqueue_features import (
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
 
-class TestSLURM(TestCase):
+class TestPBS(TestCase):
     def setUp(self):
         # Kill any existing clusters
         controller._close()
@@ -36,17 +36,17 @@ class TestSLURM(TestCase):
         self.launcher = MPIEXEC
 
         self.run_tests = False
-        if which(SRUN["launcher"]) is not None:
+        if which(OPENMPI["launcher"]) is not None:
             print(
-                "Found {} so assuming we have Slurm, running MPI test (with {})".format(
-                    SRUN["launcher"], self.launcher
+                "Found {} so assuming we have PBS, running MPI test (with {})".format(
+                    OPENMPI["launcher"], self.launcher
                 )
             )
             self.run_tests = True
 
         self.common_kwargs = {
             "interface": None,
-            "walltime": "00:04:00",
+            "walltime": "00:01:00",
             "cores_per_node": 2,
             "minimum_cores": 2,
             "hyperthreading_factor": 1,
@@ -59,7 +59,7 @@ class TestSLURM(TestCase):
             ],
             "mpi_launcher": self.launcher,
             "local_directory": "/tmp",
-            "queue": "batch",
+            "queue": "workq",
         }
 
         self.executable = "python"
@@ -67,11 +67,7 @@ class TestSLURM(TestCase):
             os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
         )
 
-    def tearDown(self):
-        # Kill any existing clusters
-        controller._close()
-
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_single_mpi_wrap(self):
         #
         # Assume here we have srun support
@@ -80,7 +76,7 @@ class TestSLURM(TestCase):
 
             # Create the cluster
             nodes = 2
-            fork_slurm_cluster = CustomSLURMCluster(
+            fork_slurm_cluster = CustomPBSCluster(
                 name="fork_cluster", fork_mpi=True, nodes=nodes, **self.common_kwargs
             )
 
@@ -121,7 +117,7 @@ class TestSLURM(TestCase):
         else:
             pass
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_multi_mpi_wrap(self):
         #
         # Assume here we have srun support
@@ -130,7 +126,7 @@ class TestSLURM(TestCase):
 
             # Create the cluster
             nodes = 1
-            fork_slurm_cluster = CustomSLURMCluster(
+            fork_slurm_cluster = CustomPBSCluster(
                 name="multifork_cluster",
                 fork_mpi=True,
                 nodes=nodes,
@@ -169,10 +165,10 @@ class TestSLURM(TestCase):
                 result = job.result()["out"]
                 self.assertIn(text.encode(), result)
                 # Count which node the job executed on
-                self.assertTrue("c1".encode() in result or "c2".encode() in result)
-                if "c1".encode() in result:
+                self.assertTrue("pbs-slave-1".encode() in result or "pbs-slave-2".encode() in result)
+                if "pbs-slave-1".encode() in result:
                     c1_count += 1
-                elif "c2".encode() in result:
+                elif "pbs-slave-2".encode() in result:
                     c2_count += 1
             self.assertTrue(c1_count > 0)
             self.assertTrue(c2_count > 0)
@@ -181,14 +177,14 @@ class TestSLURM(TestCase):
         else:
             pass
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_single_mpi_tasks(self):
         #
         # Assume here we have srun support
         if self.run_tests:
             controller._close()
             nodes = 2
-            custom_cluster = CustomSLURMCluster(
+            custom_cluster = CustomPBSCluster(
                 name="mpiCluster", nodes=nodes, **self.common_kwargs
             )
 
@@ -232,7 +228,7 @@ class TestSLURM(TestCase):
                 (
                     task1("task1"),
                     "Running {} tasks of type task1 on nodes {}.".format(
-                        self.number_of_processes_per_node * nodes, ["c1", "c2"]
+                        self.number_of_processes_per_node * nodes, ["pbs-slave-1", "pbs-slave-2"]
                     ),
                 )
             )
@@ -240,7 +236,7 @@ class TestSLURM(TestCase):
                 (
                     task1("task1, 2nd iteration"),
                     "Running {} tasks of type task1, 2nd iteration on nodes {}.".format(
-                        self.number_of_processes_per_node * nodes, ["c1", "c2"]
+                        self.number_of_processes_per_node * nodes, ["pbs-slave-1", "pbs-slave-2"]
                     ),
                 )
             )
@@ -257,7 +253,7 @@ class TestSLURM(TestCase):
         else:
             pass
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_multi_mpi_tasks(self):
         #
         # Assume here we have srun support
@@ -265,7 +261,7 @@ class TestSLURM(TestCase):
             controller._close()
             # We only have 2 worker nodes so to have multiple jobs we need one worker
             # per node
-            custom_cluster = CustomSLURMCluster(
+            custom_cluster = CustomPBSCluster(
                 name="mpiMultiCluster", nodes=1, maximum_jobs=2, **self.common_kwargs
             )
 
@@ -311,10 +307,10 @@ class TestSLURM(TestCase):
             for job, text in iter(tasks):
                 self.assertIn(text, job.result())
                 # Count which node the job executed on
-                self.assertTrue("c1" in job.result() or "c2" in job.result())
-                if "c1" in job.result():
+                self.assertTrue("pbs-slave-1" in job.result() or "pbs-slave-2" in job.result())
+                if "pbs-slave-1" in job.result():
                     c1_count += 1
-                elif "c2" in job.result():
+                elif "pbs-slave-2" in job.result():
                     c2_count += 1
             self.assertTrue(c1_count > 0)
             self.assertTrue(c2_count > 0)

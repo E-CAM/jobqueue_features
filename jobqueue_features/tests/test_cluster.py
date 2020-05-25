@@ -22,6 +22,10 @@ class TestClusters(TestCase):
             "memory": "1GB",
         }
 
+    def tearDown(self):
+        # Kill any existing clusters
+        controller._close()
+
     def test_custom_cluster(self):
         cluster = get_cluster(scheduler=SLURM, **self.kwargs)
         self.assertEqual(cluster.name, self.cluster_name)

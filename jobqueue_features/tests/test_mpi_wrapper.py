@@ -4,12 +4,14 @@ import shlex
 from unittest import TestCase
 import os
 import subprocess
+import pytest
 
 from distributed import LocalCluster
 
 from jobqueue_features import (
     mpi_wrap,
     MPIEXEC,
+    MPICH,
     SRUN,
     OPENMPI,
     SUPPORTED_MPI_LAUNCHERS,
@@ -25,9 +27,21 @@ from jobqueue_features import (
     flush_and_abort,
 )
 
+from jobqueue_features.clusters_controller import (
+    clusters_controller_singleton as controller,
+)
+
+# Use logging if there are hard to see issues in the CI
+
+# import logging
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+
 
 class TestMPIWrap(TestCase):
     def setUp(self):
+        # Kill any existing clusters
+        controller._close()
+
         self.local_cluster = LocalCluster()
         self.executable = "python"
         self.script_path = os.path.abspath(
@@ -80,6 +94,10 @@ class TestMPIWrap(TestCase):
 
         self.string_task = string_task
 
+    def tearDown(self):
+        # Kill any existing clusters
+        controller._close()
+
     def is_mpich(self):
         cmd = "mpicc -v"
         proc = subprocess.Popen(
@@ -102,18 +120,26 @@ class TestMPIWrap(TestCase):
 
     def test_mpi_wrap_execution(self):
         # Only check the ones that work in CI
-        for launcher in [MPIEXEC, OPENMPI]:
+        if self.is_mpich():
+            # Haven't implemented explicit MPICH support yet
+            launchers = [MPICH, MPIEXEC]
+        else:
+            launchers = [OPENMPI, MPIEXEC]
+        for launcher in launchers:
             # Include some (non-standard) OpenMPI options so that we can run this in CI
+            launcher_args = "--allow-run-as-root --oversubscribe"
             if self.is_mpich():
-                self.launcher_args = ""
-            else:
-                # we're root so we need some args
-                self.launcher_args = "--allow-run-as-root --oversubscribe"
+                # In PBS we use mpich which doesn't require these
+                launcher_args = ""
+
             if which(launcher["launcher"]) is None:
+                print("Didn't find {}, skipping test".format(launcher))
                 pass
             else:
                 print("Found {} launcher in env, running MPI test".format(launcher))
-                result = self.test_function(self.script_path, mpi_launcher=launcher)
+                result = self.test_function(
+                    self.script_path, mpi_launcher=launcher, launcher_args=launcher_args
+                )
                 for n in range(self.number_of_processes):
                     text = "Hello, World! I am process {} of {}".format(
                         n, self.number_of_processes
@@ -129,6 +155,7 @@ class TestMPIWrap(TestCase):
             "-n 6",
             "-np 6 --map-by ppr:3:node",
             "-n 6 -perhost 3",
+            "-n 6 -ppn 3",
         ]
         # specific example of 2 nodes, 3 processes and 4 OpenMP threads
         hybrid_expected_launcher_args = [
@@ -136,6 +163,7 @@ class TestMPIWrap(TestCase):
             "-n 6",
             "-np 6 --map-by ppr:3:node:pe=4",
             "-n 6 -perhost 3 -env I_MPI_PIN_DOMAIN 4",
+            "-n 6 -ppn 3 -genv OMP_NUM_THREADS 4 -bind-to core:4",
         ]
         for mpi_launcher, expected_launcher_opts, hybrid_expected_launcher_opts in zip(
             mpi_launchers, expected_launcher_args, hybrid_expected_launcher_args
@@ -231,6 +259,18 @@ class TestMPIWrap(TestCase):
         )
         self.assertEqual("chicken dog", deserialize_and_execute(serialized_object))
 
+    def test_verify_mpi_communicator_raise(self):
+        with self.assertRaises(SystemExit) as cm:
+            verify_mpi_communicator("Not a communicator", mpi_abort=False)
+        self.assertEqual(cm.exception.code, 1)
+
+    def test_mpi_deserialize_and_execute_raise(self):
+        trivial = "trivial"
+        serialized_object = serialize_function_and_args(self.mpi_task1, trivial)
+        # For the deserializer to work we need to first set the task MPI communicator
+        with self.assertRaises(AttributeError):
+            mpi_deserialize_and_execute(serialized_object)
+
     def test_flush_and_abort(self):
         with self.assertRaises(SystemExit) as cm:
             flush_and_abort(mpi_abort=False)
@@ -239,23 +279,18 @@ class TestMPIWrap(TestCase):
             flush_and_abort(error_code=2, mpi_abort=False)
         self.assertEqual(cm.exception.code, 2)
 
-    def test_verify_mpi_communicator(self):
+    # Since this test initialises an MPI environment in the test context, it needs to
+    # be run last as it interferes with other tests above
+    @pytest.mark.last
+    def test_mpi_deserialize_and_execute(self):
         from mpi4py import MPI
 
         comm = MPI.COMM_WORLD
-        with self.assertRaises(SystemExit) as cm:
-            verify_mpi_communicator("Not a communicator", mpi_abort=False)
-        self.assertEqual(cm.exception.code, 1)
         self.assertTrue(verify_mpi_communicator(comm, mpi_abort=False))
-
-    def test_mpi_deserialize_and_execute(self):
+        # The test framework is not started with an MPI launcher so we have a single task
+        set_task_mpi_comm(parent_comm=comm)
         trivial = "trivial"
         serialized_object = serialize_function_and_args(self.mpi_task1, trivial)
-        # For the deserializer to work we need to first set the task MPI communicator
-        with self.assertRaises(AttributeError):
-            mpi_deserialize_and_execute(serialized_object)
-        set_task_mpi_comm()
-        # The test framework is not started with an MPI launcher so we have a single task
         expected_string = "Running 1 tasks of type {}.".format(trivial)
         return_value = mpi_deserialize_and_execute(serialized_object)
         self.assertEqual(expected_string, return_value)
