@@ -13,15 +13,17 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec -it slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec -it sge-master /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec -it slave-one /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec -it slave-two /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
 }
 
 function jobqueue_script {
-    docker exec -it slurmctld /bin/bash -c "pip list; cd /jobqueue_features; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E sge -s"
+    docker exec -it sge-master /bin/bash -c "pip list; cd /jobqueue_features; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E sge -s"
 }
 
 function jobqueue_after_script {
-    docker exec -it sge_master bash -c 'cat /tmp/sge*'
-    docker exec -it slave_one bash -c 'cat /tmp/exec*'
-    docker exec -it slave_two bash -c 'cat /tmp/exec*'
+    docker exec -it sge-master bash -c 'cat /tmp/sge*'
+    docker exec -it slave-one bash -c 'cat /tmp/exec*'
+    docker exec -it slave-two bash -c 'cat /tmp/exec*'
 }
