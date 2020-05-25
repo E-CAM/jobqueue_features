@@ -4,7 +4,6 @@ LABEL description="jobqueue_features customisation of dask_jobqueue CI images"
 
 # Some customisation on jobqueue base images
 ENV PBS_MASTER pbs-master
-RUN apt-get update && apt-get install which -y --fix-missing
 
 # Install OpenMPI and mpi4py (and black)
 RUN conda install --yes -c conda-forge black openmpi mpi4py && conda clean -tipy
