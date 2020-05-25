@@ -39,8 +39,8 @@ matrix:
       env:
         - OS=ubuntu-18.04
         - JOBQUEUE=pbs
-    # SGE is not currently configured to execute MPI workloads (which is non-trivial)
-    # (see https://github.com/E-CAM/jobqueue_features/pull/59)
+    # SGE is not currently configured to execute MPI workloads (which is non-trivial to
+    # do, see https://github.com/E-CAM/jobqueue_features/pull/59)
     # - python: "3.6"
     #   env:
     #     - OS=ubuntu-18.04
