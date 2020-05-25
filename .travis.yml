@@ -39,6 +39,10 @@ matrix:
       env:
         - OS=ubuntu-18.04
         - JOBQUEUE=pbs
+    - python: "3.6"
+      env:
+        - OS=ubuntu-18.04
+        - JOBQUEUE=sge
 
 env:
   global:
