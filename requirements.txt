@@ -3,3 +3,4 @@ msgpack
 typing
 pytest-cov
 mpi4py
+pytest-ordering

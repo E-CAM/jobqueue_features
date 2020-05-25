@@ -35,6 +35,10 @@ matrix:
       env:
         - OS=ubuntu-18.04
         - JOBQUEUE=slurm
+    - python: "3.6"
+      env:
+        - OS=ubuntu-18.04
+        - JOBQUEUE=pbs
 
 env:
   global:

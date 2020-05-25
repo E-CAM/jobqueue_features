@@ -8,6 +8,7 @@ from .functions import set_default_cluster
 from .mpi_wrapper import (
     mpi_wrap,
     MPIEXEC,
+    MPICH,
     SRUN,
     OPENMPI,
     INTELMPI,
