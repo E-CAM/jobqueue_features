@@ -39,10 +39,11 @@ matrix:
       env:
         - OS=ubuntu-18.04
         - JOBQUEUE=pbs
-    - python: "3.6"
-      env:
-        - OS=ubuntu-18.04
-        - JOBQUEUE=sge
+    # SGE is not currently configure to execute MPI workloads (which is non-trivial)
+    # - python: "3.6"
+    #   env:
+    #     - OS=ubuntu-18.04
+    #     - JOBQUEUE=sge
 
 env:
   global:
