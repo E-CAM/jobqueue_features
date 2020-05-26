@@ -79,3 +79,23 @@ class TestPBS(TestCase):
             job_script,
         )
         controller._close()
+        ntasks_per_node *= 2
+        cluster = self.cluster_class(
+            memory="2 GB",
+            name=job_name,
+            mpi_mode=True,
+            mpi_launcher=MPIEXEC,
+            cores_per_node=cores_per_node,
+            nodes=nodes,
+            ntasks_per_node=ntasks_per_node,
+            hyperthreading_factor=2,
+        )
+        job_script = cluster.job_script()
+        print(job_script)
+        self.assertIn(
+            f"#PBS -l select={nodes}:"
+            f"ncpus={cores_per_node}:"
+            f"mpiprocs={ntasks_per_node}",
+            job_script,
+        )
+        controller._close()

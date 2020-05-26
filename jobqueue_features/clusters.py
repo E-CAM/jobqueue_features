@@ -714,6 +714,7 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     """
     Custom PBS Cluster class.
     """
+
     job_cls = CustomPBSJob
 
     def __init__(self, **kwargs):
