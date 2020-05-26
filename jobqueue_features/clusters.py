@@ -107,16 +107,23 @@ class CustomSLURMJob(SLURMJob):
 class CustomPBSJob(PBSJob):
     # TODO: provide proper name of worker
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         if kwargs.get("mpi_mode", False):
-            nodes = kwargs.get("nodes", 1)
-            cores_per_node = kwargs.get("cores_per_node", 1)
-            mpi_tasks = kwargs.get("mpi_tasks", 1)
-            mpiprocs = mpi_tasks // nodes
-            self.job_header = self.job_header.replace(
-                "select=1:ncpus=1",
-                f"select={nodes}:ncpus={cores_per_node}:mpiprocs={mpiprocs}",
-            )
+            kwargs["resource_spec"] = self.get_resource_spec(**kwargs)
+        super().__init__(*args, **kwargs)
+
+    def get_resource_spec(self, **kwargs):
+        """
+        Creates custom resource_spec for PBS jobs script.
+
+        Assumes that:
+            "nodes" reflects "nodes" selection option
+            "cores_per_node" reflects "ncpus" selection option
+            "ntasks_per_node" reflects "mpiprocs" selection option
+        """
+        nodes = kwargs.get("nodes", 1)
+        cores_per_node = kwargs.get("cores_per_node", 1)
+        mpi_procs = kwargs.get("ntasks_per_node", 1)
+        return f"select={nodes}:ncpus={cores_per_node}:mpiprocs={mpi_procs}"
 
 
 class CustomClusterMixin(object):
@@ -704,6 +711,9 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 
 
 class CustomPBSCluster(CustomClusterMixin, PBSCluster):
+    """
+    Custom PBS Cluster class.
+    """
     job_cls = CustomPBSJob
 
     def __init__(self, **kwargs):
