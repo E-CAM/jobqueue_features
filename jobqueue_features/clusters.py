@@ -1,12 +1,12 @@
 from __future__ import division
 
 import re
+from contextlib import suppress
 
 from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster
 from dask.distributed import Client, LocalCluster
 from dask_jobqueue.slurm import SLURMJob
-from distributed.utils import ignoring
 from typing import TypeVar, Dict, List, Any  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
@@ -611,7 +611,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         self._add_to_cluster_controller()
 
     def __del__(self):
-        with ignoring(AttributeError):
+        with suppress(AttributeError):
             super().__del__()
 
     def _validate_name(self, name):
