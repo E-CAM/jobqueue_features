@@ -731,7 +731,7 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     __doc__ = f"""Custom PBS Cluster class.
 
-    Atributes:
+    Attributes:
     ---------
     ngpus_per_node : int
         The number of gpus per node to be used
