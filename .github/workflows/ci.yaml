@@ -18,14 +18,15 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v2
 
-      - name: Setup Conda Environment
-        uses: goanpeca/setup-miniconda@v1
-        with:
-          miniconda-version: "latest"
-          python-version: 3.6
-          environment-file: ci/environment.yml
-          activate-environment: dask-jobqueue
-          auto-activate-base: false
+      # Stay compatible with travis for now
+      # - name: Setup Conda Environment
+      #   uses: goanpeca/setup-miniconda@v1
+      #   with:
+      #     miniconda-version: "latest"
+      #     python-version: 3.6
+      #     environment-file: ci/environment.yml
+      #     activate-environment: jobqueue_features
+      #     auto-activate-base: false
 
       - name: Setup
         shell: bash -l {0}
