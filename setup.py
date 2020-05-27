@@ -16,8 +16,10 @@ setup(
         "dask>=0.18.1",
         "distributed>=1.22.0",
         "dask_jobqueue>=0.4.1",
+        "mpi4py",
         "typing",
         "pytest-cov",
+        "pytest-ordering",
     ],
     zip_safe=False,
 )

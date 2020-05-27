@@ -6,10 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-master
-      args:
-        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
-    container_name: sge_master
-    hostname: sge_master
+    container_name: sge-master
+    hostname: sge-master
     #network_mode: host
     volumes:
       - ../..:/jobqueue_features
@@ -19,16 +17,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-slave
-      args:
-        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
-    container_name: slave_one
-    hostname: slave_one
+    container_name: slave-one
+    hostname: slave-one
     #network_mode: host
     volumes:
       - ../..:/jobqueue_features
     command: bash /run-slave.sh
     links:
-      - "master:sge_master"
+      - "master:sge-master"
     depends_on:
       - master
 
@@ -36,15 +32,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-slave
-      args:
-        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
-    container_name: slave_two
-    hostname: slave_two
+    container_name: slave-two
+    hostname: slave-two
     #network_mode: host
     volumes:
       - ../..:/jobqueue_features
     command: bash /run-slave.sh
     links:
-      - "master:sge_master"
+      - "master:sge-master"
     depends_on:
       - master
