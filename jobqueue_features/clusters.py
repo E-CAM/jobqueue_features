@@ -21,6 +21,44 @@ logger = logging.getLogger(__name__)
 SLURM = "slurm"
 SUPPORTED_SCHEDULERS = [SLURM]
 
+custom_cluster_attributes = """
+    default_queue_type : str
+        Default queue_type for the scheduler
+    queue_type : str
+        The queue_type for the scheduler
+    cores_per_node : int
+        Cores_per_node: number of physical cores in a node
+    hyperthreading_factor : int
+        Hyperthreading_factor: hyperthreading available per physical core
+    minimum_cores : int
+        Minimum amount of cores in a job allocation
+    gpu_job_extra : List[str]
+        Extra scheduler arguments when requesting a GPU job
+    warnings : List[str]
+        A string that holds any desired warning (is turned into a list of warnings in
+        self.warnings)
+    mpi_mode : bool
+        Whether the cluster is to run MPI tasks
+    mpi_launcher : str
+        The command that launches MPI jobs (srun, mpiexec, mpirun,...)
+    fork_mpi: bool
+        If true, assume all tasks for the cluster fork MPI processes (using mpi_wrap())
+        rather than that the task itself is MPI-enabled (jobqueue will then only manage
+        a single core, the rest are managed by the mpi_launcher)
+    nodes : int
+        The number of nodes required for MPI
+    ntasks_per_node : int
+        The number of MPI tasks per node to be used
+    cpus_per_task : int
+        The number of cpus to be used per (MPI) task (typically this is for OpenMP)
+    openmp_env_extra : List[str]
+        List of additional environment settings for OpenMP workloads
+        (similar to job_env_extra in jobqueue)
+    maximum_jobs : int
+        Maximum amount of jobs for the cluster to scale to
+    pure : bool
+        Whether the default for tasks submitted to the cluster are pure or not""".strip()
+
 
 def get_cluster(scheduler=None, **kwargs):
     if scheduler is None:
@@ -119,54 +157,28 @@ class CustomPBSJob(PBSJob):
             "nodes" reflects "nodes" selection option
             "cores_per_node" reflects "ncpus" selection option
             "ntasks_per_node" reflects "mpiprocs" selection option
+            "cpus_per_task" reflects "ompthreads" selection option
+            "ngpus_per_node" reflects "ngpus" selection option
         """
         nodes = kwargs.get("nodes", 1)
         cores_per_node = kwargs.get("cores_per_node", 1)
         mpi_procs = kwargs.get("ntasks_per_node", 1)
-        return f"select={nodes}:ncpus={cores_per_node}:mpiprocs={mpi_procs}"
+        omp_threads = kwargs.get("cpus_per_task", 1)
+        n_gpus = kwargs.get("ngpus_per_node", 0)
+        resource_spec = f"select={nodes}:ncpus={cores_per_node}:mpiprocs={mpi_procs}"
+        if omp_threads > 1:
+            resource_spec += f":ompthreads={omp_threads}"
+        if n_gpus:
+            resource_spec += f":ngpus={n_gpus}"
+        return resource_spec
 
 
 class CustomClusterMixin(object):
-    """Custom cluster mixin for Cluster kwargs customization.
+    __doc__ = f"""Custom cluster mixin for Cluster kwargs customization.
 
     Attributes
     ----------
-    default_queue_type : str
-        Default queue_type for the scheduler
-    queue_type : str
-        The queue_type for the scheduler
-    cores_per_node : int
-        Cores_per_node: number of physical cores in a node
-    hyperthreading_factor : int
-        Hyperthreading_factor: hyperthreading available per physical core
-    minimum_cores : int
-        Minimum amount of cores in a job allocation
-    gpu_job_extra : List[str]
-        Extra scheduler arguments when requesting a GPU job
-    warnings : List[str]
-        A string that holds any desired warning (is turned into a list of warnings in
-        self.warnings)
-    mpi_mode : bool
-        Whether the cluster is to run MPI tasks
-    mpi_launcher : str
-        The command that launches MPI jobs (srun, mpiexec, mpirun,...)
-    fork_mpi: bool
-        If true, assume all tasks for the cluster fork MPI processes (using mpi_wrap())
-        rather than that the task itself is MPI-enabled (jobqueue will then only manage
-        a single core, the rest are managed by the mpi_launcher)
-    nodes : int
-        The number of nodes required for MPI
-    ntasks_per_node : int
-        The number of MPI tasks per node to be used
-    cpus_per_task : int
-        The number of cpus to be used per (MPI) task (typically this is for OpenMP)
-    openmp_env_extra : List[str]
-        List of additional environment settings for OpenMP workloads
-        (similar to job_env_extra in jobqueue)
-    maximum_jobs : int
-        Maximum amount of jobs for the cluster to scale to
-    pure : bool
-        Whether the default for tasks submitted to the cluster are pure or not
+    {custom_cluster_attributes}
     """
 
     default_queue_type: str = "batch"
@@ -600,8 +612,14 @@ class CustomClusterMixin(object):
 
 
 class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
-    """Custom SLURMCluster class with CustomClusterMixin for initial kwargs tweak.
-     adds client attribute to SLURMCluster class."""
+    __doc__ = f"""Custom SLURMCluster class with CustomClusterMixin for initial kwargs tweak.
+
+     Adds client attribute to SLURMCluster class.
+
+     Attributes
+     ----------
+     {custom_cluster_attributes}
+     """
 
     job_cls = CustomSLURMJob
 
@@ -711,14 +729,20 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
 
 
 class CustomPBSCluster(CustomClusterMixin, PBSCluster):
-    """
-    Custom PBS Cluster class.
+    __doc__ = f"""Custom PBS Cluster class.
+
+    Atributes:
+    ---------
+    ngpus_per_node : int
+        The number of gpus per node to be used
+    {custom_cluster_attributes}
     """
 
     job_cls = CustomPBSJob
 
     def __init__(self, **kwargs):
         self.scheduler_name = "pbs"
+        self.ngpus_per_node = kwargs.get("ngpus_per_node", 0)
         kwargs = self.update_init_kwargs(**kwargs)
         self.validate_cluster_name(kwargs["name"])
         self.name = kwargs["name"]
@@ -736,6 +760,8 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
         super().__init__(**kwargs)
         if hasattr(self, "mpi_tasks"):
             self._kwargs["mpi_tasks"] = self.mpi_tasks
+        if self.ngpus_per_node > 0:
+            self._kwargs["ngpus_per_node"] = self.ngpus_per_node
         self.client: Client = Client(self)
         # Log all the warnings that we may have accumulated
         if self.warnings:

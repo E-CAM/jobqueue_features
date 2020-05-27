@@ -80,6 +80,7 @@ class TestPBS(TestCase):
         )
         controller._close()
         ntasks_per_node *= 2
+        cpus_per_task = 2
         cluster = self.cluster_class(
             memory="2 GB",
             name=job_name,
@@ -88,14 +89,15 @@ class TestPBS(TestCase):
             cores_per_node=cores_per_node,
             nodes=nodes,
             ntasks_per_node=ntasks_per_node,
-            hyperthreading_factor=2,
+            hyperthreading_factor=4,
+            cpus_per_task=cpus_per_task,
         )
         job_script = cluster.job_script()
-        print(job_script)
         self.assertIn(
             f"#PBS -l select={nodes}:"
             f"ncpus={cores_per_node}:"
-            f"mpiprocs={ntasks_per_node}",
+            f"mpiprocs={ntasks_per_node}:"
+            f"ompthreads={cpus_per_task}",
             job_script,
         )
         controller._close()
