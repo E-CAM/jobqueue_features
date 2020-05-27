@@ -14,17 +14,17 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec -it slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec -it c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec -it c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
 }
 
 function jobqueue_script {
-    docker exec -it slurmctld /bin/bash -c "pip list; cd /jobqueue_features; pytest /jobqueue_features --verbose -E slurm -s"
+    docker exec slurmctld /bin/bash -c "pip list; cd /jobqueue_features; pytest /jobqueue_features --verbose -E slurm -s"
 }
 
 function jobqueue_after_script {
-    docker exec -it slurmctld bash -c 'sinfo'
-    docker exec -it slurmctld bash -c 'squeue'
-    docker exec -it slurmctld bash -c 'sacct -l'
+    docker exec slurmctld bash -c 'sinfo'
+    docker exec slurmctld bash -c 'squeue'
+    docker exec slurmctld bash -c 'sacct -l'
 }
