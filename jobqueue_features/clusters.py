@@ -143,7 +143,6 @@ class CustomSLURMJob(SLURMJob):
 
 
 class CustomPBSJob(PBSJob):
-    # TODO: provide proper name of worker
     def __init__(self, *args, **kwargs):
         if kwargs.get("mpi_mode", False):
             kwargs["resource_spec"] = self.get_resource_spec(**kwargs)
@@ -160,11 +159,11 @@ class CustomPBSJob(PBSJob):
             "cpus_per_task" reflects "ompthreads" selection option
             "ngpus_per_node" reflects "ngpus" selection option
         """
-        nodes = kwargs.get("nodes", 1)
-        cores_per_node = kwargs.get("cores_per_node", 1)
-        mpi_procs = kwargs.get("ntasks_per_node", 1)
-        omp_threads = kwargs.get("cpus_per_task", 1)
-        n_gpus = kwargs.get("ngpus_per_node", 0)
+        nodes = kwargs.pop("nodes", 1)
+        cores_per_node = kwargs.pop("cores_per_node", 1)
+        mpi_procs = kwargs.pop("ntasks_per_node", 1)
+        omp_threads = kwargs.pop("cpus_per_task", 1)
+        n_gpus = kwargs.pop("ngpus_per_node", 0)
         resource_spec = f"select={nodes}:ncpus={cores_per_node}:mpiprocs={mpi_procs}"
         if omp_threads > 1:
             resource_spec += f":ompthreads={omp_threads}"
@@ -772,7 +771,7 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
         self._add_to_cluster_controller()
 
     def __del__(self):
-        with ignoring(AttributeError):
+        with suppress(AttributeError):
             super().__del__()
 
 
