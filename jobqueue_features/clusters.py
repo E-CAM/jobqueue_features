@@ -146,7 +146,25 @@ class CustomPBSJob(PBSJob):
     def __init__(self, *args, **kwargs):
         if kwargs.get("mpi_mode", False):
             kwargs["resource_spec"] = self.get_resource_spec(**kwargs)
+        command_template = kwargs.pop("command_template", None)
         super().__init__(*args, **kwargs)
+        if command_template:
+            replacement_name = re.search(
+                r"--name\s+(\S+)", self._command_template
+            ).group(1)
+            expected_name = re.search(r"--name\s+(\S+)", command_template).group(1)
+            if expected_name == "name":
+                self._command_template = re.sub(
+                    "--name {}".format(expected_name),
+                    "--name {}".format(replacement_name),
+                    command_template,
+                )
+            else:
+                raise ValueError(
+                    "Found unexpected value for 'name' in command template: {}".format(
+                        expected_name
+                    )
+                )
 
     def get_resource_spec(self, **kwargs):
         """
@@ -609,6 +627,63 @@ class CustomClusterMixin(object):
         kwargs.update({"env_extra": final_env_extra})
         return kwargs
 
+    def _update_script_nodes(self, **kwargs) -> None:
+        # If we're not in mpi_mode no need to do anything
+        if not self.mpi_mode:
+            return
+
+        # When in MPI mode, after jobqueue has initialised we update the jobscript with
+        # the `real` number of MPI tasks
+        self._kwargs["mpi_tasks"] = self.mpi_tasks
+
+        # The default for jobqueue is not to use an MPI launcher (since it is not MPI
+        # aware). However, if self.fork_mpi=False then the tasks intended for this
+        # cluster are MPI-enabled. In order to give them an MPI environment we need to
+        # use our custom wrapper and launch with our MPI launcher
+        if not self.fork_mpi:
+            command_template = self._dummy_job._command_template
+            dask_worker_module = "distributed.cli.dask_worker"
+            if dask_worker_module in command_template:
+                command_template = command_template.replace(
+                    dask_worker_module, MPI_DASK_WRAPPER_MODULE
+                )
+            else:
+                raise RuntimeError(
+                    "Python module {} not found in command template:\n{}".format(
+                        dask_worker_module, command_template
+                    )
+                )
+            # The first part of the string is the python executable to use for the
+            # worker
+            python, arguments = command_template.split(" ", 1)
+
+            # Wrap the launch command with our mpi wrapper
+
+            # Make sure all appropriate kwargs are found and set
+            mpi_kwargs = {}
+            for attribute in ["mpi_tasks", "nodes", "cpus_per_task", "ntasks_per_node"]:
+                try:
+                    mpi_kwargs.update({attribute: getattr(self, attribute)})
+                except AttributeError:
+                    raise AttributeError(
+                        "No attribute {} found in our custom class, this is needed to "
+                        "wrap the MPI launch command in our job script".format(
+                            attribute
+                        )
+                    )
+            command_template = mpi_wrap(
+                executable=python,
+                exec_args=arguments,
+                return_wrapped_command=True,
+                **{**kwargs, **mpi_kwargs},
+            )
+            self.warnings.append(
+                "Replaced command template\n\t{}\nwith\n\t{}\nin jobscript".format(
+                    self._dummy_job._command_template, command_template
+                )
+            )
+            self._kwargs["command_template"] = command_template
+
 
 class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     __doc__ = f"""Custom SLURMCluster class with CustomClusterMixin for initial kwargs tweak.
@@ -669,63 +744,6 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
         with suppress(AttributeError):
             super().__del__()
 
-    def _update_script_nodes(self, **kwargs) -> None:
-        # If we're not in mpi_mode no need to do anything
-        if not self.mpi_mode:
-            return
-
-        # When in MPI mode, after jobqueue has initialised we update the jobscript with
-        # the `real` number of MPI tasks
-        self._kwargs["mpi_tasks"] = self.mpi_tasks
-
-        # The default for jobqueue is not to use an MPI launcher (since it is not MPI
-        # aware). However, if self.fork_mpi=False then the tasks intended for this
-        # cluster are MPI-enabled. In order to give them an MPI environment we need to
-        # use our custom wrapper and launch with our MPI launcher
-        if not self.fork_mpi:
-            command_template = self._dummy_job._command_template
-            dask_worker_module = "distributed.cli.dask_worker"
-            if dask_worker_module in command_template:
-                command_template = command_template.replace(
-                    dask_worker_module, MPI_DASK_WRAPPER_MODULE
-                )
-            else:
-                raise RuntimeError(
-                    "Python module {} not found in command template:\n{}".format(
-                        dask_worker_module, command_template
-                    )
-                )
-            # The first part of the string is the python executable to use for the
-            # worker
-            python, arguments = command_template.split(" ", 1)
-
-            # Wrap the launch command with our mpi wrapper
-
-            # Make sure all appropriate kwargs are found and set
-            mpi_kwargs = {}
-            for attribute in ["mpi_tasks", "nodes", "cpus_per_task", "ntasks_per_node"]:
-                try:
-                    mpi_kwargs.update({attribute: getattr(self, attribute)})
-                except AttributeError:
-                    raise AttributeError(
-                        "No attribute {} found in our custom class, this is needed to "
-                        "wrap the MPI launch command in our job script".format(
-                            attribute
-                        )
-                    )
-            command_template = mpi_wrap(
-                executable=python,
-                exec_args=arguments,
-                return_wrapped_command=True,
-                **{**kwargs, **mpi_kwargs},
-            )
-            self.warnings.append(
-                "Replaced command template\n\t{}\nwith\n\t{}\nin jobscript".format(
-                    self._dummy_job._command_template, command_template
-                )
-            )
-            self._kwargs["command_template"] = command_template
-
 
 class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     __doc__ = f"""Custom PBS Cluster class.
@@ -757,6 +775,7 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
             mpi_job_extra.extend(kwargs["job_extra"])
             kwargs.update({"job_extra": mpi_job_extra})
         super().__init__(**kwargs)
+        self._update_script_nodes(**kwargs)
         if hasattr(self, "mpi_tasks"):
             self._kwargs["mpi_tasks"] = self.mpi_tasks
         if self.ngpus_per_node > 0:
