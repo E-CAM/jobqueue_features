@@ -776,10 +776,11 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
             kwargs.update({"job_extra": mpi_job_extra})
         super().__init__(**kwargs)
         self._update_script_nodes(**kwargs)
-        if hasattr(self, "mpi_tasks"):
-            self._kwargs["mpi_tasks"] = self.mpi_tasks
-        if self.ngpus_per_node > 0:
-            self._kwargs["ngpus_per_node"] = self.ngpus_per_node
+        if self.mpi_mode:
+            if hasattr(self, "mpi_tasks"):
+                self._kwargs["mpi_tasks"] = self.mpi_tasks
+            if self.ngpus_per_node > 0:
+                self._kwargs["ngpus_per_node"] = self.ngpus_per_node
         self.client: Client = Client(self)
         # Log all the warnings that we may have accumulated
         if self.warnings:
