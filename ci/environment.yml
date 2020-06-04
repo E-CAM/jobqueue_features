@@ -1,0 +1,13 @@
+name: jobqueue_features
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6
+  - dask
+  - distributed
+  - dask-jobqueue
+  - flake8
+  - black
+  - pytest
+  - pytest-asyncio

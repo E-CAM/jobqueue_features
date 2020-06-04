@@ -17,7 +17,7 @@ from jobqueue_features import (
     mpi_task,
     which,
     CustomPBSCluster,
-    get_task_mpi_comm,
+    get_task_mpi_comm
 )
 
 # Use logging if there are hard to see issues in the CI
@@ -26,7 +26,7 @@ from jobqueue_features import (
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
 
-class TestPBS(TestCase):
+class TestCIPBS(TestCase):
     def setUp(self):
         # Kill any existing clusters
         controller._close()
@@ -51,7 +51,7 @@ class TestPBS(TestCase):
             "minimum_cores": 2,
             "hyperthreading_factor": 1,
             "ntasks_per_node": 2,
-            "memory": "256 MB",
+            "memory": "2 GB",
             "mpi_mode": True,
             "env_extra": [
                 "export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1",
@@ -76,13 +76,13 @@ class TestPBS(TestCase):
 
             # Create the cluster
             nodes = 2
-            fork_slurm_cluster = CustomPBSCluster(
+            fork_pbs_cluster = CustomPBSCluster(
                 name="fork_cluster", fork_mpi=True, nodes=nodes, **self.common_kwargs
             )
 
             # Create the function that wraps tasks for this cluster
-            @on_cluster(cluster_id="fork_cluster")
-            @mpi_task(cluster_id="fork_cluster")
+            @on_cluster(cluster=fork_pbs_cluster, jobs=1)
+            @mpi_task(cluster_id=fork_pbs_cluster.name)
             def mpi_wrap_task(**kwargs):
                 return mpi_wrap(**kwargs)
 
@@ -126,7 +126,7 @@ class TestPBS(TestCase):
 
             # Create the cluster
             nodes = 1
-            fork_slurm_cluster = CustomPBSCluster(
+            fork_pbs_cluster = CustomPBSCluster(
                 name="multifork_cluster",
                 fork_mpi=True,
                 nodes=nodes,
@@ -135,8 +135,8 @@ class TestPBS(TestCase):
             )
 
             # Create the function that wraps tasks for this cluster
-            @on_cluster(cluster_id="multifork_cluster")
-            @mpi_task(cluster_id="multifork_cluster")
+            @on_cluster(cluster=fork_pbs_cluster, jobs=1)
+            @mpi_task(cluster_id=fork_pbs_cluster.name)
             def mpi_wrap_task(**kwargs):
                 return mpi_wrap(**kwargs)
 
@@ -188,8 +188,8 @@ class TestPBS(TestCase):
                 name="mpiCluster", nodes=nodes, **self.common_kwargs
             )
 
-            @on_cluster(cluster_id="mpiCluster")
-            @mpi_task(cluster_id="mpiCluster")
+            @on_cluster(cluster=custom_cluster, jobs=1)
+            @mpi_task(cluster_id=custom_cluster.name)
             def task1(task_name):
                 from mpi4py import MPI
 
@@ -210,8 +210,8 @@ class TestPBS(TestCase):
                 )
                 return return_string
 
-            @on_cluster(cluster_id="mpiCluster")
-            @mpi_task(cluster_id="mpiCluster")
+            @on_cluster(cluster=custom_cluster, jobs=1)
+            @mpi_task(cluster_id=custom_cluster.id)
             def task2(name, task_name="default"):
                 comm = get_task_mpi_comm()
                 rank = comm.Get_rank()
@@ -265,8 +265,8 @@ class TestPBS(TestCase):
                 name="mpiMultiCluster", nodes=1, maximum_jobs=2, **self.common_kwargs
             )
 
-            @on_cluster(cluster_id="mpiMultiCluster")
-            @mpi_task(cluster_id="mpiMultiCluster")
+            @on_cluster(cluster=custom_cluster, jobs=1)
+            @mpi_task(cluster_id=custom_cluster.name)
             def task(task_name):
                 import time
                 from mpi4py import MPI

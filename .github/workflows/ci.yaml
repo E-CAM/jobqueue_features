@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        jobqueue: ["pbs", "slurm", "none"]
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      # Stay compatible with travis for now
+      # - name: Setup Conda Environment
+      #   uses: goanpeca/setup-miniconda@v1
+      #   with:
+      #     miniconda-version: "latest"
+      #     python-version: 3.6
+      #     environment-file: ci/environment.yml
+      #     activate-environment: jobqueue_features
+      #     auto-activate-base: false
+
+      - name: Setup
+        shell: bash -l {0}
+        run: |
+          source ci/${{ matrix.jobqueue }}.sh
+          jobqueue_before_install
+
+      - name: Install
+        shell: bash -l {0}
+        run: |
+          source ci/${{ matrix.jobqueue }}.sh
+          jobqueue_install
+
+      - name: Test
+        shell: bash -l {0}
+        run: |
+          source ci/${{ matrix.jobqueue }}.sh
+          jobqueue_script
+
+      - name: Cleanup
+        shell: bash -l {0}
+        run: |
+          source ci/${{ matrix.jobqueue }}.sh
+          jobqueue_after_script
