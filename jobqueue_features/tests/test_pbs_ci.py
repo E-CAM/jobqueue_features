@@ -211,7 +211,7 @@ class TestCIPBS(TestCase):
                 return return_string
 
             @on_cluster(cluster=custom_cluster, jobs=1)
-            @mpi_task(cluster_id=custom_cluster.id)
+            @mpi_task(cluster_id=custom_cluster.name)
             def task2(name, task_name="default"):
                 comm = get_task_mpi_comm()
                 rank = comm.Get_rank()
