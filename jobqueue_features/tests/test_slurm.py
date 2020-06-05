@@ -18,14 +18,14 @@ from jobqueue_features.tests.resources.test_base import TestBase
 
 
 class TestSLURM(TestBase, TestCase):
-    cluster_name = 'SLURM'
+    cluster_name = "SLURM"
     cluster = CustomSLURMCluster
     mpi_launcher = MPIEXEC
     default_mpi_launcher = SRUN
-    queue_name = 'batch'
-    slave_1_name = 'c1'
-    slave_2_name = 'c2'
-    memory = '256 MB'
+    queue_name = "batch"
+    slave_1_name = "c1"
+    slave_2_name = "c2"
+    memory = "256 MB"
 
     @pytest.mark.env("slurm")
     def test_single_mpi_wrap(self):

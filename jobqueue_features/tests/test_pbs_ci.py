@@ -18,14 +18,14 @@ from jobqueue_features.tests.resources.test_base import TestBase
 
 
 class TestCIPBS(TestBase, TestCase):
-    cluster_name = 'PBS'
+    cluster_name = "PBS"
     cluster = CustomPBSCluster
     mpi_launcher = MPIEXEC
     default_mpi_launcher = OPENMPI
-    queue_name = 'workq'
-    slave_1_name = 'pbs-slave-1'
-    slave_2_name = 'pbs-slave-2'
-    memory = '2 GB'
+    queue_name = "workq"
+    slave_1_name = "pbs-slave-1"
+    slave_2_name = "pbs-slave-2"
+    memory = "2 GB"
 
     @pytest.mark.env("pbs")
     def test_single_mpi_wrap(self):

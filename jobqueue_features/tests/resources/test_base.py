@@ -4,24 +4,18 @@ from jobqueue_features.clusters_controller import (
     clusters_controller_singleton as controller,
 )
 
-from jobqueue_features import (
-    mpi_wrap,
-    on_cluster,
-    mpi_task,
-    which,
-    get_task_mpi_comm
-)
+from jobqueue_features import mpi_wrap, on_cluster, mpi_task, which, get_task_mpi_comm
 
 
 class TestBase:
-    cluster_name = ''
+    cluster_name = ""
     cluster = None
     mpi_launcher = None
     default_mpi_launcher = None
-    queue_name = ''
-    slave_1_name = ''
-    slave_2_name = ''
-    memory = ''
+    queue_name = ""
+    slave_1_name = ""
+    slave_2_name = ""
+    memory = ""
 
     def setUp(self):
         # Kill any existing clusters
@@ -32,7 +26,9 @@ class TestBase:
         if which(self.default_mpi_launcher["launcher"]) is not None:
             print(
                 "Found {} so assuming we have {}, running MPI test (with {})".format(
-                    self.default_mpi_launcher["launcher"], self.cluster_name, self.mpi_launcher
+                    self.default_mpi_launcher["launcher"],
+                    self.cluster_name,
+                    self.mpi_launcher,
                 )
             )
             self.run_tests = True
@@ -156,7 +152,10 @@ class TestBase:
                 result = job.result()["out"]
                 self.assertIn(text.encode(), result)
                 # Count which node the job executed on
-                self.assertTrue(self.slave_1_name.encode() in result or self.slave_2_name.encode() in result)
+                self.assertTrue(
+                    self.slave_1_name.encode() in result
+                    or self.slave_2_name.encode() in result
+                )
                 if self.slave_1_name.encode() in result:
                     c1_count += 1
                 elif self.slave_2_name.encode() in result:
@@ -218,7 +217,8 @@ class TestBase:
                 (
                     task1("task1"),
                     "Running {} tasks of type task1 on nodes {}.".format(
-                        self.number_of_processes_per_node * nodes, [self.slave_1_name, self.slave_2_name]
+                        self.number_of_processes_per_node * nodes,
+                        [self.slave_1_name, self.slave_2_name],
                     ),
                 )
             )
@@ -226,7 +226,8 @@ class TestBase:
                 (
                     task1("task1, 2nd iteration"),
                     "Running {} tasks of type task1, 2nd iteration on nodes {}.".format(
-                        self.number_of_processes_per_node * nodes, [self.slave_1_name, self.slave_2_name]
+                        self.number_of_processes_per_node * nodes,
+                        [self.slave_1_name, self.slave_2_name],
                     ),
                 )
             )
@@ -296,7 +297,10 @@ class TestBase:
             for job, text in iter(tasks):
                 self.assertIn(text, job.result())
                 # Count which node the job executed on
-                self.assertTrue(self.slave_1_name in job.result() or self.slave_2_name in job.result())
+                self.assertTrue(
+                    self.slave_1_name in job.result()
+                    or self.slave_2_name in job.result()
+                )
                 if self.slave_1_name in job.result():
                     c1_count += 1
                 elif self.slave_2_name in job.result():
