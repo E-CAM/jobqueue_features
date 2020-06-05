@@ -64,7 +64,7 @@ class TestBase:
         # Kill any existing clusters
         controller._close()
 
-    def test_single_mpi_wrap(self):
+    def _test_single_mpi_wrap(self):
         if self.run_tests:
             controller._close()
 
@@ -111,7 +111,7 @@ class TestBase:
         else:
             pass
 
-    def test_multi_mpi_wrap(self):
+    def _test_multi_mpi_wrap(self):
         if self.run_tests:
             controller._close()
 
@@ -168,7 +168,7 @@ class TestBase:
         else:
             pass
 
-    def test_single_mpi_tasks(self):
+    def _test_single_mpi_tasks(self):
         #
         # Assume here we have srun support
         if self.run_tests:
@@ -243,7 +243,7 @@ class TestBase:
         else:
             pass
 
-    def test_multi_mpi_tasks(self):
+    def _test_multi_mpi_tasks(self):
         #
         # Assume here we have srun support
         if self.run_tests:

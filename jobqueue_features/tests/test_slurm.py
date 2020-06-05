@@ -9,7 +9,7 @@ from jobqueue_features import (
     SRUN,
     CustomSLURMCluster,
 )
-from jobqueue_features.tests.test_base import TestBase
+from jobqueue_features.tests.resources.test_base import TestBase
 
 # Use logging if there are hard to see issues in the CI
 
@@ -29,16 +29,16 @@ class TestSLURM(TestBase, TestCase):
 
     @pytest.mark.env("slurm")
     def test_single_mpi_wrap(self):
-        super().test_single_mpi_wrap()
+        self._test_single_mpi_wrap()
 
     @pytest.mark.env("slurm")
     def test_multi_mpi_wrap(self):
-        super().test_multi_mpi_wrap()
+        self._test_multi_mpi_wrap()
 
     @pytest.mark.env("slurm")
     def test_single_mpi_tasks(self):
-        super().test_single_mpi_tasks()
+        self._test_single_mpi_tasks()
 
     @pytest.mark.env("slurm")
     def test_multi_mpi_tasks(self):
-        super().test_multi_mpi_tasks()
+        self._test_multi_mpi_tasks()

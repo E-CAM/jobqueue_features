@@ -26,11 +26,11 @@ matrix:
           #      env:
           #        - OS=ubuntu-14.04
           #        - JOBQUEUE=pbs
-#    - python: "3.6"
-#      env:
-#        - OS=ubuntu-18.04
-#        # JOBQUEUE=none is for tests that do not need a cluster to run
-#        - JOBQUEUE=none
+    - python: "3.6"
+      env:
+        - OS=ubuntu-18.04
+        # JOBQUEUE=none is for tests that do not need a cluster to run
+        - JOBQUEUE=none
     - python: "3.6"
       env:
         - OS=ubuntu-18.04
