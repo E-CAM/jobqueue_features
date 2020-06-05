@@ -57,7 +57,7 @@ class TestBase:
 
         self.executable = "python"
         self.script_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "resources", "helloworld.py")
+            os.path.join(os.path.dirname(__file__), "helloworld.py")
         )
 
     def tearDown(self):
