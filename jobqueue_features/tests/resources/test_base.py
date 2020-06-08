@@ -71,7 +71,7 @@ class TestBase:
             )
 
             # Create the function that wraps tasks for this cluster
-            @on_cluster(cluster=fork_cluster, jobs=1)
+            @on_cluster(cluster=fork_cluster)
             @mpi_task(cluster_id=fork_cluster.name)
             def mpi_wrap_task(**kwargs):
                 return mpi_wrap(**kwargs)
@@ -122,7 +122,7 @@ class TestBase:
             )
 
             # Create the function that wraps tasks for this cluster
-            @on_cluster(cluster=fork_cluster, jobs=1)
+            @on_cluster(cluster=fork_cluster)
             @mpi_task(cluster_id=fork_cluster.name)
             def mpi_wrap_task(**kwargs):
                 return mpi_wrap(**kwargs)
@@ -177,7 +177,7 @@ class TestBase:
                 name="mpiCluster", nodes=nodes, **self.common_kwargs
             )
 
-            @on_cluster(cluster=custom_cluster, jobs=1)
+            @on_cluster(cluster=custom_cluster)
             @mpi_task(cluster_id=custom_cluster.name)
             def task1(task_name):
                 from mpi4py import MPI
@@ -199,7 +199,7 @@ class TestBase:
                 )
                 return return_string
 
-            @on_cluster(cluster=custom_cluster, jobs=1)
+            @on_cluster(cluster=custom_cluster)
             @mpi_task(cluster_id=custom_cluster.name)
             def task2(name, task_name="default"):
                 comm = get_task_mpi_comm()
@@ -255,7 +255,7 @@ class TestBase:
                 name="mpiMultiCluster", nodes=1, maximum_jobs=2, **self.common_kwargs
             )
 
-            @on_cluster(cluster=custom_cluster, jobs=1)
+            @on_cluster(cluster=custom_cluster)
             @mpi_task(cluster_id=custom_cluster.name)
             def task(task_name):
                 import time
