@@ -6,8 +6,8 @@ import pytest
 
 from jobqueue_features import (
     MPIEXEC,
-    SRUN,
-    CustomSLURMCluster,
+    OPENMPI,
+    CustomPBSCluster,
 )
 from jobqueue_features.tests.resources.test_base import TestBase
 
@@ -17,28 +17,28 @@ from jobqueue_features.tests.resources.test_base import TestBase
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
 
-class TestSLURM(TestBase, TestCase):
-    cluster_name = "SLURM"
-    cluster = CustomSLURMCluster
+class TestCIPBS(TestBase, TestCase):
+    cluster_name = "PBS"
+    cluster = CustomPBSCluster
     mpi_launcher = MPIEXEC
-    default_mpi_launcher = SRUN
-    queue_name = "batch"
-    slave_1_name = "c1"
-    slave_2_name = "c2"
-    memory = "256 MB"
+    default_mpi_launcher = OPENMPI
+    queue_name = "workq"
+    slave_1_name = "pbs-slave-1"
+    slave_2_name = "pbs-slave-2"
+    memory = "2 GB"
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_single_mpi_wrap(self):
         self._test_single_mpi_wrap()
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_multi_mpi_wrap(self):
         self._test_multi_mpi_wrap()
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_single_mpi_tasks(self):
         self._test_single_mpi_tasks()
 
-    @pytest.mark.env("slurm")
+    @pytest.mark.env("pbs")
     def test_multi_mpi_tasks(self):
         self._test_multi_mpi_tasks()

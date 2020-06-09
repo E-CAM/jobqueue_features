@@ -6,6 +6,10 @@ from jobqueue_features.clusters_controller import (
     clusters_controller_singleton as controller,
 )
 
+# import logging
+#
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+
 
 class TestPBS(TestCase):
     def setUp(self):
