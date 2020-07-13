@@ -1,0 +1,40 @@
+version: "2.2"
+
+services:
+
+  master:
+    build:
+      context: .
+    container_name: pbs-master
+    hostname: pbs-master
+    command: bash /run-master.sh
+    ports:
+      - "8888:8888"
+
+  slave-one:
+    build:
+      context: .
+    container_name: pbs-slave-1
+    hostname: pbs-slave-1
+    entrypoint: "bash /slave-entrypoint.sh"
+    command: bash /run-slave.sh
+    links:
+      - "master:pbs-master"
+    environment:
+      - PBS_MASTER=pbs-master
+    depends_on:
+      - master
+
+  slave-two:
+    build:
+      context: .
+    container_name: pbs-slave-2
+    hostname: pbs-slave-2
+    entrypoint: "bash /slave-entrypoint.sh"
+    command: bash /run-slave.sh
+    links:
+      - "master:pbs-master"
+    environment:
+      - PBS_MASTER=pbs-master
+    depends_on:
+      - master
