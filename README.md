@@ -14,6 +14,8 @@ source tutorial/jupyter.sh
 start_slurm
 # stop and erase containers
 erase_slurm
+# remove docker images related to slurm containers
+clean_slurm
 ```
 PBS:
 ```
@@ -22,6 +24,8 @@ source tutorial/jupyter.sh
 start_pbs
 # stop and erase containers
 erase_pbs
+# remove docker images related to pbs containers
+clean_pbs
 ```
 
 In case your configuration not allow you start docker/docker-compose without sudo, here are examples how to avoid problems related to that:
@@ -33,6 +37,8 @@ source tutorial/jupyter.sh
 sudo bash -c "$(declare -f start_slurm); start_slurm"
 # stop and erase containers
 sudo bash -c "$(declare -f erase_slurm); erase_slurm"
+# remove docker images related to slurm containers
+sudo bash -c "$(declare -f clean_slurm); clean_slurm"
 ```
 PBS:
 ```
@@ -41,8 +47,11 @@ source tutorial/jupyter.sh
 sudo bash -c "$(declare -f start_pbs); start_pbs"
 # stop and erase containers
 sudo bash -c "$(declare -f erase_pbs); erase_pbs"
+# remove docker images related to pbs containers
+sudo bash -c "$(declare -f clean_pbs); clean_pbs"
 ```
 
 **IMPORTANT:** 
+- Please be aware that each docker image need diver space, those why you should prepare at least 3GB for work with SLURM and at least 2GB to work with PBS.  
 - Containers mentioned above are designed only for local machine, tutorial usage.
 - Please start one scheduler containers at once, there are not designed to work next to each other.  

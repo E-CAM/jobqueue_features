@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+JUPYTER_CONTAINERS_DIR="$(pwd)/$(dirname "${BASH_SOURCE[0]}")"
+
 function start_slurm() {
-    cd ./tutorial/docker_config/slurm
-    ./start_slurm.sh
+    cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
+      ./start_slurm.sh
     cd -
 
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab"
@@ -16,7 +18,7 @@ function start_slurm() {
 }
 
 function start_pbs() {
-    cd ./tutorial/docker_config/pbs
+    cd "$JUPYTER_CONTAINERS_DIR/docker_config/pbs"
       ./start_pbs.sh
     cd -
 
@@ -71,5 +73,19 @@ function erase_pbs() {
     do
       docker stop $machin
       docker rm $machin
+    done
+}
+
+function clean_slurm() {
+    for machin in slurm_c1:latest slurm_c2:latest slurm_slurmctld:latest slurm_slurmdbd:latest mysql:5.7.29 daskdev/dask-jobqueue:slurm
+    do
+      docker rmi $machin
+    done
+}
+
+function clean_pbs() {
+    for machin in pbs_master:latest pbs_slave-one:latest pbs_slave-two:latest daskdev/dask-jobqueue:pbs
+    do
+      docker rmi $machin
     done
 }
