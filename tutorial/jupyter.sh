@@ -60,7 +60,7 @@ function start_pbs() {
     echo "PBS properly configured"
 }
 
-function erase_slurm() {
+function stop_slurm() {
     for machin in c1 c2 slurmctld slurmdbd mysql
     do
       docker stop $machin
@@ -68,7 +68,7 @@ function erase_slurm() {
     done
 }
 
-function erase_pbs() {
+function stop_pbs() {
     for machin in pbs-master pbs-slave-1 pbs-slave-2
     do
       docker stop $machin
