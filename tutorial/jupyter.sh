@@ -4,7 +4,7 @@ JUPYTER_CONTAINERS_DIR="$(pwd)/$(dirname "${BASH_SOURCE[0]}")"
 
 function start_slurm() {
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
-      ./start_slurm.sh
+      ./start-slurm.sh
     cd -
 
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab"
@@ -14,12 +14,16 @@ function start_slurm() {
     docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec slurmctld /bin/bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features'&"
 
-    echo "SLURM properly configured"
+    echo
+    echo -e "\e[32mSLURM properly configured\e[0m"
+    echo
+    echo -e "\tOpen your browser at http://localhost:8888"
+    echo
 }
 
 function start_pbs() {
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/pbs"
-      ./start_pbs.sh
+      ./start-pbs.sh
     cd -
 
     docker exec pbs-master /bin/bash -c "cd /jobqueue_features; mkdir -p dask-worker-space; chmod 777 dask-worker-space; mkdir -p .pytest_cache; chmod 777 .pytest_cache"
@@ -57,7 +61,11 @@ function start_pbs() {
     docker exec pbs-master /bin/bash -c "conda install -c conda-forge notebook"
     docker exec -u 0 pbs-master /bin/bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features'&"
 
-    echo "PBS properly configured"
+    echo
+    echo -e "\e[32mPBS properly configured\e[0m"
+    echo
+    echo -e "\tOpen your browser at http://localhost:8888"
+    echo
 }
 
 function stop_slurm() {

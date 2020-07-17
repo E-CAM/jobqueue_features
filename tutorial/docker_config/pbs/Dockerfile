@@ -10,7 +10,8 @@ RUN yum install -y which && yum clean all
 RUN conda install --yes -c conda-forge mpich mpi4py && conda clean -tipy
 
 # Copy entrypoint and other needed scripts
-COPY ./*.sh /
+COPY ./*master*.sh /
+COPY ./*slave*.sh /
 RUN chmod a+x ./*.sh
 
 RUN git clone https://github.com/E-CAM/jobqueue_features.git
