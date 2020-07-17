@@ -1,0 +1,1 @@
+../../../ci/slurm/register_cluster.sh
