@@ -89,6 +89,14 @@ function clean_slurm() {
     do
       docker rmi $machin
     done
+
+    docker network rm slurm_default
+
+    for vol in slurm_etc_munge slurm_etc_slurm slurm_slurm_jobdir slurm_var_lib_mysql slurm_var_log_slurm
+    do
+      docker volume rm $vol
+    done
+
 }
 
 function clean_pbs() {
@@ -96,4 +104,5 @@ function clean_pbs() {
     do
       docker rmi $machin
     done
+    docker network rm pbs_default
 }
