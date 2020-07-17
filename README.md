@@ -2,56 +2,88 @@
 # jobqueue_features
 This library provides some useful decorators for [`dask_jobqueue`](https://github.com/dask/dask-jobqueue). It also expands it's scope to include MPI workloads, including extending configuration options for such workloads and heterogeneous resources.
 
-### Tutorial
-To try usage of this library, you are welcome to use SLURM or PBS containers placed in [`tutorial`](https://github.com/E-CAM/jobqueue_features/tree/master/tutorial) folder. Both of them, start couple of docker containers with chosen scheduler and jupyter notebook. To that last one, you will have access on `localhost:8888`. Feel free to try, learn and explore by your browser. 
+## Tutorial
+To help people try out this library, we have created sets of Docker containers that allow you to test the usage from within a notebook on (toy) SLURM or PBS clusters. The
+dockers containers can be found in the [`tutorial`](https://github.com/E-CAM/jobqueue_features/tree/master/tutorial) folder. Either option will start a couple of docker
+containers with chosen scheduler and jupyterlab linked to the head node. You should be able to access the jupyterlab instance from your browser on `localhost:8888`. Feel
+free to try, learn and explore using the example notebooks you find there.
 
-Basic usage is look like forward:  
+Requirements:
+* [Docker](https://docs.docker.com/get-docker/)
+* [docker-compose](https://docs.docker.com/compose/install/)
+* [Manage `docker` as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
+
+### Basic usage  
 
 SLURM:
 ```
-# start containers
+# configure our commands to start/stop/clean our containers
 source tutorial/jupyter.sh
+
+# start containers
 start_slurm
-# stop and erase containers
-erase_slurm
-# remove docker images related to slurm containers
+
+# you should now be able to open your browser at localhost:8888 to access JupyterLab
+
+# stop containers (also erases the containers, but does not remove the docker images)
+stop_slurm
+
+# when you a finished, remove docker images related to containers to free space
 clean_slurm
 ```
 PBS:
 ```
-# start containers
+# configure our commands to start/stop/clean our containers
 source tutorial/jupyter.sh
+
+# start containers
 start_pbs
-# stop and erase containers
-erase_pbs
-# remove docker images related to pbs containers
+
+# you should now be able to open your browser at localhost:8888 to access JupyterLab
+
+# stop containers (also erases the containers, but does not remove the docker images)
+stop_pbs
+
+# when you a finished, remove docker images related to containers to free space
 clean_pbs
 ```
 
-In case your configuration not allow you start docker/docker-compose without sudo, here are examples how to avoid problems related to that:
+If your configuration does not allow you to start `docker`/`docker-compose` without sudo, you can work around this:
 
 SLURM:
 ```
-# start containers
+# configure our commands to start/stop/clean our containers
 source tutorial/jupyter.sh
+
+# start containers
 sudo bash -c "$(declare -f start_slurm); start_slurm"
-# stop and erase containers
-sudo bash -c "$(declare -f erase_slurm); erase_slurm"
-# remove docker images related to slurm containers
+
+# you should now be able to open your browser at localhost:8888 to access JupyterLab
+
+# stop containers (also erases the containers, but does not remove the docker images)
+sudo bash -c "$(declare -f stop_slurm); stop_slurm"
+
+# when you a finished, remove docker images related to containers to free space
 sudo bash -c "$(declare -f clean_slurm); clean_slurm"
 ```
 PBS:
 ```
-# start containers
+# configure our commands to start/stop/clean our containers
 source tutorial/jupyter.sh
+
+# start containers
 sudo bash -c "$(declare -f start_pbs); start_pbs"
-# stop and erase containers
-sudo bash -c "$(declare -f erase_pbs); erase_pbs"
-# remove docker images related to pbs containers
+
+# you should now be able to open your browser at localhost:8888 to access JupyterLab
+
+# stop containers (also erases the containers, but does not remove the docker images)
+sudo bash -c "$(declare -f stop_pbs); stop_pbs"
+
+# when you a finished, remove docker images related to containers to free space
 sudo bash -c "$(declare -f clean_pbs); clean_pbs"
 ```
 
 **IMPORTANT:** 
-- Please be aware that each docker image need diver space, those why you should prepare at least 3GB for work with SLURM and at least 2GB to work with PBS.  
-- Containers mentioned above are designed only for local machine, tutorial usage.
-- Please start one scheduler containers at once, there are not designed to work next to each other.  
+- Please be aware that each docker image uses quite a lot of disk space, you should have at least 3GB available for SLURM and at least 2GB available for PBS.  
+- Containers mentioned above are designed only for your local machine and tutorial usage: they are not intended to be used for a heavy workload.
+- Please start one set of scheduler containers at a time, they are not intended to work next to each other.  
