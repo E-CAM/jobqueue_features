@@ -50,7 +50,10 @@ clean_pbs
 ```
 
 If your configuration does not allow you to start `docker`/`docker-compose` without sudo, you can work around this: you would use
-`sudo bash -c "$(declare -f start_slurm); start_slurm"` instead of simply `start_slurm` (with the same approach for `stop_slurm` and `clean_slurm`).
+```
+sudo bash -c "$(declare -f start_slurm); start_slurm"
+```
+instead of simply `start_slurm` (with the same approach for `stop_slurm` and `clean_slurm`).
 
 
 **IMPORTANT:** 
