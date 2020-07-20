@@ -11,8 +11,9 @@ MPIEXEC = {"implementation": "standard", "launcher": "mpiexec"}
 OPENMPI = {"implementation": "openmpi", "launcher": "mpirun"}
 INTELMPI = {"implementation": "intelmpi", "launcher": "mpirun"}
 MPICH = {"implementation": "mpich", "launcher": "mpiexec"}
+CCC_MPRUN = {"implementation": "slurm", "launcher": "ccc_mprun"}
 
-SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC, OPENMPI, INTELMPI, MPICH]
+SUPPORTED_MPI_LAUNCHERS = [SRUN, MPIEXEC, OPENMPI, INTELMPI, MPICH, CCC_MPRUN]
 
 
 __DEFAULT_MPI_COMM = None
@@ -133,7 +134,7 @@ def mpi_wrap(
                 # mpiexec is defined by the standard and very basic, you can only tell it
                 # how many MPI tasks to start
                 mpi_params = "-n {}".format(mpi_tasks)
-            elif mpi_launcher == SRUN:
+            elif mpi_launcher in [SRUN, CCC_MPRUN]:
                 # SLURM already has everything it needs from the environment variables set
                 # by the batch script
                 mpi_params = ""
