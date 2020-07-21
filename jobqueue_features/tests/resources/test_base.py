@@ -116,8 +116,7 @@ class TestBase:
             self.assertIn(text, job.result())
             # Count which node the job executed on
             self.assertTrue(
-                self.slave_1_name in job.result()
-                or self.slave_2_name in job.result()
+                self.slave_1_name in job.result() or self.slave_2_name in job.result()
             )
             if self.slave_1_name in job.result():
                 c1_count += 1
