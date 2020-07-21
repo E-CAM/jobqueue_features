@@ -51,3 +51,38 @@ jobs:
         run: |
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_after_script
+
+  tutorial:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        jobqueue: ["pbs", "slurm"]
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Setup
+        shell: bash -l {0}
+        run: |
+          source tutorial/jupyter.sh
+          start_${{ matrix.jobqueue }}
+
+      - name: Test
+        shell: bash -l {0}
+        run: |
+          source tutorial/jupyter.sh
+          test_${{ matrix.jobqueue }}
+
+      - name: Stop
+        shell: bash -l {0}
+        run: |
+          source tutorial/jupyter.sh
+          stop_${{ matrix.jobqueue }}
+
+      - name: Cleanup
+        shell: bash -l {0}
+        run: |
+          source tutorial/jupyter.sh
+          clean_${{ matrix.jobqueue }}

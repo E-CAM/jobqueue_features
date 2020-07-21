@@ -68,6 +68,14 @@ function start_pbs() {
     echo
 }
 
+function test_slurm() {
+    docker exec slurmctld /bin/bash -c "pytest /jobqueue_features --verbose -E slurm -s --ignore=/jobqueue_features/jobqueue_features/tests/test_cluster.py"
+}
+
+function test_pbs {
+    docker exec -u 0 pbs-master /bin/bash -c "OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E pbs -s"
+}
+
 function stop_slurm() {
     for machin in c1 c2 slurmctld slurmdbd mysql
     do
