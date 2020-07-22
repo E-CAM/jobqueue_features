@@ -12,7 +12,7 @@ function start_slurm() {
     docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec slurmctld /bin/bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features'&"
+    docker exec slurmctld /bin/bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features/tutorial'&"
 
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
@@ -39,27 +39,23 @@ function start_pbs() {
     docker exec pbs-slave-2 /bin/bash -c "/usr/sbin/sshd"
 
     # as user on 1
-    docker exec -u 0 pbs-slave-1 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
-    docker exec -u 0 pbs-slave-1 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
-    docker exec -u 0 pbs-slave-1 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
-    docker exec -u 0 pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
     # as user on 2
-    docker exec -u 0 pbs-slave-2 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
-    docker exec -u 0 pbs-slave-2 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
-    docker exec -u 0 pbs-slave-2 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
-    docker exec -u 0 pbs-slave-2 /bin/bash -c "ssh-keyscan pbs-slave-2.pbs_default >> ~/.ssh/known_hosts"
+    docker exec -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
+    docker exec -u pbsuser pbs-slave-2 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
+    docker exec -u pbsuser pbs-slave-2 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
+    docker exec -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keyscan pbs-slave-2.pbs_default >> ~/.ssh/known_hosts"
 
     # fiddle with the PATH on the slaves so they find the conda env in an MPI job
-    docker exec -u 0 pbs-slave-1 /bin/bash -c "echo 'export PATH=/opt/anaconda/bin:$PATH' >> ~/.bashrc"
-    docker exec -u 0 pbs-slave-2 /bin/bash -c "echo 'export PATH=/opt/anaconda/bin:$PATH' >> ~/.bashrc"
-
-    docker exec pbs-master /bin/bash -c "qmgr -c 'set server flatuid=true'"
-    docker exec pbs-master /bin/bash -c "qmgr -c 'set server acl_roots+=root@*'"
-    docker exec pbs-master /bin/bash -c "qmgr -c 'set server operators+=root@*'"
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "echo 'export PATH=/opt/anaconda/bin:$PATH' >> ~/.bashrc"
+    docker exec -u pbsuser pbs-slave-2 /bin/bash -c "echo 'export PATH=/opt/anaconda/bin:$PATH' >> ~/.bashrc"
 
     docker exec pbs-master /bin/bash -c "conda install -c conda-forge jupyterlab"
     docker exec pbs-master /bin/bash -c "conda install -c conda-forge notebook"
-    docker exec -u 0 pbs-master /bin/bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features'&"
+    docker exec -u pbsuser pbs-master /bin/bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features/tutorial'&"
 
     echo
     echo -e "\e[32mPBS properly configured\e[0m"
@@ -69,11 +65,13 @@ function start_pbs() {
 }
 
 function test_slurm() {
+    docker cp $JUPYTER_CONTAINERS_DIR/../jobqueue_features/tests/. slurmctld:/jobqueue_features/jobqueue_features/tests
     docker exec slurmctld /bin/bash -c "pytest /jobqueue_features --verbose -E slurm -s --ignore=/jobqueue_features/jobqueue_features/tests/test_cluster.py"
 }
 
 function test_pbs {
-    docker exec -u 0 pbs-master /bin/bash -c "OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E pbs -s"
+    docker cp $JUPYTER_CONTAINERS_DIR/../jobqueue_features/tests/. pbs-master:/jobqueue_features/jobqueue_features/tests
+    docker exec -u pbsuser pbs-master /bin/bash -c "cd /jobqueue_features; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E pbs -s"
 }
 
 function stop_slurm() {

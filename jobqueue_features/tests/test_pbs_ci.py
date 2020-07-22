@@ -25,7 +25,7 @@ class TestCIPBS(TestBase, TestCase):
     queue_name = "workq"
     slave_1_name = "pbs-slave-1"
     slave_2_name = "pbs-slave-2"
-    memory = "2 GB"
+    memory = "512 MB"
 
     def _multi_mpi_wrap_assert(self, test_function, nodes):
         tasks = []

@@ -12,5 +12,7 @@ sed -i "s/\$clienthost .*/\$clienthost $hostname/" $mom_conf_file
 
 # create default non-root user
 adduser pbsuser
+chown -R pbsuser /jobqueue_features
+chown -R pbsuser /tmp
 
 exec "$@"
