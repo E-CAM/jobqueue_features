@@ -42,11 +42,14 @@ function start_pbs() {
     docker exec -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
     docker exec -u pbsuser pbs-slave-1 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
     docker exec -u pbsuser pbs-slave-1 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
-    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
     # as user on 2
     docker exec -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
     docker exec -u pbsuser pbs-slave-2 /bin/bash -c "cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys"
     docker exec -u pbsuser pbs-slave-2 /bin/bash -c "chmod go-rw ~/.ssh/authorized_keys"
+
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
+    docker exec -u pbsuser pbs-slave-1 /bin/bash -c "ssh-keyscan pbs-slave-2.pbs_default >> ~/.ssh/known_hosts"
+    docker exec -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keyscan pbs-slave-1.pbs_default >> ~/.ssh/known_hosts"
     docker exec -u pbsuser pbs-slave-2 /bin/bash -c "ssh-keyscan pbs-slave-2.pbs_default >> ~/.ssh/known_hosts"
 
     # fiddle with the PATH on the slaves so they find the conda env in an MPI job
@@ -71,7 +74,7 @@ function test_slurm() {
 
 function test_pbs {
     docker cp $JUPYTER_CONTAINERS_DIR/../jobqueue_features/tests/. pbs-master:/jobqueue_features/jobqueue_features/tests
-    docker exec -u pbsuser pbs-master /bin/bash -c "cd /jobqueue_features; OMPI_MCA_rmaps_base_oversubscribe=1 OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 pytest /jobqueue_features --verbose -E pbs -s"
+    docker exec -u pbsuser pbs-master /bin/bash -c "cd /jobqueue_features; python -m unittest jobqueue_features.tests.test_pbs_ci"
 }
 
 function stop_slurm() {
