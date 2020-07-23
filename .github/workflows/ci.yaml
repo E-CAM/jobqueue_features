@@ -57,7 +57,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jobqueue: ["pbs", "slurm"]
+        jobqueue: ["slurm"]
 
     steps:
       - name: Checkout source
