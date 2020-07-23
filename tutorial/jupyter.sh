@@ -15,7 +15,7 @@ function start_slurm() {
     docker exec slurmctld /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec c1 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec c2 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
-    docker exec slurmctld /bin/bash -c "yes|sacctmgr create account srumuser; yes | sacctmgr create user name=slurmuser Account=srumuser"
+    docker exec slurmctld /bin/bash -c "yes|sacctmgr create account slurmuser; yes | sacctmgr create user name=slurmuser Account=slurmuser"
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /jobqueue_features/tutorial; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features/tutorial'&"
 
     echo
