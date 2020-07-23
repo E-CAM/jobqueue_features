@@ -17,6 +17,115 @@ class TestBase:
     slave_2_name = ""
     memory = ""
 
+    def _single_mpi_wrap_assert(self, test_function, nodes):
+        # First check we can construct the command
+        result = test_function(self.script_path, return_wrapped_command=True)
+        result = result.result()
+        expected_result = "{} -n {} {} {}".format(
+            self.mpi_launcher["launcher"],
+            self.number_of_processes_per_node * nodes,
+            self.executable,
+            self.script_path,
+        )
+        self.assertEqual(result, expected_result)
+
+        # Then check the execution of it
+        result = test_function(self.script_path)
+        result = result.result()
+        for n in range(self.number_of_processes_per_node):
+            text = "Hello, World! I am process {} of {}".format(
+                n, self.number_of_processes_per_node * nodes
+            )
+            self.assertIn(text.encode(), result["out"])
+
+    def _multi_mpi_wrap_assert(self, test_function, nodes):
+        tasks = []
+        for x in range(20):
+            tasks.append(
+                (
+                    test_function(self.script_path),
+                    # Only check for root in the output
+                    "Hello, World! I am process 0 of {}".format(
+                        self.number_of_processes_per_node * nodes
+                    ),
+                )
+            )
+        c1_count = 0
+        c2_count = 0
+        for job, text in iter(tasks):
+            result = job.result()["out"]
+            self.assertIn(text.encode(), result)
+            # Count which node the job executed on
+            self.assertTrue(
+                self.slave_1_name.encode() in result
+                or self.slave_2_name.encode() in result
+            )
+            if self.slave_1_name.encode() in result:
+                c1_count += 1
+            elif self.slave_2_name.encode() in result:
+                c2_count += 1
+        self.assertTrue(c1_count + c2_count == 20)
+        self.assertTrue(c1_count > 0)
+        self.assertTrue(c2_count > 0)
+
+    def _single_mpi_tasks_assert(self, task1, task2, nodes):
+
+        tasks = []
+        tasks.append(
+            (
+                task1("task1"),
+                "Running {} tasks of type task1 on nodes {}.".format(
+                    self.number_of_processes_per_node * nodes,
+                    [self.slave_1_name, self.slave_2_name],
+                ),
+            )
+        )
+        tasks.append(
+            (
+                task1("task1, 2nd iteration"),
+                "Running {} tasks of type task1, 2nd iteration on nodes {}.".format(
+                    self.number_of_processes_per_node * nodes,
+                    [self.slave_1_name, self.slave_2_name],
+                ),
+            )
+        )
+        tasks.append(
+            (
+                task2("Alan", task_name="Task 2"),
+                "Hi Alan, my rank is 0 for task of type Task 2",
+            )
+        )
+        for task, text in iter(tasks):
+            self.assertIn(text, task.result())
+
+    def _multi_mpi_tasks_assert(self, task):
+        tasks = []
+        for x in range(20):
+            tasks.append(
+                (
+                    task("task-{}".format(x)),
+                    # We don't know which node the task will run on
+                    "Running {} tasks of type task-{} on nodes ".format(
+                        self.number_of_processes_per_node, x
+                    ),
+                )
+            )
+        c1_count = 0
+        c2_count = 0
+        for job, text in iter(tasks):
+            self.assertIn(text, job.result())
+            # Count which node the job executed on
+            self.assertTrue(
+                self.slave_1_name in job.result() or self.slave_2_name in job.result()
+            )
+            if self.slave_1_name in job.result():
+                c1_count += 1
+            elif self.slave_2_name in job.result():
+                c2_count += 1
+        self.assertTrue(c1_count + c2_count == 20)
+        self.assertTrue(c1_count > 0)
+        self.assertTrue(c2_count > 0)
+
     def setUp(self):
         # Kill any existing clusters
         controller._close()
@@ -84,25 +193,7 @@ class TestBase:
                 )
                 return t
 
-            # First check we can construct the command
-            result = test_function(self.script_path, return_wrapped_command=True)
-            result = result.result()
-            expected_result = "{} -n {} {} {}".format(
-                self.mpi_launcher["launcher"],
-                self.number_of_processes_per_node * nodes,
-                self.executable,
-                self.script_path,
-            )
-            self.assertEqual(result, expected_result)
-
-            # Then check the execution of it
-            result = test_function(self.script_path)
-            result = result.result()
-            for n in range(self.number_of_processes_per_node):
-                text = "Hello, World! I am process {} of {}".format(
-                    n, self.number_of_processes_per_node * nodes
-                )
-                self.assertIn(text.encode(), result["out"])
+            self._single_mpi_wrap_assert(test_function, nodes)
             controller._close()
         else:
             pass
@@ -135,34 +226,7 @@ class TestBase:
                 )
                 return t
 
-            tasks = []
-            for x in range(20):
-                tasks.append(
-                    (
-                        test_function(self.script_path),
-                        # Only check for root in the output
-                        "Hello, World! I am process 0 of {}".format(
-                            self.number_of_processes_per_node * nodes
-                        ),
-                    )
-                )
-            c1_count = 0
-            c2_count = 0
-            for job, text in iter(tasks):
-                result = job.result()["out"]
-                self.assertIn(text.encode(), result)
-                # Count which node the job executed on
-                self.assertTrue(
-                    self.slave_1_name.encode() in result
-                    or self.slave_2_name.encode() in result
-                )
-                if self.slave_1_name.encode() in result:
-                    c1_count += 1
-                elif self.slave_2_name.encode() in result:
-                    c2_count += 1
-            self.assertTrue(c1_count > 0)
-            self.assertTrue(c2_count > 0)
-
+            self._multi_mpi_wrap_assert(test_function, nodes)
             controller._close()
         else:
             pass
@@ -212,34 +276,7 @@ class TestBase:
                 )
                 return return_string
 
-            tasks = []
-            tasks.append(
-                (
-                    task1("task1"),
-                    "Running {} tasks of type task1 on nodes {}.".format(
-                        self.number_of_processes_per_node * nodes,
-                        [self.slave_1_name, self.slave_2_name],
-                    ),
-                )
-            )
-            tasks.append(
-                (
-                    task1("task1, 2nd iteration"),
-                    "Running {} tasks of type task1, 2nd iteration on nodes {}.".format(
-                        self.number_of_processes_per_node * nodes,
-                        [self.slave_1_name, self.slave_2_name],
-                    ),
-                )
-            )
-            tasks.append(
-                (
-                    task2("Alan", task_name="Task 2"),
-                    "Hi Alan, my rank is 0 for task of type Task 2",
-                )
-            )
-            for task, text in iter(tasks):
-                self.assertIn(text, task.result())
-
+            self._single_mpi_tasks_assert(task1, task2, nodes)
             controller._close()
         else:
             pass
@@ -281,32 +318,7 @@ class TestBase:
                 time.sleep(1)
                 return return_string
 
-            tasks = []
-            for x in range(20):
-                tasks.append(
-                    (
-                        task("task-{}".format(x)),
-                        # We don't know which node the task will run on
-                        "Running {} tasks of type task-{} on nodes ".format(
-                            self.number_of_processes_per_node, x
-                        ),
-                    )
-                )
-            c1_count = 0
-            c2_count = 0
-            for job, text in iter(tasks):
-                self.assertIn(text, job.result())
-                # Count which node the job executed on
-                self.assertTrue(
-                    self.slave_1_name in job.result()
-                    or self.slave_2_name in job.result()
-                )
-                if self.slave_1_name in job.result():
-                    c1_count += 1
-                elif self.slave_2_name in job.result():
-                    c2_count += 1
-            self.assertTrue(c1_count > 0)
-            self.assertTrue(c2_count > 0)
+            self._multi_mpi_tasks_assert(task)
 
             controller._close()
         else:
