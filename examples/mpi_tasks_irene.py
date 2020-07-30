@@ -59,32 +59,29 @@ PROJECT_NAME = "pa5236"
 
 
 knl_kwargs = {
-    'queue': 'knl',
-    'cores_per_node': 64,
-    'ntasks_per_node': 64,
-    'memory': '96GB',
+    "queue": "knl",
+    "cores_per_node": 64,
+    "ntasks_per_node": 64,
+    "memory": "96GB",
 }
 
 custom_cluster = IreneCluster(
     name="mpiCluster",
     project=PROJECT_NAME,
-    walltime='3600',
+    walltime="3600",
     interface="",
     nodes=2,
     mpi_mode=True,
     maximum_jobs=10,
-    python='python3',
+    python="python3",
     mpi_launcher=SRUN,
-    job_extra=[
-        "-m scratch",
-    ],
+    job_extra=["-m scratch",],
     env_extra=[
         "module purge",
         "module load python3/3.7.2",
         "export PYTHONPATH=/ccc/cont005/home/unipolog/wlodarca/installed/lib/python3.7/site-packages/",
-
     ],
-    **knl_kwargs
+    **knl_kwargs,
 )
 
 
@@ -96,8 +93,7 @@ def task():
 
     from mpi4py import MPI
 
-    os.chdir('/tmp')
-
+    os.chdir("/tmp")
 
     comm = get_task_mpi_comm()
     rank = comm.Get_rank()
