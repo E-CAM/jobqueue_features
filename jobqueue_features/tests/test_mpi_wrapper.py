@@ -156,7 +156,6 @@ class TestMPIWrap(TestCase):
             "-np 6 --map-by ppr:3:node",
             "-n 6 -perhost 3",
             "-n 6 -ppn 3",
-            "",
         ]
         # specific example of 2 nodes, 3 processes and 4 OpenMP threads
         hybrid_expected_launcher_args = [
@@ -165,7 +164,6 @@ class TestMPIWrap(TestCase):
             "-np 6 --map-by ppr:3:node:pe=4",
             "-n 6 -perhost 3 -env I_MPI_PIN_DOMAIN 4",
             "-n 6 -ppn 3 -genv OMP_NUM_THREADS 4 -bind-to core:4",
-            "",
         ]
         for mpi_launcher, expected_launcher_opts, hybrid_expected_launcher_opts in zip(
             mpi_launchers, expected_launcher_args, hybrid_expected_launcher_args
