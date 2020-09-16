@@ -75,7 +75,9 @@ custom_cluster = IreneCluster(
     maximum_jobs=10,
     python="python3",
     mpi_launcher=SRUN,
-    job_extra=["-m scratch",],
+    job_extra=[
+        "-m scratch",
+    ],
     env_extra=[
         "module purge",
         "module load python3/3.7.2",
