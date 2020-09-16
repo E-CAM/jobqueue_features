@@ -17,6 +17,10 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
+      
+      - name: Black Code Formatter
+        uses: lgeiger/black-action@v1.0.1
+
 
       # Stay compatible with travis for now
       # - name: Setup Conda Environment
