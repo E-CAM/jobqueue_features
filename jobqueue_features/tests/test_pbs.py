@@ -37,10 +37,15 @@ class TestPBS(TestCase):
         job_name = "test_pbs"
         with self.assertRaises(ValueError):
             self.cluster_class(
-                memory="2 GB", name=job_name, cores=2,
+                memory="2 GB",
+                name=job_name,
+                cores=2,
             )
         cluster = self.cluster_class(
-            memory="2 GB", name=job_name, cores=2, cores_per_node=2,
+            memory="2 GB",
+            name=job_name,
+            cores=2,
+            cores_per_node=2,
         )
         job_script = cluster.job_script()
         self.assertEqual(cluster.cores_per_node, 2)
@@ -51,15 +56,23 @@ class TestPBS(TestCase):
         job_name = "test_pbs"
         with self.assertRaises(ValueError):
             self.cluster_class(
-                memory="2 GB", name=job_name, cores=2, nodes=2,
+                memory="2 GB",
+                name=job_name,
+                cores=2,
+                nodes=2,
             )
         with self.assertRaises(ValueError):
             self.cluster_class(
-                memory="2 GB", name=job_name, mpi_mode=True,
+                memory="2 GB",
+                name=job_name,
+                mpi_mode=True,
             )
         with self.assertRaises(ValueError):
             self.cluster_class(
-                memory="2 GB", name=job_name, mpi_mode=True, mpi_launcher=MPIEXEC,
+                memory="2 GB",
+                name=job_name,
+                mpi_mode=True,
+                mpi_launcher=MPIEXEC,
             )
         cores_per_node = 6
         nodes = 2

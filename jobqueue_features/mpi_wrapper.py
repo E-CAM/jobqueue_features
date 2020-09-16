@@ -159,8 +159,10 @@ def mpi_wrap(
                 if cpus_per_task is None or cpus_per_task == 1:
                     process_mapping = "-ppn {}".format(ntasks_per_node)
                 else:
-                    process_mapping = "-ppn {} -genv OMP_NUM_THREADS {} -bind-to core:{}".format(
-                        ntasks_per_node, cpus_per_task, cpus_per_task
+                    process_mapping = (
+                        "-ppn {} -genv OMP_NUM_THREADS {} -bind-to core:{}".format(
+                            ntasks_per_node, cpus_per_task, cpus_per_task
+                        )
                     )
                 mpi_params = "-n {} {}".format(mpi_tasks, process_mapping)
         else:
