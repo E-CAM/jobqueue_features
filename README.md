@@ -4,9 +4,9 @@ This library provides some useful decorators for [`dask_jobqueue`](https://githu
 include MPI workloads, including extending configuration options for such workloads and heterogeneous resources.
 
 ## Tutorial
-To help people try out this library, we have created a Docker containers that allow you to test the usage from within a notebook on
-(toy) SLURM clusters. The dockers containers can be found in the [`tutorial`](https://github.com/E-CAM/jobqueue_features/tree/master/tutorial)
-folder. Either option will start a couple of docker containers with scheduler and a JupyterLab instance linked to the head node. You should be able to
+To help people try out this library, we have created a set of Docker containers that allow you to test the usage from within a notebook on a
+(toy) SLURM cluster. The dockers containers can be found in the [`tutorial`](https://github.com/E-CAM/jobqueue_features/tree/master/tutorial)
+folder. The commands below will start a couple of docker containers with the scheduler and a JupyterLab instance linked to the head node. You should be able to
 access the JupyterLab instance from your browser on `localhost:8888`. Feel free to try, learn and explore using the example notebooks you find there.
 
 Requirements:
