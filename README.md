@@ -43,4 +43,3 @@ instead of simply `start_slurm` (with the same approach for `stop_slurm` and `cl
 - Please be aware that each docker image uses quite a lot of disk space, you should have at least 3GB available for SLURM.
 - Containers mentioned above are designed only for your local machine and tutorial usage: they are not intended to be used for a heavy
   workload.
-- Please start one set of scheduler containers at a time, they are not intended to work next to each other.  
