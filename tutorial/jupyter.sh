@@ -8,7 +8,9 @@ function start_slurm() {
     cd -
 
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab"
-    docker exec slurmctld /bin/bash -c "conda install -c conda-forge notebook"
+    docker exec slurmctld /bin/bash -c "conda install -c conda-forge distributed"
+    docker exec slurmctld /bin/bash -c "conda install -c conda-forge nodejs"
+    docker exec slurmctld /bin/bash -c "pip install dask_labextension"
     docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
@@ -21,7 +23,7 @@ function start_slurm() {
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
     echo
-    echo -e "\tOpen your browser at http://localhost:8888"
+    echo -e "\tOpen your browser at http://localhost:8888/lab"
     echo
 }
 
