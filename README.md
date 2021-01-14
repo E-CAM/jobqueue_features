@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/E-CAM/jobqueue_features.svg?branch=master)](https://travis-ci.com/E-CAM/jobqueue_features)
+[![Build Status](https://github.com/E-CAM/jobqueue_features/workflows/CI/badge.svg)](https://github.com/E-CAM/jobqueue_features/actions?query=workflow%3ACI)
 # jobqueue_features
 This library provides some useful decorators for [`dask_jobqueue`](https://github.com/dask/dask-jobqueue). It also expands it's scope to
 include MPI workloads, including extending configuration options for such workloads and heterogeneous resources.
