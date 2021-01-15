@@ -3,17 +3,17 @@ labextension:
     module: 'dask_jobqueue'
     class: 'SLURMCluster'
     args: []
-    kwargs:
-      cores: 1
-      memory: 512MB
-      processes: 1
-      death-timeout: 15
-      queue: batch
+    kwargs: {
+      'cores': 1,
+      'processes': 1,
+      'memory': '512MB',
+      'queue': 'batch',
+    }
   default:
     workers: null
-    adapt: null
-    # minimum: 0
-    # maximum: 10
+    adapt:
+      minimum: 1
+      maximum: 10
   initial:
     [ ]
 #     - name: "My Big Cluster"
