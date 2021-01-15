@@ -8,7 +8,9 @@ function start_slurm() {
     cd -
 
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab"
-    docker exec slurmctld /bin/bash -c "conda install -c conda-forge notebook"
+    docker exec slurmctld /bin/bash -c "conda install -c conda-forge distributed"
+    docker exec slurmctld /bin/bash -c "conda install -c conda-forge nodejs"
+    docker exec slurmctld /bin/bash -c "pip install dask_labextension"
     docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
@@ -16,12 +18,17 @@ function start_slurm() {
     docker exec c1 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec c2 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec slurmctld /bin/bash -c "yes|sacctmgr create account slurmuser; yes | sacctmgr create user name=slurmuser Account=slurmuser"
+    docker exec slurmctld /bin/bash -c "mkdir -p /home/slurmuser/.config/dask/"
+    cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
+      docker cp labextension.yaml slurmctld:/home/slurmuser/.config/dask/labextension.yaml
+    cd -
+    docker exec -u slurmuser slurmctld /bin/bash -c "chmod u=rw,go=r /home/slurmuser/.config/dask/labextension.yaml"
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /jobqueue_features/tutorial; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features/tutorial'&"
 
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
     echo
-    echo -e "\tOpen your browser at http://localhost:8888"
+    echo -e "\tOpen your browser at http://localhost:8888/lab"
     echo
 }
 
