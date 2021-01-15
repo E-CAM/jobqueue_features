@@ -13,7 +13,7 @@ labextension:
     workers: null
     adapt:
       minimum: 1
-      maximum: 10
+      maximum: 4
   initial:
     [ ]
 #     - name: "My Big Cluster"
