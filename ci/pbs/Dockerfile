@@ -7,7 +7,7 @@ ENV PBS_MASTER pbs-master
 RUN yum install -y which && yum clean all
 
 # Install MPICH and mpi4py (and black)
-RUN conda install --yes -c conda-forge black mpich mpi4py && conda clean -tipy
+RUN conda install --yes -c conda-forge black mpi4py && conda install --yes -c conda-forge/label/cf202003 mpich  && conda clean -tipy
 
 # Copy entrypoint and other needed scripts
 COPY ./*.sh /
