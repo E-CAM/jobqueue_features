@@ -10,7 +10,7 @@ RUN curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-L
 ENV PATH /opt/anaconda/bin:$PATH
 RUN conda install --yes -c conda-forge python=3.8 dask distributed flake8 pytest pytest-asyncio
 RUN conda install --yes -c conda-forge openmpi mpi4py
-RUN git clone https://github.com/E-CAM/jobqueue_features.git
+RUN git clone https://github.com/E-CAM/jobqueue_features.git --branch temp_branch 
 RUN pip install -r jobqueue_features/requirements.txt
 # Add scope to use a LAMMPS example
 RUN conda install --yes -c conda-forge lammps
