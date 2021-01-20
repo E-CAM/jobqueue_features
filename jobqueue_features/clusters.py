@@ -1,11 +1,13 @@
 from __future__ import division
 
+import inspect
 import re
 from contextlib import suppress
 
 from dask import config
 from dask_jobqueue import SLURMCluster, JobQueueCluster, PBSCluster
 from dask.distributed import Client, LocalCluster
+from dask_jobqueue.core import Job
 from dask_jobqueue.pbs import PBSJob
 from dask_jobqueue.slurm import SLURMJob
 from typing import TypeVar, Dict, List, Any  # noqa
@@ -115,11 +117,42 @@ def get_features_kwarg(name, scheduler=None, queue_type=None, default=None):
     return value
 
 
+def get_base_job_kwargs():
+    kwargs = inspect.getfullargspec(Job.__init__).args
+    kwargs.remove("self")
+    return kwargs
+
+
 class CustomSLURMJob(SLURMJob):
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        scheduler=None,
+        name=None,
+        queue=None,
+        project=None,
+        walltime=None,
+        job_cpu=None,
+        job_mem=None,
+        job_extra=None,
+        config_name=None,
+        **kwargs,
+    ):
         self.mpi_tasks = kwargs.pop("mpi_tasks", 1)
         command_template = kwargs.pop("command_template", None)
-        super().__init__(*args, **kwargs)
+
+        base_class_kwargs = {k: kwargs[k] for k in get_base_job_kwargs() if k in kwargs}
+        super().__init__(
+            scheduler,
+            name,
+            queue,
+            project,
+            walltime,
+            job_cpu,
+            job_mem,
+            job_extra,
+            config_name,
+            **base_class_kwargs,
+        )
         self.job_header = self.job_header.replace(
             "#SBATCH -n 1\n", "#SBATCH -n {}\n".format(self.mpi_tasks)
         )
@@ -128,7 +161,7 @@ class CustomSLURMJob(SLURMJob):
                 r"--name\s+(\S+)", self._command_template
             ).group(1)
             expected_name = re.search(r"--name\s+(\S+)", command_template).group(1)
-            if expected_name == "name":
+            if expected_name == "dummy-name":
                 self._command_template = re.sub(
                     "--name {}".format(expected_name),
                     "--name {}".format(replacement_name),
@@ -143,17 +176,40 @@ class CustomSLURMJob(SLURMJob):
 
 
 class CustomPBSJob(PBSJob):
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        scheduler=None,
+        name=None,
+        queue=None,
+        project=None,
+        resource_spec=None,
+        walltime=None,
+        job_extra=None,
+        config_name=None,
+        **kwargs,
+    ):
         if kwargs.get("mpi_mode", False):
-            kwargs["resource_spec"] = self.get_resource_spec(**kwargs)
+            resource_spec = self.get_resource_spec(**kwargs)
         command_template = kwargs.pop("command_template", None)
-        super().__init__(*args, **kwargs)
+
+        base_class_kwargs = {k: kwargs[k] for k in get_base_job_kwargs() if k in kwargs}
+        super().__init__(
+            scheduler,
+            name,
+            queue,
+            project,
+            resource_spec,
+            walltime,
+            job_extra,
+            config_name,
+            **base_class_kwargs,
+        )
         if command_template:
             replacement_name = re.search(
                 r"--name\s+(\S+)", self._command_template
             ).group(1)
             expected_name = re.search(r"--name\s+(\S+)", command_template).group(1)
-            if expected_name == "name":
+            if expected_name == "dummy-name":
                 self._command_template = re.sub(
                     "--name {}".format(expected_name),
                     "--name {}".format(replacement_name),
@@ -634,7 +690,7 @@ class CustomClusterMixin(object):
 
         # When in MPI mode, after jobqueue has initialised we update the jobscript with
         # the `real` number of MPI tasks
-        self._kwargs["mpi_tasks"] = self.mpi_tasks
+        self._job_kwargs["mpi_tasks"] = self.mpi_tasks
 
         # The default for jobqueue is not to use an MPI launcher (since it is not MPI
         # aware). However, if self.fork_mpi=False then the tasks intended for this
@@ -682,7 +738,7 @@ class CustomClusterMixin(object):
                     self._dummy_job._command_template, command_template
                 )
             )
-            self._kwargs["command_template"] = command_template
+            self._job_kwargs["command_template"] = command_template
 
 
 class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
@@ -778,9 +834,9 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
         self._update_script_nodes(**kwargs)
         if self.mpi_mode:
             if hasattr(self, "mpi_tasks"):
-                self._kwargs["mpi_tasks"] = self.mpi_tasks
+                self._job_kwargs["mpi_tasks"] = self.mpi_tasks
         if self.ngpus_per_node > 0:
-            self._kwargs["ngpus_per_node"] = self.ngpus_per_node
+            self._job_kwargs["ngpus_per_node"] = self.ngpus_per_node
         self.client: Client = Client(self)
         # Log all the warnings that we may have accumulated
         if self.warnings:
