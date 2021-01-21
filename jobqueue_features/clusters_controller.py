@@ -1,10 +1,11 @@
-from typing import Tuple, Dict, Callable  # noqa
+from typing import Tuple, Dict, Callable, TYPE_CHECKING  # noqa
 import atexit
 
 from dask.distributed import Client, LocalCluster
-
-from .clusters import ClusterType  # noqa
 from .custom_exceptions import ClusterException
+
+if TYPE_CHECKING:
+    from .clusters import ClusterType  # noqa
 
 _DEFAULT = "default"
 
@@ -13,14 +14,14 @@ class ClusterController(object):
     """Controller keeps collection of clusters and clients so it can
     provide these for decorators to submitting tasks."""
 
-    default_cluster: Callable[..., ClusterType] = LocalCluster
+    default_cluster: Callable[..., "ClusterType"] = LocalCluster
 
     def __init__(self):
-        self._clusters: Dict[str, ClusterType] = {_DEFAULT: None}
+        self._clusters: Dict[str, "ClusterType"] = {_DEFAULT: None}
         self._clients: Dict[str, Client] = {_DEFAULT: None}
         atexit.register(self._close)
 
-    def get_cluster(self, id_: str = None) -> Tuple[ClusterType, Client]:
+    def get_cluster(self, id_: str = None) -> Tuple["ClusterType", Client]:
         cluster = self._clusters.get(id_ or _DEFAULT)
         if cluster is None:
             raise ClusterException('No cluster "{}" set!'.format(id_))
@@ -30,8 +31,8 @@ class ClusterController(object):
         return cluster, client
 
     def add_cluster(
-        self, id_: str = None, cluster: ClusterType = None
-    ) -> Tuple[ClusterType, Client]:
+        self, id_: str = None, cluster: "ClusterType" = None
+    ) -> Tuple["ClusterType", Client]:
         if hasattr(cluster, "name"):
             if id_ is None:
                 id_ = cluster.name
@@ -44,15 +45,15 @@ class ClusterController(object):
         self._close_cluster(id_=id_)
 
     def _make_cluster(
-        self, id_: str, cluster: ClusterType = None
-    ) -> Tuple[ClusterType, Client]:
+        self, id_: str, cluster: "ClusterType" = None
+    ) -> Tuple["ClusterType", Client]:
         if id_ != _DEFAULT and id_ in self._clusters:
             raise ClusterException('Cluster "{}" already exists!'.format(id_))
         self._clusters[id_] = cluster or self._make_default_cluster(name=id_)
         self._make_client(id_=id_)
         return self._clusters[id_], self._clients[id_]
 
-    def _make_default_cluster(self, name: str) -> ClusterType:
+    def _make_default_cluster(self, name: str) -> "ClusterType":
         kwargs = {}
         if self.default_cluster is not LocalCluster:
             kwargs["name"] = name
