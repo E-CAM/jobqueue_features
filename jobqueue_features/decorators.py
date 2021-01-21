@@ -1,11 +1,14 @@
 from __future__ import print_function
 
-from typing import Callable, List, Dict  # noqa
+from typing import Callable, List, Dict, TYPE_CHECKING  # noqa
 from functools import wraps
 
 from dask.distributed import LocalCluster, Client, Future  # noqa
 
-from .clusters_controller import clusters_controller_singleton, ClusterType  # noqa
+from .clusters_controller import clusters_controller_singleton
+
+if TYPE_CHECKING:
+    from .clusters_controller import ClusterType  # noqa
 from .custom_exceptions import ClusterException
 from .mpi_wrapper import (
     MPIEXEC,
@@ -179,6 +182,7 @@ class mpi_task(task):
         return return_value, kwargs
 
     def _submit(self, cluster, client, f, *args, **kwargs):
+        # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
         # For MPI tasks, let's assume functions are not pure (by default)
         pure, kwargs = self._get_cluster_attribute(cluster, "pure", False, **kwargs)
         # For a LocalCluster, mpi_mode/fork_mpi will not have been set so let's assume
@@ -193,7 +197,7 @@ class mpi_task(task):
             fork_mpi, kwargs = self._get_cluster_attribute(
                 cluster, "fork_mpi", False, **kwargs
             )
-        # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
+
         if fork_mpi:
             # Add a set of kwargs that define the job layout to be picked up by
             # our mpi_wrap function
