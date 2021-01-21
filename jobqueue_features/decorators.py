@@ -162,11 +162,11 @@ class task(object):
 
 
 class mpi_task(task):
-    def __init__(self, cluster_id=None, default_mpi_tasks=1):
+    def __init__(self, cluster_id=None, cluster=None, default_mpi_tasks=1):
         # type: (str, int) -> None
         # set a default number of MPI tasks (in case we are running on a localcluster)
         self.default_mpi_tasks = default_mpi_tasks
-        super(mpi_task, self).__init__(cluster_id=cluster_id)
+        super(mpi_task, self).__init__(cluster_id=cluster_id, cluster=cluster)
 
     def _get_cluster_attribute(self, cluster, attribute, default, **kwargs):
         # A kwarg wins over an attribute, then fall back to default
