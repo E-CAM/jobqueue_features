@@ -1,6 +1,5 @@
 from __future__ import division
 
-import inspect
 import re
 from contextlib import suppress
 
@@ -13,6 +12,7 @@ from dask_jobqueue.slurm import SLURMJob
 from typing import TypeVar, Dict, List, Any  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
+from .functions import get_callable_args
 from .mpi_wrapper import mpi_wrap
 from .custom_exceptions import ClusterException
 
@@ -117,10 +117,8 @@ def get_features_kwarg(name, scheduler=None, queue_type=None, default=None):
     return value
 
 
-def get_base_job_kwargs():
-    kwargs = inspect.getfullargspec(Job.__init__).args
-    kwargs.remove("self")
-    return kwargs
+def get_base_job_kwargs() -> List[str]:
+    return get_callable_args(Job.__init__)
 
 
 class CustomSLURMJob(SLURMJob):
