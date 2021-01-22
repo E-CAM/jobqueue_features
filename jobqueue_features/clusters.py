@@ -715,7 +715,13 @@ class CustomClusterMixin(object):
 
             # Make sure all appropriate kwargs are found and set
             mpi_kwargs = {}
-            for attribute in ["mpi_tasks", "nodes", "cpus_per_task", "ntasks_per_node"]:
+            for attribute in [
+                "mpi_launcher",
+                "mpi_tasks",
+                "nodes",
+                "cpus_per_task",
+                "ntasks_per_node",
+            ]:
                 try:
                     mpi_kwargs.update({attribute: getattr(self, attribute)})
                 except AttributeError:
