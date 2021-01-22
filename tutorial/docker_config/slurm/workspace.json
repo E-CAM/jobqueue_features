@@ -81,9 +81,9 @@
     "file-browser-filebrowser:cwd": {
       "path": ""
     },
-    "notebook:local_cluster.ipynb": {
+    "notebook:01-decorators.ipynb": {
       "data": {
-        "path": "local_cluster.ipynb",
+        "path": "01-decorators.ipynb",
         "factory": "Notebook"
       }
     },
