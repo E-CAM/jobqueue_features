@@ -234,7 +234,6 @@ class mpi_task(task):
             # If we are not forking we need to serialize the task and arguments
             serialized_object = serialize_function_and_args(f, *args, **kwargs)
 
-            mpi_deserialize_and_execute.__name__ = f.__name__
             # Then we submit our deserializing/executing function as the task
             return super(mpi_task, self)._submit(
                 cluster,
