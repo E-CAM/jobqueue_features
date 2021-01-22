@@ -14,7 +14,6 @@ RUN git clone https://github.com/E-CAM/jobqueue_features.git
 RUN pip install -r jobqueue_features/requirements.txt
 # Add scope to use a LAMMPS example
 RUN conda install --yes -c conda-forge lammps
-RUN curl -o jobqueue_features/tutorial/docker_config/slurm/tutorial_tasks/in.melt https://raw.githubusercontent.com/lammps/lammps/master/examples/melt/in.melt
 COPY slurm.conf /etc/slurm/slurm.conf
 COPY jobqueue_features_slurm.yaml /jobqueue_features/jobqueue_features/jobqueue_features.yaml
 
