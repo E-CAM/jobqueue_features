@@ -14,7 +14,7 @@
               "type": "tab-area",
               "currentIndex": 0,
               "widgets": [
-                "notebook:local_cluster.ipynb"
+                "notebook:01-decorators.ipynb"
               ]
             },
             {
