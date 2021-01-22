@@ -219,7 +219,7 @@ class mpi_task(task):
 
             executable = kwargs.get("executable", None)
             if executable:
-                f.__name__ = "fmpi/" + executable
+                f.__name__ = self.cluster_id + "/" + executable
             return super(mpi_task, self)._submit(
                 cluster,
                 client,
@@ -237,7 +237,7 @@ class mpi_task(task):
             # If we are not forking we need to serialize the task and arguments
             serialized_object = serialize_function_and_args(f, *args, **kwargs)
 
-            mpi_deserialize_and_execute.__name__ = "mpi/" + f.__name__
+            mpi_deserialize_and_execute.__name__ = self.cluster_id + "/" + f.__name__
             # Then we submit our deserializing/executing function as the task
             return super(mpi_task, self)._submit(
                 cluster,
