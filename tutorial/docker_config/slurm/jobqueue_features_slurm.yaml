@@ -17,9 +17,8 @@ jobqueue:
     shebang: "#!/usr/bin/env bash"
     queue: batch
     # project: null
-    walltime: '00:30:00'
+    walltime: '00:04:00'
     extra: []
-    env-extra: []
     job-cpu: null
     job-mem: null
     job-extra: []
@@ -30,19 +29,20 @@ jobqueue-features:
 
   slurm:
     default-queue-type: batch       # default queue_type to use
-    cores-per-node: 1              # Physical cores per node
+    cores-per-node: 2              # Physical cores per node
     hyperthreading-factor: 2        # hyperthreading factor available (only used to trigger a warning if we go beyond
                                     # physical or an error if we go beyond logical cores)
-    minimum-cores: 1               # Minimum number of cores per dask worker is 1 full node (ignored in MPI mode)
+    minimum-cores: 2               # Minimum number of cores per dask worker is 1 full node (ignored in MPI mode)
     gpu-job-extra: []               # Only relevant for particular queue_type
     warning: null
     
     # MPI/OpenMP related settings ----
+    env-extra: ["export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1", "export OMPI_ALLOW_RUN_AS_ROOT=1"]
     mpi-mode: False                 # MPI mode is off by default
-    mpi-launcher: {"implementation": "slurm", "launcher": "srun"}  # Default launcher for MPI code (unused unless in MPI mode)
+    mpi-launcher: {"implementation": "standard", "launcher": "mpiexec"}  # Default launcher for MPI code (unused unless in MPI mode)
     nodes: null                     # Default node allocation (unused unless in MPI mode, setting a value forces user to
                                     # use ntasks_per_node and cpus_per_task)
-    ntasks-per-node: 1             # Default tasks per node (unused unless in MPI mode)
+    ntasks-per-node: 2             # Default tasks per node (unused unless in MPI mode)
     # cpus-per-task: 1                # Default cpus per task (unused unless in MPI mode, if default is 1 better not to
     #                                 # set it since we can safely assume that already)
     openmp-env-extra: ['export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}', 'export OMP_PROC_BIND=spread',
