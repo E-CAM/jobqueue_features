@@ -23,8 +23,10 @@ function start_slurm() {
       docker cp labextension.yaml slurmctld:/home/slurmuser/.config/dask/labextension.yaml
     cd -
     docker exec slurmctld /bin/bash -c "chown -R slurmuser /home/slurmuser/"
+    docker exec slurmctld /bin/bash -c "chown -R slurmuser /data"
     docker exec -u slurmuser slurmctld /bin/bash -c "jupyter lab workspace import /jobqueue_features/tutorial/docker_config/slurm/workspace.json"
-    docker exec -u slurmuser slurmctld /bin/bash -c "cd /jobqueue_features/tutorial/docker_config/slurm/tutorial_tasks; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/jobqueue_features/tutorial/docker_config/slurm/tutorial_tasks'&"
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/jobqueue_features_workshop_materials.git"
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/jobqueue_features_workshop_materials; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/data/jobqueue_features_workshop_materials'&"
 
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
