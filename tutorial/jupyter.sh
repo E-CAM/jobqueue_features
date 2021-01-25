@@ -7,23 +7,21 @@ function start_slurm() {
       ./start-slurm.sh
     cd -
 
-    docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab"
-    docker exec slurmctld /bin/bash -c "conda install -c conda-forge distributed"
-    docker exec slurmctld /bin/bash -c "conda install -c conda-forge nodejs"
-    docker exec slurmctld /bin/bash -c "pip install dask-labextension"
-    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    # Install JupyterLab and the Dask extension
+    docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab distributed nodejs dask-labextension"
+    # Add a slurmuser so we don't run as root
     docker exec slurmctld /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec c1 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec c2 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
+    docker exec slurmctld /bin/bash -c "chown -R slurmuser /home/slurmuser/"
+    docker exec slurmctld /bin/bash -c "chown -R slurmuser /data"
     docker exec slurmctld /bin/bash -c "yes|sacctmgr create account slurmuser; yes | sacctmgr create user name=slurmuser Account=slurmuser"
+    # Add the default cluster configuration for Dask Lab Extension plugin
     docker exec slurmctld /bin/bash -c "mkdir -p /home/slurmuser/.config/dask/"
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
       docker cp labextension.yaml slurmctld:/home/slurmuser/.config/dask/labextension.yaml
     cd -
-    docker exec slurmctld /bin/bash -c "chown -R slurmuser /home/slurmuser/"
-    docker exec slurmctld /bin/bash -c "chown -R slurmuser /data"
+    # Clone the tutorials, import the workspace and start the JupyterLab
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/jobqueue_features_workshop_materials.git"
     docker exec -u slurmuser slurmctld /bin/bash -c "jupyter lab workspace import /data/jobqueue_features_workshop_materials/workspace.json"
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/jobqueue_features_workshop_materials; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/data/jobqueue_features_workshop_materials'&"
