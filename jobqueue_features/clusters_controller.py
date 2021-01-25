@@ -55,9 +55,8 @@ class ClusterController(object):
 
     def _make_default_cluster(self, name: str) -> "ClusterType":
         kwargs = {}
-        if self.default_cluster is not LocalCluster:
-            kwargs["name"] = name
-        else:
+        kwargs["name"] = name
+        if self.default_cluster is LocalCluster:
             kwargs["processes"] = False
         return self.default_cluster(**kwargs)
 

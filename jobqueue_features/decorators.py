@@ -124,20 +124,13 @@ class task(object):
         # type: (str) -> None
         self.cluster_id = cluster_id
         if cluster:
-            if type(cluster) is not LocalCluster:
-                _id = getattr(cluster, "name", None)
-                if not _id:
-                    raise ClusterException("Cluster has no name attribute set.")
-                elif cluster_id and _id != cluster_id:
-                    raise ClusterException(
-                        "Cluster 'name' and cluster_id are different."
-                    )
-                else:
-                    self.cluster_id = _id
-            elif not cluster_id:
-                raise ClusterException(
-                    "'cluster_id' argument is required for LocalCluster."
-                )
+            _id = getattr(cluster, "name", None)
+            if not _id:
+                raise ClusterException("Cluster has no name attribute set.")
+            elif cluster_id and _id != cluster_id:
+                raise ClusterException("Cluster 'name' and cluster_id are different.")
+            else:
+                self.cluster_id = _id
 
     def __call__(self, f):
         # type: (Callable) -> Callable
