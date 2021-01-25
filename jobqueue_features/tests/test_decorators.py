@@ -269,7 +269,7 @@ class TestTaskDecorator(TestCase):
         original_cluster = cluster_type(name=_id)
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
-        @task(cluster=original_cluster, cluster_id="_id")
+        @task(cluster=original_cluster, cluster_id=_id)
         def f():
             pass
 
