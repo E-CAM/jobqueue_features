@@ -83,7 +83,7 @@ class TestOnClusterDecorator(TestCase):
             'LocalCluster requires "cluster_id" argument.', str(ctx.exception)
         )
 
-        _id = "test1"
+        _id = original_cluster.name
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
         def f():
