@@ -113,7 +113,7 @@ class TestOnClusterDecorator(TestCase):
 
     def test_init_only_id_local(self):
         _id = "test1"
-        original_cluster = LocalCluster()
+        original_cluster = LocalCluster(name="test1")
         controller.add_cluster(id_=_id, cluster=original_cluster)
 
         @on_cluster(cluster_id=_id)
