@@ -16,10 +16,6 @@ function start_slurm() {
     docker exec slurmctld /bin/bash -c "chown -R slurmuser /home/slurmuser/"
     docker exec slurmctld /bin/bash -c "chown -R slurmuser /data"
     docker exec slurmctld /bin/bash -c "yes|sacctmgr create account slurmuser; yes | sacctmgr create user name=slurmuser Account=slurmuser"
-    # Install devel version of jobqueue_features (which is already cloned into the image)
-    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
     # Add the default cluster configuration for Dask Lab Extension plugin
     docker exec slurmctld /bin/bash -c "mkdir -p /home/slurmuser/.config/dask/"
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"

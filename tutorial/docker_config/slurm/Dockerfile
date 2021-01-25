@@ -11,7 +11,7 @@ ENV PATH /opt/anaconda/bin:$PATH
 RUN conda install --yes -c conda-forge python=3.8 dask distributed flake8 pytest pytest-asyncio openmpi mpi4py lammps
 # Clone jobqueue and install it's requirements, and it
 RUN git clone https://github.com/E-CAM/jobqueue_features.git --branch temp_branch 
-RUN pip install -r jobqueue_features/requirements.txt
+RUN cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e .
 # Add slurm configuration
 COPY slurm.conf /etc/slurm/slurm.conf
 # Use local setup as defaults
