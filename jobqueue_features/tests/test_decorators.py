@@ -229,18 +229,7 @@ class TestTaskDecorator(TestCase):
     def test_task_by_cluster_local(self):
         _id = "test1"
         cluster_type = LocalCluster
-        original_cluster = cluster_type()
-
-        with self.assertRaises(ClusterException) as ctx:
-
-            @on_cluster(cluster=original_cluster, cluster_id=_id)
-            @task(cluster=original_cluster)
-            def f():
-                pass
-
-        self.assertEqual(
-            "'cluster_id' argument is required for LocalCluster.", str(ctx.exception)
-        )
+        original_cluster = cluster_type(name=_id)
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
         @task(cluster=original_cluster, cluster_id=_id)
