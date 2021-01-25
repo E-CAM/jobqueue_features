@@ -266,7 +266,7 @@ class TestTaskDecorator(TestCase):
     def test_task_by_cluster_and_cluster_id_local(self):
         _id = "test1"
         cluster_type = LocalCluster
-        original_cluster = cluster_type()
+        original_cluster = cluster_type(name=_id)
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
         @task(cluster=original_cluster, cluster_id="_id")
