@@ -83,7 +83,7 @@ class TestOnClusterDecorator(TestCase):
             'LocalCluster requires "cluster_id" argument.', str(ctx.exception)
         )
 
-        _id = "test1"
+        _id = original_cluster.name
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
         def f():
@@ -113,7 +113,7 @@ class TestOnClusterDecorator(TestCase):
 
     def test_init_only_id_local(self):
         _id = "test1"
-        original_cluster = LocalCluster()
+        original_cluster = LocalCluster(name="test1")
         controller.add_cluster(id_=_id, cluster=original_cluster)
 
         @on_cluster(cluster_id=_id)
@@ -229,18 +229,7 @@ class TestTaskDecorator(TestCase):
     def test_task_by_cluster_local(self):
         _id = "test1"
         cluster_type = LocalCluster
-        original_cluster = cluster_type()
-
-        with self.assertRaises(ClusterException) as ctx:
-
-            @on_cluster(cluster=original_cluster, cluster_id=_id)
-            @task(cluster=original_cluster)
-            def f():
-                pass
-
-        self.assertEqual(
-            "'cluster_id' argument is required for LocalCluster.", str(ctx.exception)
-        )
+        original_cluster = cluster_type(name=_id)
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
         @task(cluster=original_cluster, cluster_id=_id)
@@ -277,10 +266,10 @@ class TestTaskDecorator(TestCase):
     def test_task_by_cluster_and_cluster_id_local(self):
         _id = "test1"
         cluster_type = LocalCluster
-        original_cluster = cluster_type()
+        original_cluster = cluster_type(name=_id)
 
         @on_cluster(cluster=original_cluster, cluster_id=_id)
-        @task(cluster=original_cluster, cluster_id="_id")
+        @task(cluster=original_cluster, cluster_id=_id)
         def f():
             pass
 
