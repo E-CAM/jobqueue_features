@@ -94,7 +94,9 @@ class on_cluster(object):
         return type(cluster) is LocalCluster
 
     def _get_cluster_id(
-        self, cluster: Optional["ClusterType"] = None, cluster_id: Optional[str] = None,
+        self,
+        cluster: Optional["ClusterType"] = None,
+        cluster_id: Optional[str] = None,
     ) -> str:
         if cluster:
             if not self._is_local_cluster(cluster=cluster):
@@ -124,7 +126,9 @@ class task(object):
     """
 
     def __init__(
-        self, cluster_id: Optional[str] = None, cluster: Optional["ClusterType"] = None,
+        self,
+        cluster_id: Optional[str] = None,
+        cluster: Optional["ClusterType"] = None,
     ) -> None:
         self.cluster_id = cluster_id
         if cluster:
@@ -173,7 +177,11 @@ class mpi_task(task):
         super(mpi_task, self).__init__(cluster_id=cluster_id, cluster=cluster)
 
     def _get_cluster_attribute(
-        self, cluster: "ClusterType", attribute: str, default: Any, **kwargs,
+        self,
+        cluster: "ClusterType",
+        attribute: str,
+        default: Any,
+        **kwargs,
     ) -> Tuple[Any, Dict[Any, Any]]:
         # A kwarg wins over an attribute, then fall back to default
         return_value = None
@@ -185,7 +193,12 @@ class mpi_task(task):
         return return_value, kwargs
 
     def _submit(
-        self, cluster: "ClusterType", client: Client, f: Callable, *args, **kwargs,
+        self,
+        cluster: "ClusterType",
+        client: Client,
+        f: Callable,
+        *args,
+        **kwargs,
     ) -> Future:
         # For MPI tasks, let's assume functions are not pure (by default)
         pure, kwargs = self._get_cluster_attribute(cluster, "pure", False, **kwargs)
