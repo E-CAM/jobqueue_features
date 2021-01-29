@@ -104,7 +104,7 @@ def mpi_wrap(
     ntasks_per_node: int = None,
     exec_args: str = "",
     return_wrapped_command: bool = False,
-    **kwargs
+    **kwargs,
 ) -> Union[str, Dict[str, str]]:
     def get_default_mpi_params(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node

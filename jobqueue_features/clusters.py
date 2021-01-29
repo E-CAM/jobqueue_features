@@ -9,7 +9,7 @@ from dask.distributed import Client, LocalCluster
 from dask_jobqueue.core import Job
 from dask_jobqueue.pbs import PBSJob
 from dask_jobqueue.slurm import SLURMJob
-from typing import TypeVar, Dict, List, Any  # noqa
+from typing import TypeVar, Dict, List, Any, Optional  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 from .functions import get_callable_args
@@ -62,7 +62,7 @@ custom_cluster_attributes = """
         Whether the default for tasks submitted to the cluster are pure or not""".strip()
 
 
-def get_cluster(scheduler=None, **kwargs):
+def get_cluster(scheduler: Optional[str] = None, **kwargs) -> "ClusterType":
     if scheduler is None:
         scheduler = config.get("jobqueue-features.scheduler", default=None)
     if scheduler is None:
@@ -80,14 +80,22 @@ def get_cluster(scheduler=None, **kwargs):
         )
 
 
-def get_features_kwarg(name, scheduler=None, queue_type=None, default=None):
-    """
-    Search in the jobqueue_features config for a value for kw_name
-    :param scheduler: scheduler name to search for in configuration
-    :param name: string to search for in configuration
-    :param queue_type: queue type to search for in config
-    :param default: default value to give if nothing in config files
-    :return: value or None
+def get_features_kwarg(
+    name: str,
+    scheduler: Optional[str] = None,
+    queue_type: Optional[str] = None,
+    default: Optional[Any] = None,
+) -> Optional[Any]:
+    """Searches in the jobqueue_features config for a value for kw_name.
+
+    Args:
+        name: The key to search for in config.
+        scheduler: The name of scheduler's config for which search is taken.
+        queue_type: The queue type to search for in config.
+        default: A default value to give if nothing in config files.
+
+    Returns:
+        Found value or the default value.
     """
     value = None
     # search for kw_name from bottom up queue_type -> scheduler -> jobqueue_features
