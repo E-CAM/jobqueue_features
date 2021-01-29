@@ -62,7 +62,7 @@ class TestOnClusterDecorator(TestCase):
         _id = "test1"
         original_cluster = CustomSLURMCluster(name=_id)
 
-        @on_cluster(cluster=original_cluster)  # noqa
+        @on_cluster(cluster=original_cluster)  # noqa: F811
         def f():
             pass
 
@@ -85,7 +85,7 @@ class TestOnClusterDecorator(TestCase):
 
         _id = original_cluster.name
 
-        @on_cluster(cluster=original_cluster, cluster_id=_id)  # noqa
+        @on_cluster(cluster=original_cluster, cluster_id=_id)  # noqa: F811
         def f():
             pass
 
@@ -138,7 +138,9 @@ class TestOnClusterDecorator(TestCase):
         controller.delete_cluster(original_cluster.name)
         original_cluster = CustomSLURMCluster()
 
-        @on_cluster(cluster_id=original_cluster.name, cluster=original_cluster)  # noqa
+        @on_cluster(  # noqa: F811
+            cluster_id=original_cluster.name, cluster=original_cluster
+        )
         def f():
             pass
 
@@ -150,7 +152,7 @@ class TestOnClusterDecorator(TestCase):
 
         original_cluster = CustomSLURMCluster(name=_id)
 
-        @on_cluster(cluster_id=_id, cluster=original_cluster)  # noqa
+        @on_cluster(cluster_id=_id, cluster=original_cluster)  # noqa: F811
         def f():
             pass
 
@@ -255,7 +257,7 @@ class TestTaskDecorator(TestCase):
             "Cluster 'name' and cluster_id are different.", str(ctx.exception)
         )
 
-        @on_cluster(cluster=original_cluster)  # noqa
+        @on_cluster(cluster=original_cluster)  # noqa: F811
         @task(cluster=original_cluster, cluster_id=_id)
         def f():
             pass

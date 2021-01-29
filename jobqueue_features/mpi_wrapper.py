@@ -93,7 +93,7 @@ def which(filename):
     return result
 
 
-def mpi_wrap(
+def mpi_wrap(  # noqa: C901
     executable: str = None,
     pre_launcher_opts: str = "",
     mpi_launcher: Dict[str, str] = None,
@@ -120,22 +120,23 @@ def mpi_wrap(
         jobs)
         :param ntasks_per_node: Number of MPI tasks per node
         :return: string
-        """
+        """  # noqa: E501
         if mpi_launcher in SUPPORTED_MPI_LAUNCHERS:
             # Let's not error-check excessively, only the most obvious
             if mpi_tasks is None and any([nodes is None, ntasks_per_node is None]):
                 raise ValueError(
-                    "If mpi_tasks is not set then nodes and ntasks_per_node must be set instead"
+                    "If mpi_tasks is not set then nodes and ntasks_per_node must be "
+                    "set instead"
                 )
             if mpi_tasks is None:
                 mpi_tasks = nodes * ntasks_per_node
             if mpi_launcher == MPIEXEC:
-                # mpiexec is defined by the standard and very basic, you can only tell it
-                # how many MPI tasks to start
+                # mpiexec is defined by the standard and very basic, you can only tell
+                # it how many MPI tasks to start
                 mpi_params = "-n {}".format(mpi_tasks)
             elif mpi_launcher == SRUN:
-                # SLURM already has everything it needs from the environment variables set
-                # by the batch script
+                # SLURM already has everything it needs from the environment variables
+                # set by the batch script
                 mpi_params = ""
             elif mpi_launcher == OPENMPI:
                 # OpenMPI automatically does binding to socket for np>2, so we don't
@@ -178,17 +179,13 @@ def mpi_wrap(
     if mpi_launcher is None:
         raise ValueError("The kwarg mpi_launcher must be set!")
     if not isinstance(executable, str):
-        ValueError(
-            "executable is interpreted as a simple basestring: %(executable)".format(
-                executable=executable
-            )
-        )
+        ValueError(f"executable is interpreted as a simple basestring: {executable}")
         # Also check for the existence of the executable (unless we
         # "return_wrapped_command")
         if not which(executable) and not return_wrapped_command:
             ValueError(
-                "The executable should be available in the users path and have execute "
-                "rights: please check %(executable)".format(executable=executable)
+                f"The executable should be available in the users path and have "
+                f"execute rights: please check {executable}"
             )
     default_launcher_args = get_default_mpi_params(
         mpi_launcher, mpi_tasks, nodes, cpus_per_task, ntasks_per_node

@@ -31,7 +31,8 @@ class on_cluster(object):
         Gets or create cluster with given id. If no id provided controller
         gets default cluster (cluster_id = 'default').
     jobs : int
-        Scale cluster to given number of jobs (default or given by id or passes by cluster parameter).
+        Scale cluster to given number of jobs (default or given by id or passes
+        by cluster parameter).
     """
 
     def __init__(

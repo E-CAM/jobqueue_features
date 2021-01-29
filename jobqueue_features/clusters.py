@@ -59,7 +59,8 @@ custom_cluster_attributes = """
     maximum_jobs : int
         Maximum amount of jobs for the cluster to scale to
     pure : bool
-        Whether the default for tasks submitted to the cluster are pure or not""".strip()
+        Whether the default for tasks submitted to the cluster are
+        pure or not""".strip()
 
 
 def get_cluster(scheduler: Optional[str] = None, **kwargs) -> "ClusterType":
@@ -321,9 +322,8 @@ class CustomClusterMixin(object):
             # in MPI mode we default pure to false
             default = False
             self.warnings.append(
-                "For this cluster with mpi mode, default value of 'pure' set to {} (can be overridden by kwarg)".format(
-                    default
-                )
+                f"For this cluster with mpi mode, default value of 'pure' set to"
+                f" {default} (can be overridden by kwarg)"
             )
         else:
             default = None
@@ -342,17 +342,17 @@ class CustomClusterMixin(object):
     def validate_positive_integer(self, attr_name: str) -> None:
         value = getattr(self, attr_name, None)
         if not (isinstance(value, int) and value >= 1):
-            raise ValueError("{} should be an integer >= 1".format(attr_name))
+            raise ValueError(f"{attr_name} should be an integer >= 1")
 
     def validate_cluster_name(self, name):
         from .clusters_controller import clusters_controller_singleton
 
         try:
             clusters_controller_singleton.get_cluster(id_=name)
-        except:
+        except:  # noqa: E722
             pass
         else:
-            raise ClusterException('Cluster with name "{}" already exists'.format(name))
+            raise ClusterException(f'Cluster with name "{name}" already exists')
 
     def _add_to_cluster_controller(self):
         from .clusters_controller import clusters_controller_singleton
@@ -469,10 +469,11 @@ class CustomClusterMixin(object):
             self.pure = default
         else:
             self.warnings.append(
-                "No boolean value for 'pure' or default, not setting default value for cluster."
+                "No boolean value for 'pure' or default, not setting default value"
+                " for cluster."
             )
 
-    def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:
+    def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:  # noqa: C901
         self._get_mpi_mode(kwargs.get("mpi_mode"))
         if self.mpi_mode:
             self._get_mpi_launcher(kwargs.get("mpi_launcher"))

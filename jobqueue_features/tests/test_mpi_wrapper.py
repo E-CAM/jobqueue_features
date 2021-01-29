@@ -287,7 +287,8 @@ class TestMPIWrap(TestCase):
 
         comm = MPI.COMM_WORLD
         self.assertTrue(verify_mpi_communicator(comm, mpi_abort=False))
-        # The test framework is not started with an MPI launcher so we have a single task
+        # The test framework is not started with an MPI launcher so we have
+        # a single task
         set_task_mpi_comm(parent_comm=comm)
         trivial = "trivial"
         serialized_object = serialize_function_and_args(self.mpi_task1, trivial)

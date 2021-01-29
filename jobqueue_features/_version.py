@@ -120,7 +120,7 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
         dirname = os.path.basename(root)
         if dirname.startswith(parentdir_prefix):
             return {
-                "version": dirname[len(parentdir_prefix) :],
+                "version": dirname[len(parentdir_prefix) :],  # noqa: E203
                 "full-revisionid": None,
                 "dirty": False,
                 "error": None,
@@ -167,7 +167,7 @@ def git_get_keywords(versionfile_abs):
     return keywords
 
 
-@register_vcs_handler("git", "keywords")
+@register_vcs_handler("git", "keywords")  # noqa: C901
 def git_versions_from_keywords(keywords, tag_prefix, verbose):
     """Get version information from git keywords."""
     if not keywords:
@@ -190,7 +190,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
     # just "foo-1.0". If we see a "tag: " prefix, prefer those.
     TAG = "tag: "
-    tags = set([r[len(TAG) :] for r in refs if r.startswith(TAG)])
+    tags = set([r[len(TAG) :] for r in refs if r.startswith(TAG)])  # noqa: E203
     if not tags:
         # Either we're using git < 1.8.3, or there really are no tags. We use
         # a heuristic: assume all version tags have a digit. The old git %d
@@ -207,7 +207,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     for ref in sorted(tags):
         # sorting will prefer e.g. "2.0" over "2.0rc1"
         if ref.startswith(tag_prefix):
-            r = ref[len(tag_prefix) :]
+            r = ref[len(tag_prefix) :]  # noqa: E203
             if verbose:
                 print("picking %s" % r)
             return {
@@ -229,7 +229,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     }
 
 
-@register_vcs_handler("git", "pieces_from_vcs")
+@register_vcs_handler("git", "pieces_from_vcs")  # noqa: C901
 def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     """Get version from 'git describe' in the root of the source tree.
 
@@ -307,7 +307,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
                 tag_prefix,
             )
             return pieces
-        pieces["closest-tag"] = full_tag[len(tag_prefix) :]
+        pieces["closest-tag"] = full_tag[len(tag_prefix) :]  # noqa: E203
 
         # distance: number of commits since tag
         pieces["distance"] = int(mo.group(2))
@@ -504,7 +504,7 @@ def render(pieces, style):
     }
 
 
-def get_versions():
+def get_versions():  # noqa: C901
     """Get version information or return default if unable to do so."""
     # I am in _version.py, which lives at ROOT/VERSIONFILE_SOURCE. If we have
     # __file__, we can work backwards from there to the root. Some
