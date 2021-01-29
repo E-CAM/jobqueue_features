@@ -5,7 +5,7 @@ from distributed.utils_test import loop  # noqa: F401
 
 import pytest
 
-# import dask_jobqueue.lsf
+import dask_jobqueue.lsf  # noqa: F401
 
 
 def pytest_addoption(parser):
