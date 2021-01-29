@@ -30,8 +30,8 @@ class TestPBS(TestCase):
         self.assertEqual(cluster.mpi_mode, False)
         self.assertEqual(cluster.mpi_mode, False)
         self.assertIn(f"#PBS -N {job_name}", job_script)
-        self.assertIn(f"#PBS -l select=1:ncpus=1", job_script)
-        self.assertIn(f"--nthreads 1", job_script)
+        self.assertIn("#PBS -l select=1:ncpus=1", job_script)
+        self.assertIn("--nthreads 1", job_script)
 
     def test_cores(self):
         job_name = "test_pbs"

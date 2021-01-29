@@ -36,7 +36,7 @@ class TestOnClusterDecorator(TestCase):
     cluster=None,         cluster_id=str  : when default cluster is SLURMCluster check for cluster with such id
     cluster=SLURMCluster, cluster_id=str  : assert cluster.name == id
     cluster=LocalCluster, cluster_id=str  : register cluster by given id
-    """
+    """  # noqa: E501
 
     def tearDown(self):
         controller._close()
@@ -62,7 +62,7 @@ class TestOnClusterDecorator(TestCase):
         _id = "test1"
         original_cluster = CustomSLURMCluster(name=_id)
 
-        @on_cluster(cluster=original_cluster)
+        @on_cluster(cluster=original_cluster)  # noqa
         def f():
             pass
 
@@ -85,7 +85,7 @@ class TestOnClusterDecorator(TestCase):
 
         _id = original_cluster.name
 
-        @on_cluster(cluster=original_cluster, cluster_id=_id)
+        @on_cluster(cluster=original_cluster, cluster_id=_id)  # noqa
         def f():
             pass
 
@@ -138,7 +138,7 @@ class TestOnClusterDecorator(TestCase):
         controller.delete_cluster(original_cluster.name)
         original_cluster = CustomSLURMCluster()
 
-        @on_cluster(cluster_id=original_cluster.name, cluster=original_cluster)
+        @on_cluster(cluster_id=original_cluster.name, cluster=original_cluster)  # noqa
         def f():
             pass
 
@@ -150,7 +150,7 @@ class TestOnClusterDecorator(TestCase):
 
         original_cluster = CustomSLURMCluster(name=_id)
 
-        @on_cluster(cluster_id=_id, cluster=original_cluster)
+        @on_cluster(cluster_id=_id, cluster=original_cluster)  # noqa
         def f():
             pass
 
@@ -255,7 +255,7 @@ class TestTaskDecorator(TestCase):
             "Cluster 'name' and cluster_id are different.", str(ctx.exception)
         )
 
-        @on_cluster(cluster=original_cluster)
+        @on_cluster(cluster=original_cluster)  # noqa
         @task(cluster=original_cluster, cluster_id=_id)
         def f():
             pass
