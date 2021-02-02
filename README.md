@@ -17,8 +17,8 @@ allow you to test the usage from within a notebook on a
 
 The commands below will start a set of docker containers consisting of a login node and
 two compute nodes. The SLURM resource manager
-and a JupyterLab instance linked to the head node. Feel free to try,
-learn and explore using the tutorial notebooks you find there.
+and a JupyterLab instance are linked to the login node. Feel free to try,
+learn and explore using the tutorial notebooks you find in JupyterLab.
 
 Requirements:
 * **The setup requires ~5GB of diskspace and will download ~1GB of data over the
