@@ -26,8 +26,13 @@ function start_slurm() {
     echo
 }
 
+
 function start_tutorial() {
     start_slurm
+    launch_tutorial_slurm
+}
+
+function launch_tutorial_slurm() {
     # Clone the tutorials, import the workspace and start the JupyterLab
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/jobqueue_features_workshop_materials.git"
     docker exec -u slurmuser slurmctld /bin/bash -c "jupyter lab workspace import /data/jobqueue_features_workshop_materials/workspace.json"
