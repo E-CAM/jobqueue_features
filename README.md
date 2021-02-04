@@ -48,10 +48,10 @@ that defines them. This requires you to first clone the repository:
 git clone https://github.com/E-CAM/jobqueue_features.git
 
 # Enter the directory
-cd jobqueue_features
+cd jobqueue_features/tutorial
 
 # Configure our commands to start/stop/clean our containers
-source tutorial/jupyter.sh
+source jupyter.sh
 ```
 
 The bash functions hide away the details of what is done to start, stop and clean up
