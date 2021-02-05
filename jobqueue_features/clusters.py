@@ -474,7 +474,8 @@ class CustomClusterMixin(object):
 
     def _get_minimum_jobs(self, minimum_jobs: int, default: int = 0) -> None:
         self.minimum_jobs = minimum_jobs if minimum_jobs is not None else default
-        self.validate_positive_integer("minimum_jobs")
+        if self.minimum_jobs != 0:
+            self.validate_positive_integer("minimum_jobs")
         if hasattr(self, "maximum_jobs"):
             maximum_jobs = self.maximum_jobs
             if type(maximum_jobs) is int and self.minimum_jobs > maximum_jobs:
