@@ -157,7 +157,7 @@ class TestClusters(TestCase):
 
     def test_mpi_complex_job_cluster_fail(self):
         # Now a few more variables
-        with self.assertRaises(ValueError) as ctx:
+        with self.assertRaises(ValueError):
             # When we provide ntasks_per_node, cpus_per_tasks is derived (in this case
             # 24/2 = 12). For an MPI job we expect the core count (which is the total
             # number of cores to be used) to be divisible by cpus_per_tasks but that is

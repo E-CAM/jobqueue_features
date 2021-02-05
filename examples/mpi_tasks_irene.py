@@ -81,7 +81,8 @@ custom_cluster = IreneCluster(
     env_extra=[
         "module purge",
         "module load python3/3.7.2",
-        "export PYTHONPATH=/ccc/cont005/home/unipolog/wlodarca/installed/lib/python3.7/site-packages/",
+        "export PYTHONPATH=/ccc/cont005/home/unipolog/wlodarca/installed/lib"
+        "/python3.7/site-packages/",
     ],
     **knl_kwargs,
 )
@@ -93,7 +94,7 @@ def task():
     import time
     import os
 
-    from mpi4py import MPI
+    from mpi4py import MPI  # noqa
 
     os.chdir("/tmp")
 

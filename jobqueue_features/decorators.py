@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from typing import Callable, List, Dict, TYPE_CHECKING  # noqa
+from typing import Callable, List, Dict, TYPE_CHECKING, Optional, Tuple, Any  # noqa
 from functools import wraps
 
 from dask.distributed import LocalCluster, Client, Future  # noqa
@@ -31,11 +31,16 @@ class on_cluster(object):
         Gets or create cluster with given id. If no id provided controller
         gets default cluster (cluster_id = 'default').
     jobs : int
-        Scale cluster to given number of jobs (default or given by id or passes by cluster parameter).
+        Scale cluster to given number of jobs (default or given by id or passes
+        by cluster parameter).
     """
 
-    def __init__(self, cluster=None, cluster_id=None, jobs=None):
-        # type: (ClusterType, str, int) -> None
+    def __init__(
+        self,
+        cluster: Optional["ClusterType"] = None,
+        cluster_id: Optional[str] = None,
+        jobs: Optional[int] = None,
+    ) -> None:
         _id = self._get_cluster_id(cluster=cluster, cluster_id=cluster_id)
         try:
             self.cluster, client = clusters_controller_singleton.get_cluster(
@@ -78,8 +83,7 @@ class on_cluster(object):
                     minimum_jobs=0, maximum_jobs=self.cluster.maximum_jobs
                 )
 
-    def __call__(self, f):
-        # type: (Callable) -> Callable
+    def __call__(self, f: Callable) -> Callable:
         @wraps(f)
         def wrapped_function(*args, **kwargs):
             return f(*args, **kwargs)
@@ -87,12 +91,14 @@ class on_cluster(object):
         return wrapped_function
 
     @staticmethod
-    def _is_local_cluster(cluster):
-        # type: (ClusterType) -> bool
+    def _is_local_cluster(cluster: "ClusterType") -> bool:
         return type(cluster) is LocalCluster
 
-    def _get_cluster_id(self, cluster=None, cluster_id=None):
-        # type: (ClusterType, str) -> str
+    def _get_cluster_id(
+        self,
+        cluster: Optional["ClusterType"] = None,
+        cluster_id: Optional[str] = None,
+    ) -> str:
         if cluster:
             if not self._is_local_cluster(cluster=cluster):
                 if cluster_id is not None:
@@ -120,8 +126,11 @@ class task(object):
         Gets client of given cluster by id or 'default' if none given.
     """
 
-    def __init__(self, cluster_id=None, cluster=None):
-        # type: (str) -> None
+    def __init__(
+        self,
+        cluster_id: Optional[str] = None,
+        cluster: Optional["ClusterType"] = None,
+    ) -> None:
         self.cluster_id = cluster_id
         if cluster:
             _id = getattr(cluster, "name", None)
@@ -132,16 +141,15 @@ class task(object):
             else:
                 self.cluster_id = _id
 
-    def __call__(self, f):
-        # type: (Callable) -> Callable
+    def __call__(self, f: Callable) -> Callable:
         @wraps(f)
-        def wrapped_f(*args, **kwargs):  # type: (...) -> Future
+        def wrapped_f(*args, **kwargs) -> Future:
             cluster, client = self._get_cluster_and_client()
             return self._submit(cluster, client, f, *args, **kwargs)
 
         return wrapped_f
 
-    def _get_cluster_and_client(self):
+    def _get_cluster_and_client(self) -> Tuple["ClusterType", Client]:
         try:
             return clusters_controller_singleton.get_cluster(id_=self.cluster_id)
         except KeyError:
@@ -149,8 +157,9 @@ class task(object):
                 "Could not find Cluster or Client. " "Use @on_cluster() decorator."
             )
 
-    def _submit(self, cluster, client, f, *args, **kwargs):
-        # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
+    def _submit(
+        self, cluster: "ClusterType", client: Client, f: Callable, *args, **kwargs
+    ) -> Future:
         # For normal tasks, we maintain the Dask default that functions are pure (by
         # default)
         kwargs.update({"pure": getattr(cluster, "pure", getattr(kwargs, "pure", True))})
@@ -158,13 +167,23 @@ class task(object):
 
 
 class mpi_task(task):
-    def __init__(self, cluster_id=None, cluster=None, default_mpi_tasks=1):
-        # type: (str, int) -> None
+    def __init__(
+        self,
+        cluster_id: Optional[str] = None,
+        cluster: Optional["ClusterType"] = None,
+        default_mpi_tasks: int = 1,
+    ) -> None:
         # set a default number of MPI tasks (in case we are running on a localcluster)
         self.default_mpi_tasks = default_mpi_tasks
         super(mpi_task, self).__init__(cluster_id=cluster_id, cluster=cluster)
 
-    def _get_cluster_attribute(self, cluster, attribute, default, **kwargs):
+    def _get_cluster_attribute(
+        self,
+        cluster: "ClusterType",
+        attribute: str,
+        default: Any,
+        **kwargs,
+    ) -> Tuple[Any, Dict[Any, Any]]:
         # A kwarg wins over an attribute, then fall back to default
         return_value = None
         if attribute in kwargs:
@@ -174,8 +193,14 @@ class mpi_task(task):
 
         return return_value, kwargs
 
-    def _submit(self, cluster, client, f, *args, **kwargs):
-        # type: (ClusterType, Client, Callable, List[...], Dict[...]) -> Future
+    def _submit(
+        self,
+        cluster: "ClusterType",
+        client: Client,
+        f: Callable,
+        *args,
+        **kwargs,
+    ) -> Future:
         # For MPI tasks, let's assume functions are not pure (by default)
         pure, kwargs = self._get_cluster_attribute(cluster, "pure", False, **kwargs)
         # For a LocalCluster, mpi_mode/fork_mpi will not have been set so let's assume
@@ -224,7 +249,7 @@ class mpi_task(task):
                 nodes=nodes,
                 cpus_per_task=cpus_per_task,
                 ntasks_per_node=ntasks_per_node,
-                **kwargs
+                **kwargs,
             )
         else:
             # If we are not forking we need to serialize the task and arguments

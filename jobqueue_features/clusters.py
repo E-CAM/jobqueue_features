@@ -9,7 +9,7 @@ from dask.distributed import Client, LocalCluster
 from dask_jobqueue.core import Job
 from dask_jobqueue.pbs import PBSJob
 from dask_jobqueue.slurm import SLURMJob
-from typing import TypeVar, Dict, List, Any  # noqa
+from typing import TypeVar, Dict, List, Any, Optional  # noqa
 
 from .cli.mpi_dask_worker import MPI_DASK_WRAPPER_MODULE
 from .functions import get_callable_args
@@ -59,10 +59,11 @@ custom_cluster_attributes = """
     maximum_jobs : int
         Maximum amount of jobs for the cluster to scale to
     pure : bool
-        Whether the default for tasks submitted to the cluster are pure or not""".strip()
+        Whether the default for tasks submitted to the cluster are
+        pure or not""".strip()
 
 
-def get_cluster(scheduler=None, **kwargs):
+def get_cluster(scheduler: Optional[str] = None, **kwargs) -> "ClusterType":
     if scheduler is None:
         scheduler = config.get("jobqueue-features.scheduler", default=None)
     if scheduler is None:
@@ -80,14 +81,22 @@ def get_cluster(scheduler=None, **kwargs):
         )
 
 
-def get_features_kwarg(name, scheduler=None, queue_type=None, default=None):
-    """
-    Search in the jobqueue_features config for a value for kw_name
-    :param scheduler: scheduler name to search for in configuration
-    :param name: string to search for in configuration
-    :param queue_type: queue type to search for in config
-    :param default: default value to give if nothing in config files
-    :return: value or None
+def get_features_kwarg(
+    name: str,
+    scheduler: Optional[str] = None,
+    queue_type: Optional[str] = None,
+    default: Optional[Any] = None,
+) -> Optional[Any]:
+    """Searches in the jobqueue_features config for a value for kw_name.
+
+    Args:
+        name: The key to search for in config.
+        scheduler: The name of scheduler's config for which search is taken.
+        queue_type: The queue type to search for in config.
+        default: A default value to give if nothing in config files.
+
+    Returns:
+        Found value or the default value.
     """
     value = None
     # search for kw_name from bottom up queue_type -> scheduler -> jobqueue_features
@@ -313,9 +322,8 @@ class CustomClusterMixin(object):
             # in MPI mode we default pure to false
             default = False
             self.warnings.append(
-                "For this cluster with mpi mode, default value of 'pure' set to {} (can be overridden by kwarg)".format(
-                    default
-                )
+                f"For this cluster with mpi mode, default value of 'pure' set to"
+                f" {default} (can be overridden by kwarg)"
             )
         else:
             default = None
@@ -334,17 +342,17 @@ class CustomClusterMixin(object):
     def validate_positive_integer(self, attr_name: str) -> None:
         value = getattr(self, attr_name, None)
         if not (isinstance(value, int) and value >= 1):
-            raise ValueError("{} should be an integer >= 1".format(attr_name))
+            raise ValueError(f"{attr_name} should be an integer >= 1")
 
     def validate_cluster_name(self, name):
         from .clusters_controller import clusters_controller_singleton
 
         try:
             clusters_controller_singleton.get_cluster(id_=name)
-        except:
+        except:  # noqa: E722
             pass
         else:
-            raise ClusterException('Cluster with name "{}" already exists'.format(name))
+            raise ClusterException(f'Cluster with name "{name}" already exists')
 
     def _add_to_cluster_controller(self):
         from .clusters_controller import clusters_controller_singleton
@@ -461,10 +469,11 @@ class CustomClusterMixin(object):
             self.pure = default
         else:
             self.warnings.append(
-                "No boolean value for 'pure' or default, not setting default value for cluster."
+                "No boolean value for 'pure' or default, not setting default value"
+                " for cluster."
             )
 
-    def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:
+    def _update_kwargs_cores(self, **kwargs) -> Dict[str, Any]:  # noqa: C901
         self._get_mpi_mode(kwargs.get("mpi_mode"))
         if self.mpi_mode:
             self._get_mpi_launcher(kwargs.get("mpi_launcher"))

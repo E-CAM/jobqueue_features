@@ -4,7 +4,6 @@ Parallel Hello World
 """
 
 from mpi4py import MPI
-import os
 import time
 
 comm = MPI.COMM_WORLD

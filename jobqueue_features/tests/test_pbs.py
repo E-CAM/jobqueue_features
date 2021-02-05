@@ -30,8 +30,8 @@ class TestPBS(TestCase):
         self.assertEqual(cluster.mpi_mode, False)
         self.assertEqual(cluster.mpi_mode, False)
         self.assertIn(f"#PBS -N {job_name}", job_script)
-        self.assertIn(f"#PBS -l select=1:ncpus=1", job_script)
-        self.assertIn(f"--nthreads 1", job_script)
+        self.assertIn("#PBS -l select=1:ncpus=1", job_script)
+        self.assertIn("--nthreads 1", job_script)
 
     def test_cores(self):
         job_name = "test_pbs"
@@ -49,8 +49,8 @@ class TestPBS(TestCase):
         )
         job_script = cluster.job_script()
         self.assertEqual(cluster.cores_per_node, 2)
-        self.assertIn(f"#PBS -l select=1:ncpus=2", job_script)
-        self.assertIn(f"--nprocs 2", job_script)
+        self.assertIn("#PBS -l select=1:ncpus=2", job_script)
+        self.assertIn("--nprocs 2", job_script)
 
     def test_nodes(self):
         job_name = "test_pbs"

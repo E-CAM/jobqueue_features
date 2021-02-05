@@ -40,8 +40,8 @@ services:
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
     ports:
-      - "8888:8888"
-      - "8787:8787"
+      - "8888"
+      - "8787"
     expose:
       - "6817"
     depends_on:

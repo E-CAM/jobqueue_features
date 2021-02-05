@@ -232,7 +232,6 @@ class TestBase:
             pass
 
     def _test_single_mpi_tasks(self):
-        #
         # Assume here we have srun support
         if self.run_tests:
             controller._close()
