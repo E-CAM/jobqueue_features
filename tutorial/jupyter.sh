@@ -7,9 +7,6 @@ function start_slurm() {
       ./start-slurm.sh
     cd -
 
-    # Retrieve the host port
-    hostport=$(docker port slurmctld 8888 | cut -d ":" -f2)
-    daskport=$(docker port slurmctld 8787 | cut -d ":" -f2)
     # Install JupyterLab and the Dask extension
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab distributed nodejs dask-labextension"
     # Add a slurmuser so we don't run as root
@@ -24,17 +21,45 @@ function start_slurm() {
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
       docker cp labextension.yaml slurmctld:/home/slurmuser/.config/dask/labextension.yaml
     cd -
-    # Clone the tutorials, import the workspace and start the JupyterLab
-    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/jobqueue_features_workshop_materials.git"
-    docker exec -u slurmuser slurmctld /bin/bash -c "jupyter lab workspace import /data/jobqueue_features_workshop_materials/workspace.json"
-    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/jobqueue_features_workshop_materials; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/data/jobqueue_features_workshop_materials'&"
-
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
     echo
+}
+
+function _report_links() {
+    # Retrieve the host port
+    hostport=$(docker port slurmctld 8888 | cut -d ":" -f2)
+    daskport=$(docker port slurmctld 8787 | cut -d ":" -f2)
     echo -e "\t\e[32mOpen your browser at http://localhost:$hostport/lab/workspaces/lab\e[0m"
     echo -e "\tDefault Dask dashboard will be available at http://localhost:$daskport"
     echo
+}
+
+function launch_tutorial_slurm() {
+    TUTORIAL="jobqueue_features_workshop_materials"
+    # Clone the tutorials, import the workspace and start the JupyterLab
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/${TUTORIAL}.git"
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/${TUTORIAL}; git pull"
+    docker exec -u slurmuser slurmctld /bin/bash -c "jupyter lab workspace import /data/${TUTORIAL}/workspace.json"
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/${TUTORIAL}; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/data/${TUTORIAL}'&"
+    _report_links
+}
+
+
+function start_tutorial() {
+    start_slurm
+    launch_tutorial_slurm
+}
+
+
+function start_jobqueue_tutorial() {
+    start_slurm
+    TUTORIAL="workshop-Dask-Jobqueue-cecam-2021-02"
+    # Clone the tutorials, import the workspace and start the JupyterLab
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/${TUTORIAL}.git"
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/${TUTORIAL}; git pull"
+    docker exec -u slurmuser slurmctld /bin/bash -c "cd /data/${TUTORIAL}/notebooks; jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.notebook_dir='/data/${TUTORIAL}/notebooks'&"
+    _report_links
 }
 
 function test_slurm() {
