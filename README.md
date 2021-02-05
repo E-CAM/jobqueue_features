@@ -69,9 +69,10 @@ start_slurm
 This step includes cloning the tutorial (which can be found at
 https://github.com/E-CAM/jobqueue_features_workshop_materials) *inside* the cluster.
 
-You should now be able to access the JupyterLab instance from your browser on
-`http://localhost:8888/lab/workspaces/lab` and will find a number of notebooks for you
-to work through there.
+You should now be able to access the JupyterLab instance from your browser via the
+link that is printed when the command has completed (something similar to
+`http://localhost:SOME_PORT/lab/workspaces/lab`) and will find a number of notebooks for
+you to work through there.
 
 If you would like to stop the tutorial you can use
 ```
