@@ -64,7 +64,7 @@ defined (e.g., `type start_slurm`).
 There are three bash functions. The first of which sets the environment up:
 ```
 # Start and configure the cluster
-start_slurm
+start_tutorial
 ```
 This step includes cloning the tutorial (which can be found at
 https://github.com/E-CAM/jobqueue_features_workshop_materials) *inside* the cluster.
