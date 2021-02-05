@@ -190,8 +190,16 @@ class TestBase:
             def mpi_wrap_task(**kwargs):
                 return mpi_wrap(**kwargs)
 
+            def test_function(script_path, return_wrapped_command=False):
+                t = mpi_wrap_task(
+                    executable=self.executable,
+                    exec_args=script_path,
+                    return_wrapped_command=return_wrapped_command,
+                )
+                return t
+
             # Wait for a few seconds and the workers will start
-            time.sleep(3)
+            time.sleep(5)
 
             self.assertEqual(len(fork_cluster.client.scheduler_info()["workers"]), 2)
 
