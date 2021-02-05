@@ -51,37 +51,27 @@ class on_cluster(object):
                 id_=_id, cluster=cluster
             )  # type: ClusterType
         if not self._is_local_cluster(cluster=self.cluster):
+            minimum_jobs = self.cluster.minimum_jobs
+            maximum_jobs = self.cluster.maximum_jobs
             if jobs is not None:
                 # If the kwarg 'jobs' has been used in the decorator call we adaptively
-                # scale up to that many jobs
-                if jobs > self.cluster.maximum_jobs:
+                # scale up to that many jobs and set appropriate limits on adapt()
+                if jobs > minimum_jobs:
+                    minimum_jobs = jobs
+                if jobs > maximum_jobs:
                     print(
                         "Scaling cluster {cluster_id} to {jobs} jobs exceeds default "
-                        "maximum jobs ({maximum_jobs})".format(
+                        "maximum jobs ({maximum_jobs})...but I am doing it "
+                        "anyway".format(
                             cluster_id=_id,
                             jobs=jobs,
-                            maximum_jobs=self.cluster.maximum_jobs,
+                            maximum_jobs=maximum_jobs,
                         )
                     )
-                    self.cluster.adapt(
-                        minimum_jobs=0, maximum_jobs=jobs, wait_count=10, interval="6s"
-                    )
-                else:
-                    self.cluster.adapt(
-                        minimum_jobs=0,
-                        maximum_jobs=self.cluster.maximum_jobs,
-                        wait_count=10,
-                        interval="6s",
-                    )
-                # We immediately start up `jobs` jobs rather than wait for adapt to
-                # kick in the `wait_count`*`interval` should keep them from shutting
-                # down too fast (allows 1 minute idle)
-                self.cluster.scale(jobs=jobs)
-            else:
-                # Otherwise we adaptively scale to the maximum number of workers
-                self.cluster.adapt(
-                    minimum_jobs=0, maximum_jobs=self.cluster.maximum_jobs
-                )
+                    maximum_jobs = jobs
+
+            # Adaptively scale between the requested limits
+            self.cluster.adapt(minimum_jobs=minimum_jobs, maximum_jobs=maximum_jobs)
 
     def __call__(self, f: Callable) -> Callable:
         @wraps(f)

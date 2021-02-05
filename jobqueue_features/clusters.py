@@ -276,6 +276,7 @@ class CustomClusterMixin(object):
     cpus_per_task: int = None
     openmp_env_extra: List[str] = None
     maximum_jobs: int = None
+    minimum_jobs: int = None
     # We only set a pure attribute if it is required or requested
     # pure: bool = None
 
@@ -317,6 +318,7 @@ class CustomClusterMixin(object):
 
         # Finally, define how many workers the cluster can scale out to
         self._get_maximum_jobs(kwargs.get("maximum_jobs"))
+        self._get_minimum_jobs(kwargs.get("minimum_jobs"))
         # and whether tasks for this cluster are pure by default or not
         if self.mpi_mode:
             # in MPI mode we default pure to false
@@ -461,6 +463,22 @@ class CustomClusterMixin(object):
     def _get_maximum_jobs(self, maximum_jobs: int, default: int = 1) -> None:
         self.maximum_jobs = maximum_jobs if maximum_jobs is not None else default
         self.validate_positive_integer("maximum_jobs")
+        if hasattr(self, "minimum_jobs") and self.minimum_jobs > self.maximum_jobs:
+            self.warnings.append(
+                "minimum_jobs is greater than maximum_jobs, resetting maximum_jobs "
+                "to that value for cluster."
+            )
+            self.maximum_jobs = self.minimum_jobs
+
+    def _get_minimum_jobs(self, minimum_jobs: int, default: int = 0) -> None:
+        self.minimum_jobs = minimum_jobs if minimum_jobs is not None else default
+        self.validate_positive_integer("minimum_jobs")
+        if hasattr(self, "maximum_jobs") and self.minimum_jobs > self.maximum_jobs:
+            self.warnings.append(
+                "minimum_jobs is greater than maximum_jobs, resetting maximum_jobs "
+                "to that value for cluster."
+            )
+            self.maximum_jobs = self.minimum_jobs
 
     def _get_pure(self, pure: bool, default: Any = None) -> None:
         if isinstance(pure, bool):
