@@ -1,4 +1,5 @@
 import os
+import time
 
 from jobqueue_features.clusters_controller import (
     clusters_controller_singleton as controller,
@@ -168,6 +169,35 @@ class TestBase:
     def tearDown(self):
         # Kill any existing clusters
         controller._close()
+
+    def _test_minimum_jobs(self):
+        if self.run_tests:
+            controller._close()
+
+            # Create the cluster
+            nodes = 1
+            fork_cluster = self.cluster(
+                name="fork_cluster",
+                fork_mpi=True,
+                nodes=nodes,
+                minimum_jobs=2,
+                **self.common_kwargs
+            )
+
+            # Create the function that wraps tasks for this cluster
+            @on_cluster(cluster=fork_cluster)
+            @mpi_task(cluster_id=fork_cluster.name)
+            def mpi_wrap_task(**kwargs):
+                return mpi_wrap(**kwargs)
+
+            # Wait for a few seconds and the workers will start
+            time.sleep(3)
+
+            self.assertEqual(len(fork_cluster.client.scheduler_info()["workers"]), 2)
+
+            controller._close()
+        else:
+            pass
 
     def _test_single_mpi_wrap(self):
         if self.run_tests:
