@@ -42,3 +42,7 @@ class TestSLURM(TestBase, TestCase):
     @pytest.mark.env("slurm")
     def test_multi_mpi_tasks(self):
         self._test_multi_mpi_tasks()
+
+    @pytest.mark.env("slurm")
+    def test_minimum_jobs(self):
+        self._test_minimum_jobs()
