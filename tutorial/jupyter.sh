@@ -7,6 +7,9 @@ function start_slurm() {
       ./start-slurm.sh
     cd -
 
+    # Retrieve the host port
+    hostport=$(docker port slurmctld 8888 | cut -d ":" -f2)
+    daskport=$(docker port slurmctld 8787 | cut -d ":" -f2)
     # Install JupyterLab and the Dask extension
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab distributed nodejs dask-labextension"
     # Add a slurmuser so we don't run as root
@@ -29,7 +32,8 @@ function start_slurm() {
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
     echo
-    echo -e "\tOpen your browser at http://localhost:8888/lab/workspaces/lab"
+    echo -e "\t\e[32mOpen your browser at http://localhost:$hostport/lab/workspaces/lab\e[0m"
+    echo -e "\tDefault Dask dashboard will be available at http://localhost:$daskport"
     echo
 }
 
