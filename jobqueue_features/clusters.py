@@ -41,8 +41,9 @@ custom_cluster_attributes = """
         self.warnings)
     mpi_mode : bool
         Whether the cluster is to run MPI tasks
-    mpi_launcher : str
-        The command that launches MPI jobs (srun, mpiexec, mpirun,...)
+    mpi_launcher : dict
+        Dictionary that defines command that launches MPI jobs (allowed values  are
+        defined in mpi_wrapper.py: SRUN, MPIEXEC, OPENMPI,...)
     fork_mpi: bool
         If true, assume all tasks for the cluster fork MPI processes (using mpi_wrap())
         rather than that the task itself is MPI-enabled (jobqueue will then only manage
@@ -58,6 +59,8 @@ custom_cluster_attributes = """
         (similar to job_env_extra in jobqueue)
     maximum_jobs : int
         Maximum amount of jobs for the cluster to scale to
+    minimum_jobs : int
+        Minimum amount of jobs for the cluster to scale to
     pure : bool
         Whether the default for tasks submitted to the cluster are
         pure or not""".strip()
