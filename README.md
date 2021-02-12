@@ -85,6 +85,14 @@ changes you made to notebooks or files will still be available).
 
 ### Cleaning up
 
+You may want to reset the tutorials for some reason, you can do that with:
+```
+# Do a complete clean up of the infrastructure
+clean_tutorials
+```
+This will remove all data related to the tutorial, but will leave the docker images
+on your machine (so you will not need to do major downloads to run `start_tutorial`)
+
 The infrastructure consumes quite a bit of space and once you have completed the
 tutorial, you will probably want to reclaim this. The following command will completely
 remove all traces of the infrastructure from your system:
