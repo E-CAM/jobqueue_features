@@ -75,6 +75,8 @@ class ClusterController(object):
     def _close_cluster(self, id_: str) -> None:
         cluster = self._clusters.pop(id_, None)
         if cluster and cluster.status != "closed":
+            # see https://github.com/dask/distributed/issues/1898
+            cluster._adaptive.stop()
             cluster.close()
 
     def _close_clusters(self) -> None:
