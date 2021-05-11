@@ -3,7 +3,7 @@ import atexit
 
 from contextlib import suppress
 
-from dask.distributed import Client, LocalCluster, TimeoutError
+from dask.distributed import Client, LocalCluster
 from .custom_exceptions import ClusterException
 
 if TYPE_CHECKING:
