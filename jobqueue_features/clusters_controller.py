@@ -1,6 +1,7 @@
 from typing import Tuple, Dict, Callable, TYPE_CHECKING  # noqa
 import atexit
 
+from contextlib import suppress
 from tornado import gen
 
 from dask.distributed import Client, LocalCluster, TimeoutError
