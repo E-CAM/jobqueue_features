@@ -78,8 +78,6 @@ class ClusterController(object):
         if cluster and cluster.status != "closed":
             # Switch off adaptive scaling and remove workers
             cluster.scale(0)
-            # Wait 12 seconds
-            time.sleep(12)
             cluster.close()
 
     def _close_clusters(self) -> None:
