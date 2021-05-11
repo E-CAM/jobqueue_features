@@ -1,5 +1,6 @@
 from typing import Tuple, Dict, Callable, TYPE_CHECKING  # noqa
 import atexit
+import time
 
 from dask.distributed import Client, LocalCluster
 from .custom_exceptions import ClusterException
@@ -76,7 +77,9 @@ class ClusterController(object):
         cluster = self._clusters.pop(id_, None)
         if cluster and cluster.status != "closed":
             # Switch off adaptive scaling and remove workers
-            cluster.scale(jobs=0)
+            cluster.scale(0)
+            # Wait 12 seconds
+            time.sleep(12)
             cluster.close()
 
     def _close_clusters(self) -> None:
