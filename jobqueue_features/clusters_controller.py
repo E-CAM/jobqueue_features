@@ -1,6 +1,5 @@
 from typing import Tuple, Dict, Callable, TYPE_CHECKING  # noqa
 import atexit
-import time
 
 from dask.distributed import Client, LocalCluster
 from .custom_exceptions import ClusterException
