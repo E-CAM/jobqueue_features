@@ -1,7 +1,9 @@
 from typing import Tuple, Dict, Callable, TYPE_CHECKING  # noqa
 import atexit
 
-from dask.distributed import Client, LocalCluster
+from tornado import gen
+
+from dask.distributed import Client, LocalCluster, TimeoutError
 from .custom_exceptions import ClusterException
 
 if TYPE_CHECKING:
@@ -75,7 +77,8 @@ class ClusterController(object):
     def _close_cluster(self, id_: str) -> None:
         cluster = self._clusters.pop(id_, None)
         if cluster and cluster.status != "closed":
-            cluster.close(timeout=10)
+            with suppress(gen.TimeoutError, TimeoutError):
+                cluster.close(timeout=10)
 
     def _close_clusters(self) -> None:
         for id_ in list(self._clusters.keys()):
