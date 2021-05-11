@@ -76,7 +76,7 @@ class ClusterController(object):
         cluster = self._clusters.pop(id_, None)
         if cluster and cluster.status != "closed":
             # Switch off adaptive scaling and remove workers
-            cluster.scale(0)
+            cluster.scale(jobs=0)
             cluster.close()
 
     def _close_clusters(self) -> None:
