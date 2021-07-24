@@ -1,4 +1,4 @@
-dask_jobqueue==0.7.2
+dask_jobqueue>=0.7.2
 distributed>=2021.01.1
 msgpack==1.0.2
 typing==3.7.4.3
