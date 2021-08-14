@@ -34,7 +34,7 @@ services:
     build:
       context: .
       args:
-        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.6}
+        PYTHON_VERSION: ${TRAVIS_PYTHON_VERSION:-3.8}
     command: ["slurmctld"]
     container_name: slurmctld
     hostname: slurmctld
