@@ -10,7 +10,7 @@ function start_slurm() {
     # Install JupyterLab and the Dask extension
     docker exec slurmctld /bin/bash -c "conda install -c conda-forge jupyterlab distributed nodejs dask-labextension"
     # Remove the LAMMPS python package from the login node (so environment is different to compute nodes)
-    docker exec slurmctld /bin/bash -c "rm -r /opt/anaconda/lib/python3.8/site-packages/lammps"
+    docker exec slurmctld /bin/bash -c "rm -r /opt/anaconda/lib/python*/site-packages/lammps"
     # Add a slurmuser so we don't run as root
     docker exec slurmctld /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
     docker exec c1 /bin/bash -c "adduser slurmuser; chown -R slurmuser /jobqueue_features;"
@@ -70,10 +70,10 @@ function test_slurm() {
 }
 
 function stop_slurm() {
-    for machin in c1 c2 slurmctld slurmdbd mysql
+    for machine in c1 c2 slurmctld slurmdbd mysql
     do
-      docker stop $machin
-      docker rm $machin
+      docker stop $machine
+      docker rm $machine
     done
 }
 
@@ -87,9 +87,9 @@ function clean_tutorials() {
 function clean_slurm() {
     clean_tutorials
 
-    for machin in slurm_c1:latest slurm_c2:latest slurm_slurmctld:latest slurm_slurmdbd:latest mysql:5.7.29 daskdev/dask-jobqueue:slurm
+    for machine in slurm_c1:latest slurm_c2:latest slurm_slurmctld:latest slurm_slurmdbd:latest mysql:5.7.29 daskdev/dask-jobqueue:slurm
     do
-      docker rmi $machin
+      docker rmi $machine
     done
 
     docker network rm slurm_default
