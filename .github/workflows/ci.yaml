@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         jobqueue: ["pbs", "slurm", "none"]
-
+        python: [3.7, 3.8, 3.9]
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -49,24 +49,32 @@ jobs:
       #     auto-activate-base: false
 
       - name: Setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_before_install
 
       - name: Install
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_install
 
       - name: Test
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_script
 
       - name: Cleanup
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
           source ci/${{ matrix.jobqueue }}.sh
