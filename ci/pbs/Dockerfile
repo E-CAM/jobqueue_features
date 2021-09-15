@@ -6,8 +6,9 @@ LABEL description="jobqueue_features customisation of dask_jobqueue CI images"
 ENV PBS_MASTER pbs-master
 RUN yum install -y which && yum clean all
 
-# Install MPICH and mpi4py (and black)
-RUN conda install --yes -c conda-forge python=3.8 black mpich=3.4.2 mpi4py && conda clean -tipy
+# Install required Python as well as MPICH and mpi4py (and black)
+ARG PYTHON_VERSION
+RUN conda install --yes -c conda-forge python=${PYTHON_VERSION} black mpich-mpicc mpi4py && conda clean -tipy
 
 # Copy entrypoint and other needed scripts
 COPY ./*.sh /
