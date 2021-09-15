@@ -8,10 +8,11 @@ RUN curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-L
     /opt/anaconda/bin/conda clean -tipy && \
     rm -f miniconda.sh
 ENV PATH /opt/anaconda/bin:$PATH
-RUN conda install --yes -c conda-forge python=3.8 dask distributed flake8 pytest pytest-asyncio openmpi mpi4py lammps
+ARG PYTHON_VERSION
+RUN conda install --yes -c conda-forge python=${PYTHON_VERSION} dask distributed flake8 pytest pytest-asyncio openmpi-mpicc mpi4py lammps
 # Clone jobqueue and install it's requirements, and it
 RUN git clone https://github.com/E-CAM/jobqueue_features.git 
-RUN cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e .
+RUN cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e .
 # Add slurm configuration
 COPY slurm.conf /etc/slurm/slurm.conf
 # Use local setup as defaults
