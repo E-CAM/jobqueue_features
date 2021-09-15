@@ -14,9 +14,9 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
-    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install -r requirements.txt; pip install --no-deps -e ."
+    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
 }
 
 function jobqueue_script {

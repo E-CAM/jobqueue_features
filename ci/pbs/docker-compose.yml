@@ -5,6 +5,8 @@ services:
   master:
     build:
       context: .
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.8}
     container_name: pbs-master
     hostname: pbs-master
     volumes:
@@ -14,6 +16,8 @@ services:
   slave-one:
     build:
       context: .
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.8}
     container_name: pbs-slave-1
     hostname: pbs-slave-1
     volumes:
@@ -30,6 +34,8 @@ services:
   slave-two:
     build:
       context: .
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.8}
     container_name: pbs-slave-2
     hostname: pbs-slave-2
     volumes:
