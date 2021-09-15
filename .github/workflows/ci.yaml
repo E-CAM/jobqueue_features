@@ -49,7 +49,7 @@ jobs:
       #     auto-activate-base: false
 
       - name: Setup
-        if: ${{ ${{ matrix.jobqueue }} != "pbs" }}
+        if: matrix.jobqueue != "pbs" 
           env:
             PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
@@ -58,7 +58,7 @@ jobs:
           jobqueue_before_install
 
       - name: Install
-        if: ${{ ${{ matrix.jobqueue }} != "pbs" }}
+        if: matrix.jobqueue != "pbs" 
           env:
             PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
@@ -67,7 +67,7 @@ jobs:
           jobqueue_install
 
       - name: Test
-        if: ${{ ${{ matrix.jobqueue }} != "pbs" }}
+        if: matrix.jobqueue != "pbs" 
           env:
             PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
@@ -76,7 +76,7 @@ jobs:
           jobqueue_script
 
       - name: Cleanup
-        if: ${{ ${{ matrix.jobqueue }} != "pbs" }}
+        if: matrix.jobqueue != "pbs" 
           env:
             PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
