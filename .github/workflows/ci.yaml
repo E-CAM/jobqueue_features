@@ -17,6 +17,11 @@ jobs:
       matrix:
         jobqueue: ["pbs", "slurm", "none"]
         python: [3.7, 3.8, 3.9]
+        exclude:
+          - jobqueue: "pbs"
+            python: 3.7
+          - jobqueue: "pbs"
+            python: 3.9
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
