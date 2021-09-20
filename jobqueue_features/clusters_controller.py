@@ -79,6 +79,7 @@ class ClusterController(object):
         if cluster and cluster.status != "closed":
             with suppress(AttributeError):
                 cluster._adaptive.stop()
+            cluster.scale(0)
             cluster.close(timeout=10)
 
     def _close_clusters(self) -> None:
