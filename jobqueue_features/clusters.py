@@ -857,7 +857,6 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
         self.ngpus_per_node = kwargs.get("ngpus_per_node", 0)
         kwargs = self.update_init_kwargs(**kwargs)
         self.validate_cluster_name(kwargs["name"])
-        self.name = kwargs["name"]
         if self.mpi_mode:
             if "job_cpu" in kwargs:
                 raise ValueError(
@@ -870,6 +869,7 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
             mpi_job_extra.extend(kwargs["job_extra"])
             kwargs.update({"job_extra": mpi_job_extra})
         super().__init__(**kwargs)
+        self.name = kwargs["name"]
         self._update_script_nodes(**kwargs)
         if self.mpi_mode:
             if hasattr(self, "mpi_tasks"):
