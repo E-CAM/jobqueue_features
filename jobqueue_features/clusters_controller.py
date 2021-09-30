@@ -80,7 +80,7 @@ class ClusterController(object):
             with suppress(AttributeError):
                 cluster._adaptive.stop()
             cluster.scale(0)
-            cluster.close(timeout=10)
+            cluster.close(timeout=30)
 
     def _close_clusters(self) -> None:
         for id_ in list(self._clusters.keys()):
