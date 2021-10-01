@@ -21,7 +21,7 @@ jobs:
           - jobqueue: "pbs"
             python: 3.7
           - jobqueue: "pbs"
-            python: 3.9
+            python: 3.8
     timeout-minutes: 20
     steps:
       - name: Checkout source
