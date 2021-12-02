@@ -70,11 +70,12 @@ jobs:
           # Conda linker can cause problems on newer systems
           # (seen when building mpi4py wheel with python 3.7/3.8)
           sudo mv ~/miniconda/compiler_compat/ld ~/miniconda/compiler_compat/ld_temp
+          sudo ln -s /usr/bin/ld ~/miniconda/compiler_compat/ld
           ##
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_install
           ## Now move the linker back
-          
+          sudo rm ~/miniconda/compiler_compat/ld
           sudo mv ~/miniconda/compiler_compat/ld_temp ~/miniconda/compiler_compat/ld
 
       - name: Test
