@@ -54,18 +54,11 @@ jobs:
       #     activate-environment: jobqueue_features
       #     auto-activate-base: false
 
-      - name: Setup build environment
-        env:
-          PYTHON_VERSION: ${{ matrix.python }}
-        shell: bash -l {0}
-        run: |
-          sudo apt install -y build-essential
-          find /usr -name "libpthread*"
-          find /lib64 -name "libpthread*"
-
       - name: Setup
         env:
           PYTHON_VERSION: ${{ matrix.python }}
+          # mpi4py does not seem to find libpthread for some versions of python
+          LD_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu
         shell: bash -l {0}
         run: |
           source ci/${{ matrix.jobqueue }}.sh
