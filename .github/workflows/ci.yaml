@@ -67,12 +67,14 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
-          # Required in some cases when building mpi4py wheel (not sure why)
-          sudo ln -s /usr/lib/x86_64-linux-gnu/libpthread.so.0 /lib64/libpthread.so.0
-          sudo ln -s /usr/lib/x86_64-linux-gnu/libpthread.a /usr/lib64/libpthread_nonshared.a
+          # Conda linker can cause problems on newer systems
+          # (seen when building mpi4py wheel with python 3.7/3.8)
+          sudo mv miniconda/compiler_compat/ld miniconda/compiler_compat/ld_temp
           ##
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_install
+          ## Now move the linker back
+          sudo mv miniconda/compiler_compat/ld_temp miniconda/compiler_compat/ld
 
       - name: Test
         env:
