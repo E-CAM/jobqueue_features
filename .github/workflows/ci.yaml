@@ -60,6 +60,8 @@ jobs:
         shell: bash -l {0}
         run: |
           sudo apt install -y build-essential
+          find /usr -name "libpthread*"
+          find /lib64 -name "libpthread*"
 
       - name: Setup
         env:
