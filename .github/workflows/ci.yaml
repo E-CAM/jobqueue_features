@@ -22,6 +22,9 @@ jobs:
             python: 3.7
           - jobqueue: "pbs"
             python: 3.8
+          # Problems installing mpi4py wheel with pip for older conda pythons
+          - jobqueue: "none"
+            python: 3.7,3.8
     timeout-minutes: 20
     steps:
       - name: Checkout source
@@ -67,16 +70,8 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
-          # Conda linker can cause problems on newer systems
-          # (seen when building mpi4py wheel with python 3.7/3.8)
-          sudo mv ~/miniconda/compiler_compat/ld ~/miniconda/compiler_compat/ld_temp
-          sudo ln -s /usr/bin/ld ~/miniconda/compiler_compat/ld
-          ##
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_install
-          ## Now move the linker back
-          sudo rm ~/miniconda/compiler_compat/ld
-          sudo mv ~/miniconda/compiler_compat/ld_temp ~/miniconda/compiler_compat/ld
 
       - name: Test
         env:
