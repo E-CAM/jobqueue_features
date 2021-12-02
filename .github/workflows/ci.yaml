@@ -74,7 +74,8 @@ jobs:
           source ci/${{ matrix.jobqueue }}.sh
           jobqueue_install
           ## Now move the linker back
-          sudo mv miniconda/compiler_compat/ld_temp miniconda/compiler_compat/ld
+          
+          sudo mv ~/miniconda/compiler_compat/ld_temp ~/miniconda/compiler_compat/ld
 
       - name: Test
         env:
