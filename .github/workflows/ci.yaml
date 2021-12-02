@@ -59,7 +59,7 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
         shell: bash -l {0}
         run: |
-          apt install -y build-essential
+          sudo apt install -y build-essential
 
       - name: Setup
         env:
