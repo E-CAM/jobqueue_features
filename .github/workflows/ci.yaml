@@ -53,6 +53,16 @@ jobs:
       #     activate-environment: jobqueue_features
       #     auto-activate-base: false
 
+      - name: Setup build environment
+        exclude:
+          - jobqueue: "pbs"
+          - jobqueue: "slurm"
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        shell: bash -l {0}
+        run: |
+          apt install -y build-essential
+
       - name: Setup
         env:
           PYTHON_VERSION: ${{ matrix.python }}
