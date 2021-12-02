@@ -24,7 +24,9 @@ jobs:
             python: 3.8
           # Problems installing mpi4py wheel with pip for older conda pythons
           - jobqueue: "none"
-            python: 3.7,3.8
+            python: 3.7
+          - jobqueue: "none"
+            python: 3.8
     timeout-minutes: 20
     steps:
       - name: Checkout source
