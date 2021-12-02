@@ -21,7 +21,8 @@ jobs:
           - jobqueue: "pbs"
             python: 3.7
           - jobqueue: "pbs"
-            python: 3.9
+            python: 3.8
+    timeout-minutes: 20
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -101,13 +102,16 @@ jobs:
       fail-fast: false
       matrix:
         jobqueue: ["slurm"]
-
+        python: [3.9]
+    timeout-minutes: 20
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
 
       - name: Setup
         shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         run: |
           source tutorial/jupyter.sh
           start_${{ matrix.jobqueue }}
@@ -115,18 +119,24 @@ jobs:
 
       - name: Test
         shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         run: |
           source tutorial/jupyter.sh
           test_${{ matrix.jobqueue }}
 
       - name: Stop
         shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         run: |
           source tutorial/jupyter.sh
           stop_${{ matrix.jobqueue }}
 
       - name: Cleanup
         shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         run: |
           source tutorial/jupyter.sh
           clean_${{ matrix.jobqueue }}

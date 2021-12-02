@@ -3,15 +3,17 @@
 function jobqueue_before_install {
   # Install miniconda
   ./ci/conda_setup.sh
-  PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=3.8 flake8 black pytest pytest-asyncio codespell openmpi
+  # Default to Python 3.8
+  if [ -z ${PYTHON_VERSION+x} ]; then export PYTHON_VERSION=3.8; else echo "Python version is set to '$PYTHON_VERSION'"; fi
+  PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=$PYTHON_VERSION flake8 black pytest pytest-asyncio codespell openmpi
   # also install OpenMPI and mpi4py
-  PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=3.8 openmpi mpi4py
+  PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=$PYTHON_VERSION openmpi-mpicc mpi4py=3.1.1
 }
 
 function jobqueue_install {
   which python
   # Make sure requirements are met
-  PATH="$HOME/miniconda/bin:$PATH" pip install -r requirements.txt
+  PATH="$HOME/miniconda/bin:$PATH" pip install --upgrade -r requirements.txt
   PATH="$HOME/miniconda/bin:$PATH" pip install --no-deps -e .
 }
 
