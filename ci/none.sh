@@ -7,7 +7,7 @@ function jobqueue_before_install {
   if [ -z ${PYTHON_VERSION+x} ]; then export PYTHON_VERSION=3.8; else echo "Python version is set to '$PYTHON_VERSION'"; fi
   PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=$PYTHON_VERSION flake8 black pytest pytest-asyncio codespell openmpi
   # also install OpenMPI and mpi4py
-  PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=$PYTHON_VERSION openmpi-mpicc mpi4py=3.1.1
+  PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge python=$PYTHON_VERSION openmpi-mpicc mpi4py
 }
 
 function jobqueue_install {
