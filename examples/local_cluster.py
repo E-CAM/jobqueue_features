@@ -14,7 +14,7 @@ set_default_cluster(LocalCluster)  # set LocalCluster as default cluster type
 
 @task()
 def square(x):
-    return x ** 2
+    return x**2
 
 
 @on_cluster()

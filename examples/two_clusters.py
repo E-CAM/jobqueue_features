@@ -17,7 +17,7 @@ set_default_cluster(
 @on_cluster()
 @task()
 def square(x):
-    return x ** 2
+    return x**2
 
 
 @on_cluster(
