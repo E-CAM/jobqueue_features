@@ -22,7 +22,7 @@ jobqueue:
     env-extra: []
     job-cpu: null
     job-mem: null
-    job-extra: []
+    job-extra-directives: []
     log-directory: null
 
 jobqueue-features:
@@ -34,7 +34,7 @@ jobqueue-features:
     hyperthreading-factor: 2        # hyperthreading factor available (only used to trigger a warning if we go beyond
                                     # physical or an error if we go beyond logical cores)
     minimum-cores: 24               # Minimum number of cores per dask worker is 1 full node (ignored in MPI mode)
-    gpu-job-extra: []               # Only relevant for particular queue_type
+    gpu-job-extra-directives: []               # Only relevant for particular queue_type
     warning: null
     
     # MPI/OpenMP related settings ----
@@ -55,7 +55,7 @@ jobqueue-features:
       gpus:
         name: dask-worker-gpus
         queue: gpus
-        gpu-job-extra: ['--gres=gpu:4']
+        gpu-job-extra-directives: ['--gres=gpu:4']
         warning: "Each worker has access to 4 GPUs, don't waste them"
 
       knl:
@@ -85,12 +85,12 @@ jobqueue-features:
         name: dask-worker-vis
         queue: vis
         memory: 509GB
-        gpu-job-extra: ['--gres=gpu:2']
+        gpu-job-extra-directives: ['--gres=gpu:2']
         warning: "Each vis worker has access to 2 GPUs, if you don't need them use mem512 instead"
 
       mem1024:
         name: dask-worker-mem1024
         queue: mem1024
         memory: 1021GB
-        gpu-job-extra: ['--gres=gpu:2']
+        gpu-job-extra-directives: ['--gres=gpu:2']
         warning: "There are only 2 nodes of mem1024 type, only use this category if you really need to"
