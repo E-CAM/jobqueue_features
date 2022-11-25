@@ -152,15 +152,15 @@ class CustomSLURMJob(SLURMJob):
 
         base_class_kwargs = {k: kwargs[k] for k in get_base_job_kwargs() if k in kwargs}
         super().__init__(
-            scheduler,
-            name,
-            queue,
-            project,
-            walltime,
-            job_cpu,
-            job_mem,
-            job_extra_directives,
-            config_name,
+            scheduler=scheduler,
+            name=name,
+            queue=queue,
+            project=project,
+            walltime=walltime,
+            job_cpu=job_cpu,
+            job_mem=job_mem,
+            job_extra_directives=job_extra_directives,
+            config_name=config_name,
             **base_class_kwargs,
         )
         self.job_header = self.job_header.replace(
@@ -204,14 +204,14 @@ class CustomPBSJob(PBSJob):
 
         base_class_kwargs = {k: kwargs[k] for k in get_base_job_kwargs() if k in kwargs}
         super().__init__(
-            scheduler,
-            name,
-            queue,
-            project,
-            resource_spec,
-            walltime,
-            job_extra_directives,
-            config_name,
+            scheduler=scheduler,
+            name=name,
+            queue=queue,
+            project=project,
+            walltime=walltime,
+            job_extra_directives=job_extra_directives,
+            config_name=config_name,
+            resource_spec=resource_spec,
             **base_class_kwargs,
         )
         if command_template:
