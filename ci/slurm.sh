@@ -14,9 +14,15 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
-    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
-    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    # docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec slurmctld /bin/bash -c "conda install --yes -c conda-forge --file /jobqueue_features/requirements.txt"
+    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
+    # docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec c1 /bin/bash -c "conda install --yes -c conda-forge --file /jobqueue_features/requirements.txt"
+    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
+    # docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec c2 /bin/bash -c "conda install --yes -c conda-forge --file /jobqueue_features/requirements.txt"
+    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
 }
 
 function jobqueue_script {

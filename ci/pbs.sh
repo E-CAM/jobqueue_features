@@ -16,11 +16,17 @@ function jobqueue_before_install {
 
 function jobqueue_install {
     docker exec pbs-master /bin/bash -c "cd /jobqueue_features; mkdir -p dask-worker-space; chmod 777 dask-worker-space; mkdir -p .pytest_cache; chmod 777 .pytest_cache"
-    docker exec pbs-master /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    # docker exec pbs-master /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec pbs-master /bin/bash -c "conda install --yes -c conda-forge --file /jobqueue_features/requirements.txt"
+    docker exec pbs-master /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
     docker exec pbs-slave-1 /bin/bash -c "cd /jobqueue_features; mkdir -p dask-worker-space; chmod 777 dask-worker-space; mkdir -p .pytest_cache; chmod 777 .pytest_cache"
-    docker exec pbs-slave-1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    # docker exec pbs-slave-1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec pbs-slave-1 /bin/bash -c "conda install --yes -c conda-forge --file /jobqueue_features/requirements.txt"
+    docker exec pbs-slave-1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
     docker exec pbs-slave-2 /bin/bash -c "cd /jobqueue_features; mkdir -p dask-worker-space; chmod 777 dask-worker-space; mkdir -p .pytest_cache; chmod 777 .pytest_cache"
-    docker exec pbs-slave-2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    # docker exec pbs-slave-2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec pbs-slave-2 /bin/bash -c "conda install --yes -c conda-forge --file /jobqueue_features/requirements.txt"
+    docker exec pbs-slave-2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
     # Configure passwordless ssh between the slaves for the pbsuser to work around
     # incomplete MPI configuration:
     # as root, start ssh (both)
