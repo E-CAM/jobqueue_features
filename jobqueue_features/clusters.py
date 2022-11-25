@@ -316,8 +316,8 @@ class CustomClusterMixin(object):
         kwargs = self._update_kwargs_modifiable(**kwargs)
         # update job_extra_directives as needed, first check if we should initialise it
         kwargs = self._update_kwargs_job_extra_directives(**kwargs)
-        # update env_extra if needed
-        kwargs = self._update_kwargs_env_extra(**kwargs)
+        # update job_script_prologue if needed
+        kwargs = self._update_kwargs_job_script_prologue(**kwargs)
 
         # Finally, define how many workers the cluster can scale out to
         self._get_maximum_jobs(kwargs.get("maximum_jobs"))
@@ -706,19 +706,22 @@ class CustomClusterMixin(object):
         kwargs.update({"job_extra_directives": final_job_extra_directives})
         return kwargs
 
-    def _update_kwargs_env_extra(self, **kwargs) -> Dict[str, Any]:
+    def _update_kwargs_job_script_prologue(self, **kwargs) -> Dict[str, Any]:
         if self.openmp_env_extra is None:
             return kwargs
-        env_extra = kwargs.get("env_extra", self.get_kwarg("env-extra"))
-        if not env_extra:
-            env_extra = config.get(
-                "jobqueue.{}.env_extra".format(self.scheduler_name), default=[]
+        job_script_prologue = kwargs.get(
+            "job_script_prologue", self.get_kwarg("job-script-prologue")
+        )
+        if not job_script_prologue:
+            job_script_prologue = config.get(
+                "jobqueue.{}.job_script_prologue".format(self.scheduler_name),
+                default=[],
             )
         # order matters, make sure user has power to be in control, explicit user set
         # stuff comes last
-        final_env_extra = self.openmp_env_extra
-        final_env_extra.extend(env_extra)
-        kwargs.update({"env_extra": final_env_extra})
+        final_job_script_prologue = self.openmp_env_extra
+        final_job_script_prologue.extend(job_script_prologue)
+        kwargs.update({"job_script_prologue": final_job_script_prologue})
         return kwargs
 
     def _update_script_nodes(self, **kwargs) -> None:
@@ -796,8 +799,14 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
      """
 
     job_cls = CustomSLURMJob
+    _cluster_info = {}
 
     def __init__(self, **kwargs):
+        self._cluster_info = {
+            "name": name,
+            "type": typename(type(self)),
+            **self._cluster_info,
+        }
         self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
         self.validate_cluster_name(kwargs["name"])
@@ -860,8 +869,14 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     """
 
     job_cls = CustomPBSJob
+    _cluster_info = {}
 
     def __init__(self, **kwargs):
+        self._cluster_info = {
+            "name": name,
+            "type": typename(type(self)),
+            **self._cluster_info,
+        }
         self.scheduler_name = "pbs"
         self.ngpus_per_node = kwargs.get("ngpus_per_node", 0)
         kwargs = self.update_init_kwargs(**kwargs)
@@ -873,7 +888,7 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
                     " leverage this in jobqueue to set cpus-per-task"
                 )
             mpi_job_extra_directives = []
-            if "job_extra" not in kwargs:
+            if "job_extra_directives" not in kwargs:
                 raise KeyError(
                     "job_extra_directives keyword should always be set in kwargs"
                 )

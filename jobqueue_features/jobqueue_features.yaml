@@ -19,7 +19,7 @@ jobqueue:
     # project: null
     walltime: '00:30:00'
     extra: []
-    env-extra: []
+    job_script_prologue: []
     job-cpu: null
     job-mem: null
     job-extra-directives: []
