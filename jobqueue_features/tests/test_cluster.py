@@ -19,7 +19,7 @@ class TestClusters(TestCase):
             "interface": list(psutil.net_if_addrs().keys())[0],
             "fork_mpi": False,
             "mpi_launcher": SRUN,
-            "memory": "1GB",
+            "memory": "1g",
         }
 
     def tearDown(self):
