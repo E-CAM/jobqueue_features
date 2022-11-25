@@ -17,12 +17,12 @@ jobs:
       matrix:
         # CI keeps breaking due to our mix of Conda and Pip in CI, disable `none` for now
         jobqueue: ["pbs", "slurm"]
-        python: [3.8, 3.9, 3.10]
+        python: ["3.8", "3.9", "3.10"]
         exclude:
           - jobqueue: "pbs"
-            python: 3.8
+            python: "3.8"
           - jobqueue: "pbs"
-            python: 3.9
+            python: "3.9"
     timeout-minutes: 20
     steps:
       - name: Checkout source
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Python 3.8
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: "3.8"
 
       - name: Black Code Formatter
         uses: lgeiger/black-action@v1.0.1
@@ -83,7 +83,7 @@ jobs:
       fail-fast: false
       matrix:
         jobqueue: ["slurm"]
-        python: [3.9]
+        python: ["3.9"]
     timeout-minutes: 20
     steps:
       - name: Checkout source
