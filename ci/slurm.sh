@@ -6,6 +6,7 @@ function jobqueue_before_install {
 
     # start slurm cluster
     cd ./ci/slurm
+    export REQUIREMENTS=$(cat ../../requirements.txt)
     ./start-slurm.sh
     cd -
 
