@@ -8,7 +8,8 @@ RUN yum install -y which && yum clean all
 
 # Install required Python as well as MPICH and mpi4py (and black)
 ARG PYTHON_VERSION
-RUN conda install --yes -c conda-forge python=${PYTHON_VERSION} black mpich-mpicc mpi4py && conda clean -tipy
+RUN conda install --yes -c conda-forge python=${PYTHON_VERSION}
+RUN conda install --yes -c black mpich-mpicc mpi4py && conda clean -tipy
 
 # Copy entrypoint and other needed scripts
 COPY ./*.sh /

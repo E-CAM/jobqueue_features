@@ -17,12 +17,12 @@ jobs:
       matrix:
         # CI keeps breaking due to our mix of Conda and Pip in CI, disable `none` for now
         jobqueue: ["pbs", "slurm"]
-        python: [3.7, 3.8, 3.9]
+        python: [3.8, 3.9, 3.10]
         exclude:
           - jobqueue: "pbs"
-            python: 3.7
-          - jobqueue: "pbs"
             python: 3.8
+          - jobqueue: "pbs"
+            python: 3.9
     timeout-minutes: 20
     steps:
       - name: Checkout source
@@ -44,16 +44,6 @@ jobs:
             pip install flake8
             flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
             flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-
-      # Stay compatible with travis for now
-      # - name: Setup Conda Environment
-      #   uses: goanpeca/setup-miniconda@v1
-      #   with:
-      #     miniconda-version: "latest"
-      #     python-version: 3.6
-      #     environment-file: ci/environment.yml
-      #     activate-environment: jobqueue_features
-      #     auto-activate-base: false
 
       - name: Setup
         env:
