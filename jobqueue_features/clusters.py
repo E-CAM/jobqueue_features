@@ -1,9 +1,11 @@
 from __future__ import division
 
 import re
+import uuid
 from contextlib import suppress
 
 from dask import config
+from dask.utils import typename
 from dask_jobqueue import SLURMCluster, JobQueueCluster, PBSCluster
 from dask.distributed import Client, LocalCluster
 from dask_jobqueue.core import Job
@@ -802,6 +804,9 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     _cluster_info = {}
 
     def __init__(self, **kwargs):
+        if name is None:
+            name = str(uuid.uuid4())[:8]
+
         self._cluster_info = {
             "name": name,
             "type": typename(type(self)),
@@ -872,6 +877,9 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     _cluster_info = {}
 
     def __init__(self, **kwargs):
+        if name is None:
+            name = str(uuid.uuid4())[:8]
+
         self._cluster_info = {
             "name": name,
             "type": typename(type(self)),
