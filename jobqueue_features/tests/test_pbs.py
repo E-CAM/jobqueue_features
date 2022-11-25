@@ -50,7 +50,7 @@ class TestPBS(TestCase):
         job_script = cluster.job_script()
         self.assertEqual(cluster.cores_per_node, 2)
         self.assertIn("#PBS -l select=1:ncpus=2", job_script)
-        self.assertIn("--nprocs 2", job_script)
+        self.assertIn("--nworkers 2", job_script)
 
     def test_nodes(self):
         job_name = "test_pbs"
