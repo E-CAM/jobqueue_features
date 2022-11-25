@@ -804,7 +804,8 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
     _cluster_info = {}
 
     def __init__(self, **kwargs):
-        if name is None:
+        name = kwargs.get("name")
+        if not name:
             name = str(uuid.uuid4())[:8]
 
         self._cluster_info = {
@@ -877,7 +878,8 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     _cluster_info = {}
 
     def __init__(self, **kwargs):
-        if name is None:
+        name = kwargs.get("name")
+        if not name:
             name = str(uuid.uuid4())[:8]
 
         self._cluster_info = {
