@@ -4,8 +4,7 @@ FROM daskdev/dask-jobqueue:slurm
 # Install required Python as well as OpenMPI and mpi4py
 ARG PYTHON_VERSION
 ARG REQUIREMENTS
-RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt conda install --yes python=${PYTHON_VERSION}
 RUN conda install mamba -n base -c conda-forge
-RUN mamba install --yes -c conda-forge openmpi-mpicc mpi4py black ${REQUIREMENTS}
+RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt mamba install --yes -c conda-forge python=${PYTHON_VERSION} openmpi-mpicc mpi4py black ${REQUIREMENTS}
 
 COPY slurm.conf /etc/slurm/slurm.conf

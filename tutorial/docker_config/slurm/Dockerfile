@@ -10,9 +10,8 @@ RUN curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-L
 ENV PATH /opt/anaconda/bin:$PATH
 ARG PYTHON_VERSION
 ARG REQUIREMENTS
-RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt conda install --yes python=${PYTHON_VERSION}
 RUN conda install mamba -n base -c conda-forge
-RUN mamba install --yes -c conda-forge openmpi-mpicc mpi4py lammps black ${REQUIREMENTS}
+RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt mamba install --yes -c conda-forge python=${PYTHON_VERSION} openmpi-mpicc mpi4py lammps black ${REQUIREMENTS}
 # Clone jobqueue and install it's requirements, and it
 RUN git clone https://github.com/E-CAM/jobqueue_features.git 
 RUN cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e .

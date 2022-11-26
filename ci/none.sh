@@ -5,10 +5,9 @@ function jobqueue_before_install {
   ./ci/conda_setup.sh
   # Default to Python 3.8
   if [ -z ${PYTHON_VERSION+x} ]; then export PYTHON_VERSION=3.8; else echo "Python version is set to '$PYTHON_VERSION'"; fi
-  # Use Ubuntu location for CA certs
-  PATH="$HOME/miniconda/bin:$PATH" REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt conda install --yes python=${PYTHON_VERSION}
   export REQUIREMENTS=$(cat ./requirements.txt | grep -v jobqueue)
-  PATH="$HOME/miniconda/bin:$PATH" mamba install --yes -c conda-forge flake8 black pytest pytest-asyncio codespell openmpi openmpi-mpicc mpi4py $REQUIREMENTS 
+  # Use Ubuntu location for CA certs
+  PATH="$HOME/miniconda/bin:$PATH" REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt mamba install --yes -c conda-forge python=${PYTHON_VERSION} flake8 black pytest pytest-asyncio codespell openmpi openmpi-mpicc mpi4py $REQUIREMENTS 
 }
 
 function jobqueue_install {
