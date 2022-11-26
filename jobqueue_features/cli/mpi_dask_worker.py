@@ -39,7 +39,7 @@ def prepare_for_mpi_tasks(root=0, comm=None):
         # Task distribution is part of task itself (via our wrapper)
         from distributed.cli import dask_worker
 
-        dask_worker.go()
+        dask_worker.main()
 
         # As a final task, send a shutdown to the other MPI ranks
         serialized_object = serialize_function_and_args(shutdown_mpitask_worker)

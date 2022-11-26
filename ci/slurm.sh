@@ -6,6 +6,7 @@ function jobqueue_before_install {
 
     # start slurm cluster
     cd ./ci/slurm
+    export REQUIREMENTS=$(cat ../../requirements.txt | grep -v jobqueue)
     ./start-slurm.sh
     cd -
 
@@ -14,9 +15,9 @@ function jobqueue_before_install {
 }
 
 function jobqueue_install {
-    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
-    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
-    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade -r requirements.txt; pip install --no-deps -e ."
+    docker exec slurmctld /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
+    docker exec c1 /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
+    docker exec c2 /bin/bash -c "cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e ."
 }
 
 function jobqueue_script {

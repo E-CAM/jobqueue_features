@@ -21,5 +21,6 @@ setup(
         "pytest-cov",
         "pytest-ordering",
     ],
+    python_requires=">=3.8",
     zip_safe=False,
 )

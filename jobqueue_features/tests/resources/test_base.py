@@ -152,7 +152,7 @@ class TestBase:
             "ntasks_per_node": 2,
             "memory": self.memory,
             "mpi_mode": True,
-            "env_extra": [
+            "job_script_prologue": [
                 "export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1",
                 "export OMPI_ALLOW_RUN_AS_ROOT=1",
             ],

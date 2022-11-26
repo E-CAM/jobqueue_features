@@ -1,9 +1,11 @@
 from __future__ import division
 
 import re
+import uuid
 from contextlib import suppress
 
 from dask import config
+from dask.utils import typename
 from dask_jobqueue import SLURMCluster, JobQueueCluster, PBSCluster
 from dask.distributed import Client, LocalCluster
 from dask_jobqueue.core import Job
@@ -34,7 +36,7 @@ custom_cluster_attributes = """
         Hyperthreading_factor: hyperthreading available per physical core
     minimum_cores : int
         Minimum amount of cores in a job allocation
-    gpu_job_extra : List[str]
+    gpu_job_extra_directives : List[str]
         Extra scheduler arguments when requesting a GPU job
     warnings : List[str]
         A string that holds any desired warning (is turned into a list of warnings in
@@ -143,7 +145,7 @@ class CustomSLURMJob(SLURMJob):
         walltime=None,
         job_cpu=None,
         job_mem=None,
-        job_extra=None,
+        job_extra_directives=None,
         config_name=None,
         **kwargs,
     ):
@@ -152,15 +154,15 @@ class CustomSLURMJob(SLURMJob):
 
         base_class_kwargs = {k: kwargs[k] for k in get_base_job_kwargs() if k in kwargs}
         super().__init__(
-            scheduler,
-            name,
-            queue,
-            project,
-            walltime,
-            job_cpu,
-            job_mem,
-            job_extra,
-            config_name,
+            scheduler=scheduler,
+            name=name,
+            queue=queue,
+            project=project,
+            walltime=walltime,
+            job_cpu=job_cpu,
+            job_mem=job_mem,
+            job_extra_directives=job_extra_directives,
+            config_name=config_name,
             **base_class_kwargs,
         )
         self.job_header = self.job_header.replace(
@@ -194,7 +196,7 @@ class CustomPBSJob(PBSJob):
         project=None,
         resource_spec=None,
         walltime=None,
-        job_extra=None,
+        job_extra_directives=None,
         config_name=None,
         **kwargs,
     ):
@@ -204,14 +206,14 @@ class CustomPBSJob(PBSJob):
 
         base_class_kwargs = {k: kwargs[k] for k in get_base_job_kwargs() if k in kwargs}
         super().__init__(
-            scheduler,
-            name,
-            queue,
-            project,
-            resource_spec,
-            walltime,
-            job_extra,
-            config_name,
+            scheduler=scheduler,
+            name=name,
+            queue=queue,
+            project=project,
+            walltime=walltime,
+            job_extra_directives=job_extra_directives,
+            config_name=config_name,
+            resource_spec=resource_spec,
             **base_class_kwargs,
         )
         if command_template:
@@ -269,7 +271,7 @@ class CustomClusterMixin(object):
     cores_per_node: int = None
     hyperthreading_factor: int = None
     minimum_cores: int = None
-    gpu_job_extra: List[str] = None
+    gpu_job_extra_directives: List[str] = None
     warnings: List[str] = None
     mpi_mode: bool = None
     mpi_launcher: str = None
@@ -298,7 +300,7 @@ class CustomClusterMixin(object):
         self._get_cores_per_node(kwargs.get("cores_per_node"))
         self._get_hyperthreading_factor(kwargs.get("hyperthreading_factor"))
         self._get_minimum_cores(kwargs.get("minimum_cores"))
-        self._get_gpu_job_extra(kwargs.get("gpu_job_extra"))
+        self._get_gpu_job_extra_directives(kwargs.get("gpu_job_extra_directives"))
         self._get_warnings(kwargs.get("warning"))
 
         # Now do MPI related kwargs.
@@ -314,10 +316,10 @@ class CustomClusterMixin(object):
         # Check for any updates to other modifiable jobqueue values:
         #   name, queue, memory
         kwargs = self._update_kwargs_modifiable(**kwargs)
-        # update job_extra as needed, first check if we should initialise it
-        kwargs = self._update_kwargs_job_extra(**kwargs)
-        # update env_extra if needed
-        kwargs = self._update_kwargs_env_extra(**kwargs)
+        # update job_extra_directives as needed, first check if we should initialise it
+        kwargs = self._update_kwargs_job_extra_directives(**kwargs)
+        # update job_script_prologue if needed
+        kwargs = self._update_kwargs_job_script_prologue(**kwargs)
 
         # Finally, define how many workers the cluster can scale out to
         self._get_maximum_jobs(kwargs.get("maximum_jobs"))
@@ -425,11 +427,13 @@ class CustomClusterMixin(object):
                 )
             )
 
-    def _get_gpu_job_extra(self, gpu_job_extra: List[str], default: Any = None) -> None:
+    def _get_gpu_job_extra_directives(
+        self, gpu_job_extra_directives: List[str], default: Any = None
+    ) -> None:
         if default is None:
             default = []
-        self.gpu_job_extra = gpu_job_extra or self.get_kwarg(
-            name="gpu-job-extra", default=default
+        self.gpu_job_extra_directives = gpu_job_extra_directives or self.get_kwarg(
+            name="gpu-job-extra-directives", default=default
         )
 
     def _get_warnings(self, warning: List[str], default: Any = None) -> None:
@@ -687,33 +691,39 @@ class CustomClusterMixin(object):
 
         return kwargs
 
-    def _update_kwargs_job_extra(self, **kwargs) -> Dict[str, Any]:
-        job_extra = kwargs.get("job_extra", self.get_kwarg("job-extra"))
-        if job_extra is None:
-            job_extra = config.get(
-                "jobqueue.{}.job_extra".format(self.scheduler_name), default=[]
+    def _update_kwargs_job_extra_directives(self, **kwargs) -> Dict[str, Any]:
+        job_extra_directives = kwargs.get(
+            "job_extra_directives", self.get_kwarg("job-extra-directives")
+        )
+        if job_extra_directives is None:
+            job_extra_directives = config.get(
+                "jobqueue.{}.job_extra_directives".format(self.scheduler_name),
+                default=[],
             )
 
         # order matters, to ensure user has power to be in control make sure their
         # settings come last
-        final_job_extra = self.gpu_job_extra
-        final_job_extra.extend(job_extra)
-        kwargs.update({"job_extra": final_job_extra})
+        final_job_extra_directives = self.gpu_job_extra_directives
+        final_job_extra_directives.extend(job_extra_directives)
+        kwargs.update({"job_extra_directives": final_job_extra_directives})
         return kwargs
 
-    def _update_kwargs_env_extra(self, **kwargs) -> Dict[str, Any]:
+    def _update_kwargs_job_script_prologue(self, **kwargs) -> Dict[str, Any]:
         if self.openmp_env_extra is None:
             return kwargs
-        env_extra = kwargs.get("env_extra", self.get_kwarg("env-extra"))
-        if not env_extra:
-            env_extra = config.get(
-                "jobqueue.{}.env_extra".format(self.scheduler_name), default=[]
+        job_script_prologue = kwargs.get(
+            "job_script_prologue", self.get_kwarg("job-script-prologue")
+        )
+        if not job_script_prologue:
+            job_script_prologue = config.get(
+                "jobqueue.{}.job_script_prologue".format(self.scheduler_name),
+                default=[],
             )
         # order matters, make sure user has power to be in control, explicit user set
         # stuff comes last
-        final_env_extra = self.openmp_env_extra
-        final_env_extra.extend(env_extra)
-        kwargs.update({"env_extra": final_env_extra})
+        final_job_script_prologue = self.openmp_env_extra
+        final_job_script_prologue.extend(job_script_prologue)
+        kwargs.update({"job_script_prologue": final_job_script_prologue})
         return kwargs
 
     def _update_script_nodes(self, **kwargs) -> None:
@@ -791,8 +801,18 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
      """
 
     job_cls = CustomSLURMJob
+    _cluster_info = {}
 
     def __init__(self, **kwargs):
+        name = kwargs.get("name")
+        if not name:
+            name = str(uuid.uuid4())[:8]
+
+        self._cluster_info = {
+            "name": name,
+            "type": typename(type(self)),
+            **self._cluster_info,
+        }
         self.scheduler_name = "slurm"
         kwargs = self.update_init_kwargs(**kwargs)
         self.validate_cluster_name(kwargs["name"])
@@ -809,20 +829,24 @@ class CustomSLURMCluster(CustomClusterMixin, SLURMCluster):
                     "We don't allow 'job_cpu' as a kwarg in MPI mode since we"
                     " leverage this in jobqueue to set --cpus-per-task"
                 )
-            mpi_job_extra = ["--ntasks-per-node={}".format(self.ntasks_per_node)]
+            mpi_job_extra_directives = [
+                "--ntasks-per-node={}".format(self.ntasks_per_node)
+            ]
             # the kwarg is used in SLURMCluster to set  --cpus-per-task, don't duplicate
             kwargs.update({"job_cpu": self.cpus_per_task})
 
             # --nodes is optional
             if hasattr(self, "nodes"):
                 if self.nodes:
-                    mpi_job_extra.append("--nodes={}".format(self.nodes))
-            # job_extra is guaranteed to exist in the kwargs in this case, we append
+                    mpi_job_extra_directives.append("--nodes={}".format(self.nodes))
+            # job_extra_directives is guaranteed to exist in the kwargs in this case, we append
             # them so they have precedence
-            if "job_extra" not in kwargs:
-                raise KeyError("job_extra keyword should always be set in kwargs")
-            mpi_job_extra.extend(kwargs["job_extra"])
-            kwargs.update({"job_extra": mpi_job_extra})
+            if "job_extra_directives" not in kwargs:
+                raise KeyError(
+                    "job_extra_directives keyword should always be set in kwargs"
+                )
+            mpi_job_extra_directives.extend(kwargs["job_extra_directives"])
+            kwargs.update({"job_extra_directives": mpi_job_extra_directives})
         super().__init__(**kwargs)
         self.name = kwargs["name"]
         self._update_script_nodes(**kwargs)
@@ -851,8 +875,18 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
     """
 
     job_cls = CustomPBSJob
+    _cluster_info = {}
 
     def __init__(self, **kwargs):
+        name = kwargs.get("name")
+        if not name:
+            name = str(uuid.uuid4())[:8]
+
+        self._cluster_info = {
+            "name": name,
+            "type": typename(type(self)),
+            **self._cluster_info,
+        }
         self.scheduler_name = "pbs"
         self.ngpus_per_node = kwargs.get("ngpus_per_node", 0)
         kwargs = self.update_init_kwargs(**kwargs)
@@ -863,11 +897,13 @@ class CustomPBSCluster(CustomClusterMixin, PBSCluster):
                     "We don't allow 'job_cpu' as a kwarg in MPI mode since we"
                     " leverage this in jobqueue to set cpus-per-task"
                 )
-            mpi_job_extra = []
-            if "job_extra" not in kwargs:
-                raise KeyError("job_extra keyword should always be set in kwargs")
-            mpi_job_extra.extend(kwargs["job_extra"])
-            kwargs.update({"job_extra": mpi_job_extra})
+            mpi_job_extra_directives = []
+            if "job_extra_directives" not in kwargs:
+                raise KeyError(
+                    "job_extra_directives keyword should always be set in kwargs"
+                )
+            mpi_job_extra_directives.extend(kwargs["job_extra_directives"])
+            kwargs.update({"job_extra_directives": mpi_job_extra_directives})
         super().__init__(**kwargs)
         self.name = kwargs["name"]
         self._update_script_nodes(**kwargs)

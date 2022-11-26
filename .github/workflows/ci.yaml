@@ -15,23 +15,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # CI keeps breaking due to our mix of Conda and Pip in CI, disable `none` for now
-        jobqueue: ["pbs", "slurm"]
-        python: [3.7, 3.8, 3.9]
+        jobqueue: ["none", "pbs", "slurm"]
+        python: ["3.8", "3.9", "3.10"]
         exclude:
           - jobqueue: "pbs"
-            python: 3.7
+            python: "3.8"
           - jobqueue: "pbs"
-            python: 3.8
-    timeout-minutes: 20
+            python: "3.9"
+          - jobqueue: "none"
+            python: "3.9"
+          - jobqueue: "none"
+            python: "3.10"
+    timeout-minutes: 30
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python }}
 
       - name: Black Code Formatter
         uses: lgeiger/black-action@v1.0.1
@@ -44,16 +47,6 @@ jobs:
             pip install flake8
             flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
             flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-
-      # Stay compatible with travis for now
-      # - name: Setup Conda Environment
-      #   uses: goanpeca/setup-miniconda@v1
-      #   with:
-      #     miniconda-version: "latest"
-      #     python-version: 3.6
-      #     environment-file: ci/environment.yml
-      #     activate-environment: jobqueue_features
-      #     auto-activate-base: false
 
       - name: Setup
         env:
@@ -93,11 +86,11 @@ jobs:
       fail-fast: false
       matrix:
         jobqueue: ["slurm"]
-        python: [3.9]
+        python: ["3.9"]
     timeout-minutes: 20
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup
         shell: bash -l {0}
