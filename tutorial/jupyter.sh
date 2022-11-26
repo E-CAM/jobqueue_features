@@ -3,6 +3,7 @@
 JUPYTER_CONTAINERS_DIR="$(pwd)/$(dirname "${BASH_SOURCE[0]}")"
 
 function start_slurm() {
+    export REQUIREMENTS=$(cat $JUPYTER_CONTAINERS_DIR/../requirements.txt | grep -v jobqueue)
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
       ./start-slurm.sh
     cd -
