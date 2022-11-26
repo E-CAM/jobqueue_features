@@ -9,7 +9,7 @@ function start_slurm() {
     cd -
 
     # Install JupyterLab and the Dask extension
-    docker exec slurmctld /bin/bash -c "mamba install -c conda-forge jupyterlab distributed nodejs dask-labextension"
+    docker exec slurmctld /bin/bash -c "mamba install --yes -c conda-forge jupyterlab distributed nodejs dask-labextension"
     # Remove the LAMMPS python package from the login node (so environment is different to compute nodes)
     docker exec slurmctld /bin/bash -c "rm -r /opt/anaconda/lib/python*/site-packages/lammps"
     # Add a slurmuser so we don't run as root

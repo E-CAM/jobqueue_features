@@ -18,7 +18,7 @@ jobqueue:
     queue: batch
     # project: null
     walltime: '00:30:00'
-    extra: []
+    worker-extra-args: []
     job-script-prologue: []
     job-cpu: null
     job-mem: null
