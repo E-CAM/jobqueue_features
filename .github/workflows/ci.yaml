@@ -87,7 +87,7 @@ jobs:
       matrix:
         jobqueue: ["slurm"]
         python: ["3.9"]
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
