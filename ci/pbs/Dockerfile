@@ -9,9 +9,8 @@ RUN yum install -y which && yum clean all
 # Install required Python as well as MPICH and mpi4py (and black)
 ARG PYTHON_VERSION
 ARG REQUIREMENTS
-RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt conda install --yes python=${PYTHON_VERSION}
-RUN conda install --yes -c conda-forge mpich-mpicc mpi4py
-RUN conda install --yes -c conda-forge black ${REQUIREMENTS} && conda clean -tipy
+RUN conda install mamba -n base -c conda-forge
+RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt mamba install -c conda-forge --yes python=${PYTHON_VERSION} mpich-mpicc mpi4py black ${REQUIREMENTS}
 
 # Copy entrypoint and other needed scripts
 COPY ./*.sh /

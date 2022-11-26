@@ -10,4 +10,5 @@ export PATH="$HOME/miniconda/bin:$PATH"
 conda update conda --yes
 conda clean -tipy
 conda config --set always_yes yes --set changeps1 no
+conda install mamba -n base -c conda-forge
 conda --version
