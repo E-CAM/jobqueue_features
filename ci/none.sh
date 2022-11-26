@@ -9,7 +9,7 @@ function jobqueue_before_install {
   PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge flake8 black pytest pytest-asyncio codespell openmpi
   # also install OpenMPI and mpi4py
   PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge openmpi-mpicc mpi4py
-  export REQUIREMENTS=$(cat ../../requirements.txt | grep -v jobqueue)
+  export REQUIREMENTS=$(cat ./requirements.txt | grep -v jobqueue)
   PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge $REQUIREMENTS 
 }
 
