@@ -11,12 +11,9 @@ ENV PATH /opt/anaconda/bin:$PATH
 ARG PYTHON_VERSION
 ARG REQUIREMENTS
 RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt conda install --yes python=${PYTHON_VERSION}
-RUN conda update conda --yes
-RUN conda install conda-build --yes
-RUN conda update conda-build --yes
 RUN conda install mamba -n base -c conda-forge
+RUN mamba install --yes -c conda-forge black ${REQUIREMENTS}
 RUN mamba install --yes -c conda-forge openmpi-mpicc mpi4py lammps
-RUN mamba install --yes -c conda-forge black ${REQUIREMENTS} && conda clean -tipy
 # Clone jobqueue and install it's requirements, and it
 RUN git clone https://github.com/E-CAM/jobqueue_features.git 
 RUN cd /jobqueue_features; pip install --upgrade dask_jobqueue dask distributed; pip install --no-deps -e .
