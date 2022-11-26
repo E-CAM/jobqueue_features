@@ -21,7 +21,7 @@ jobqueue:
     extra: []
     job-cpu: null
     job-mem: null
-    job-extra: []
+    job-extra-directives: []
     log-directory: null
 
 jobqueue-features:
@@ -37,7 +37,7 @@ jobqueue-features:
     warning: null
     
     # MPI/OpenMP related settings ----
-    env-extra: ["export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1", "export OMPI_ALLOW_RUN_AS_ROOT=1"]
+    job-script-prologue: ["export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1", "export OMPI_ALLOW_RUN_AS_ROOT=1"]
     mpi-mode: False                 # MPI mode is off by default
     mpi-launcher: {"implementation": "standard", "launcher": "mpiexec"}  # Default launcher for MPI code (unused unless in MPI mode)
     nodes: null                     # Default node allocation (unused unless in MPI mode, setting a value forces user to
@@ -85,12 +85,12 @@ jobqueue-features:
         name: dask-worker-vis
         queue: vis
         memory: 509GB
-        gpu-job-extra: ['--gres=gpu:2']
+        gpu-job-extrai-directives: ['--gres=gpu:2']
         warning: "Each vis worker has access to 2 GPUs, if you don't need them use mem512 instead"
 
       mem1024:
         name: dask-worker-mem1024
         queue: mem1024
         memory: 1021GB
-        gpu-job-extra: ['--gres=gpu:2']
+        gpu-job-extra-directives: ['--gres=gpu:2']
         warning: "There are only 2 nodes of mem1024 type, only use this category if you really need to"
