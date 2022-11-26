@@ -5,7 +5,8 @@ function jobqueue_before_install {
   ./ci/conda_setup.sh
   # Default to Python 3.8
   if [ -z ${PYTHON_VERSION+x} ]; then export PYTHON_VERSION=3.8; else echo "Python version is set to '$PYTHON_VERSION'"; fi
-  PATH="$HOME/miniconda/bin:$PATH" REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt conda install --yes python=${PYTHON_VERSION}i
+  # Use Ubuntu location for CA certs
+  PATH="$HOME/miniconda/bin:$PATH" REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt conda install --yes python=${PYTHON_VERSION}
   PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge flake8 black pytest pytest-asyncio codespell openmpi
   # also install OpenMPI and mpi4py
   PATH="$HOME/miniconda/bin:$PATH" conda install --yes -c conda-forge openmpi-mpicc mpi4py
