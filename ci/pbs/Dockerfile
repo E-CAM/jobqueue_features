@@ -10,6 +10,7 @@ RUN yum install -y which && yum clean all
 ARG PYTHON_VERSION
 ARG REQUIREMENTS
 RUN REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt conda install --yes python=${PYTHON_VERSION}
+RUN conda update conda --yes
 RUN conda install mamba -n base -c conda-forge
 RUN mamba install --yes -c conda-forge mpich-mpicc mpi4py
 RUN mamba install --yes -c conda-forge black ${REQUIREMENTS} && conda clean -tipy
