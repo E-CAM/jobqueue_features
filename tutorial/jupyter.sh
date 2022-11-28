@@ -2,7 +2,24 @@
 
 JUPYTER_CONTAINERS_DIR="$(pwd)/$(dirname "${BASH_SOURCE[0]}")"
 
+function check_command() {
+    if ! command -v $1 &> /dev/null
+    then
+        echo "$1 could not be found, please install this before continuing!"
+        return 1
+    fi
+    return 0
+}
+
 function start_slurm() {
+    check_command docker-compose
+    have_docker_compose=$?
+    check_command docker
+    have_docker=$?
+    if [ "${have_docker_compose}" != 0 ] || [ "${have_docker}" != "0" ]; then
+        echo "One of docker or docker-compose is not available, exiting!" 
+        return 1
+    fi
     export REQUIREMENTS=$(cat $JUPYTER_CONTAINERS_DIR/../requirements.txt | grep -v jobqueue)
     cd "$JUPYTER_CONTAINERS_DIR/docker_config/slurm"
       ./start-slurm.sh
@@ -27,6 +44,8 @@ function start_slurm() {
     echo
     echo -e "\e[32mSLURM properly configured\e[0m"
     echo
+
+    return 0
 }
 
 function _report_links() {
@@ -51,12 +70,21 @@ function launch_tutorial_slurm() {
 
 function start_tutorial() {
     start_slurm
+    cluster_status=$?
+    if [ "${cluster_status}" != 0 ]; then
+        return 1
+    fi
     launch_tutorial_slurm
+    return 0
 }
 
 
 function start_jobqueue_tutorial() {
     start_slurm
+    cluster_status=$?
+    if [ "${cluster_status}" != 0 ]; then
+        return 1
+    fi
     TUTORIAL="workshop-Dask-Jobqueue-cecam-2021-02"
     # Clone the tutorials, import the workspace and start the JupyterLab
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /data; git clone https://github.com/E-CAM/${TUTORIAL}.git"
@@ -66,6 +94,11 @@ function start_jobqueue_tutorial() {
 }
 
 function test_slurm() {
+    start_slurm
+    cluster_status=$?
+    if [ "${cluster_status}" != 0 ]; then
+        return 1
+    fi
     docker cp $JUPYTER_CONTAINERS_DIR/../jobqueue_features/tests/. slurmctld:/jobqueue_features/jobqueue_features/tests
     docker exec -u slurmuser slurmctld /bin/bash -c "cd /jobqueue_features; pytest /jobqueue_features --verbose -E slurm -s --ignore=/jobqueue_features/jobqueue_features/tests/test_cluster.py"
 }
