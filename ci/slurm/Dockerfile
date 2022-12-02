@@ -7,6 +7,7 @@ RUN curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-L
     bash miniconda.sh -f -b -p /opt/anaconda && \
     /opt/anaconda/bin/conda clean -tipy && \
     rm -f miniconda.sh
+ENV PATH /opt/anaconda/bin:$PATH
 
 # Install required Python as well as OpenMPI, mpi4py and most of the requirements
 ARG PYTHON_VERSION
