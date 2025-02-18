@@ -51,12 +51,13 @@ jobs:
             pip install flake8
             flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
             flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-      - name: Redirect docker-compose to docker compose
+      - name: Redirect and replace docker-compose to docker compose
         run: |
             # This is a very rough fix
             echo 'docker-compose() { docker compose "$@"; }' >> ~/.bashrc
             echo 'export -f docker-compose' >> ~/.bashrc
             source ~/.bashrc
+            find . -type f -exec sed -i 's/docker-compose/docker compose/g' {} +
       - name: Setup
         env:
           PYTHON_VERSION: ${{ matrix.python }}
